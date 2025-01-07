@@ -187,7 +187,7 @@ namespace task_def
     class AssemblySeq {
     public:
         AssemblySeq() = default;
-        virtual std::vector<ObjNodePtr> get_sequence();
+        virtual std::vector<ObjNodePtr> get_sequence() {};
         int num_tasks() {return num_tasks_;}
     
     protected:

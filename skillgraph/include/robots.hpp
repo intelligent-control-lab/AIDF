@@ -37,7 +37,7 @@ namespace robot {
 
     typedef std::vector<RobotTrajectory> MRTrajectory;
 
-    class Robot {
+    struct Robot {
         enum Type {
             GP4 = 0,
             Kinova = 1,

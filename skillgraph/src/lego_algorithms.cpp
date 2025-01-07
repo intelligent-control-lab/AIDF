@@ -21,6 +21,16 @@ bool LegoGripperPlanner::plan_pick(const object::LegoBrick &brick, std::vector<t
 
 }
 
+bool LegoGripperPlanner::plan_place(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks)
+{
+
+}
+
+bool LegoGripperPlanner::plan_support(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks)
+{
+
+}
+
 LegoPolicy::LegoPolicy(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr, 
                 const std::vector<std::string> &group_names,
                 const std::vector<std::vector<std::string>> &joint_names,

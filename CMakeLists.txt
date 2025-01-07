@@ -116,20 +116,24 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # /*                             Testing Executables                            */
 # /* -------------------------------------------------------------------------- */
  
+add_executable(plan_lego
+  exe/plan_lego.cpp
+)
 
-# add_executable(yk_robot
-#   src/exe/yk_interface.cpp
-# )
+target_link_libraries(plan_lego
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
 
-# target_include_directories(yk_robot PUBLIC
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#   $<INSTALL_INTERFACE:include>
-#   PRIVATE src)
+target_include_directories(plan_lego PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  PRIVATE src)
 
-# target_link_libraries(yk_robot
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(plan_lego
+  ${catkin_LIBRARIES}
+)
 
-# install(TARGETS yk_robot
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS plan_lego
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

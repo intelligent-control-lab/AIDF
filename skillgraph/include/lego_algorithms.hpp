@@ -48,9 +48,6 @@ public:
                         task_def::Activity::Type type);
     virtual void update_joint_states(const std::vector<double> &joint_states, int robot_id);
 
-//    virtual void add_actionlib(std::vector<std::shared_ptr<control_msgs::FollowJointTrajectoryActionClient>> action_clients);
-    virtual void add_move_clients(const std::vector<ros::ServiceClient> &clients);
-
 #ifdef HAVE_YK_TASKS
     virtual void add_actionlib(const std::vector<std::shared_ptr<actionlib::SimpleActionClient<yk_tasks::GoToJointsAction>>> &action_clients);
     virtual void add_stop_clients(const std::vector<std::shared_ptr<ros::ServiceClient>> &stop_clients);
