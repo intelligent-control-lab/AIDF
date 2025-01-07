@@ -51,6 +51,8 @@ This notice must appear in all copies of this file and its derivatives.
 #include <chrono>
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
+#include <queue>
+
 #include "ros/ros.h"
 #include <ros/package.h>
 #include "std_msgs/Float32MultiArray.h"

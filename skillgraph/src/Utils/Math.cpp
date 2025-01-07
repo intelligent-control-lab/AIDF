@@ -352,7 +352,7 @@ Eigen::Matrix4d FK(const VectorJd& q, const Eigen::MatrixXd& DH, const Eigen::Ma
         // Deg to Rad
         for(int i=0; i<q.rows(); i++)
         {
-            q_rad(i) = q(i) * PI / 180;
+            q_rad(i) = q(i) * M_PI / 180;
         }
     }
 
@@ -387,7 +387,7 @@ Eigen::MatrixXd Jacobian_full(const VectorJd& q_deg, const Eigen::MatrixXd& DH, 
         // Deg to Rad
         for(int i=0; i<q_deg.rows(); i++)
         {
-            q_rad(i) = q_deg(i) * PI / 180;
+            q_rad(i) = q_deg(i) * M_PI / 180;
         }
     }
     DH_cur.col(0) = DH.col(0) + q_rad;
@@ -429,7 +429,7 @@ VectorJd IK_closed_form(const VectorJd& cur_q, const Eigen::Matrix4d& goal_T, co
         // Deg to Rad
         for(int i=0; i<cur_q.rows(); i++)
         {
-            theta(i) = theta(i) * PI / 180;
+            theta(i) = theta(i) * M_PI / 180;
         }
     }
     VectorJd cur_theta = theta;
@@ -514,23 +514,23 @@ VectorJd IK_closed_form(const VectorJd& cur_q, const Eigen::Matrix4d& goal_T, co
     cond1 = pow(f2, 2) + pow(t1, 2) - pow(t2, 2);
     double th2_tmp1, th2_tmp2, th2_tmp3;
 
-    th2_tmp1 = 2 * atan((f2 + sqrt(cond1)) / (t1 + t2)) + PI / 2;
-    th2_tmp2 = 2 * atan((f2 - sqrt(cond1)) / (t1 + t2)) + PI / 2;
+    th2_tmp1 = 2 * atan((f2 + sqrt(cond1)) / (t1 + t2)) + M_PI / 2;
+    th2_tmp2 = 2 * atan((f2 - sqrt(cond1)) / (t1 + t2)) + M_PI / 2;
 
     t1 = f2;
     t2 = -f1-a2;
     t3 = Z;
-    th2_tmp3 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3)) + PI / 2;
+    th2_tmp3 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3)) + M_PI / 2;
     if(ApproxEqNum(th2_tmp1, th2_tmp3, eps) || ApproxEqNum(th2_tmp2, th2_tmp3, eps))
     {
         th2 = th2_tmp3;
     }
-    th2_tmp3 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3)) + PI / 2;
+    th2_tmp3 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3)) + M_PI / 2;
     if(ApproxEqNum(th2_tmp1, th2_tmp3, eps) || ApproxEqNum(th2_tmp2, th2_tmp3, eps))
     {
         th2 = th2_tmp3;
     }
-    double th2_tmp = th2 - PI / 2;
+    double th2_tmp = th2 - M_PI / 2;
 
     g1 = f1 * cos(th2_tmp) + f2 * sin(th2_tmp) + a2 * cos(th2_tmp);
     g2 = f1 * sin(th2_tmp) - f2 * cos(th2_tmp) + a2 * sin(th2_tmp);
@@ -582,7 +582,7 @@ VectorJd IK_closed_form(const VectorJd& cur_q, const Eigen::Matrix4d& goal_T, co
             th6 = atan2(R36(0, 1), R36(0, 0));
         }
         else{
-            th5 = PI;
+            th5 = M_PI;
             th6 = atan2(R36(1, 0), -R36(1, 1));
 
         }
@@ -614,7 +614,7 @@ VectorJd IK_closed_form(const VectorJd& cur_q, const Eigen::Matrix4d& goal_T, co
     // Rad to Deg
     for(int i=0; i<theta.rows(); i++)
     {
-        theta(i) = theta(i) * 180 / PI;
+        theta(i) = theta(i) * 180 / M_PI;
     }
 
     auto stop = high_resolution_clock::now();
@@ -634,7 +634,7 @@ VectorJd IK(const VectorJd& q, const Eigen::Matrix<double, 3, 1>& cart_goal, con
         // Deg to Rad
         for(int i=0; i<q.rows(); i++)
         {
-            theta(i) = theta(i) * PI / 180;
+            theta(i) = theta(i) * M_PI / 180;
         }
     }
     VectorJd theta_init = theta;
@@ -676,7 +676,7 @@ VectorJd IK(const VectorJd& q, const Eigen::Matrix<double, 3, 1>& cart_goal, con
     // Rad to Deg
     for(int i=0; i<q.rows(); i++)
     {
-        theta(i) = theta(i) * 180 / PI;
+        theta(i) = theta(i) * 180 / M_PI;
         while(theta(i) > 180)
         {
             theta(i) = theta(i) - 360;

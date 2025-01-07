@@ -19,7 +19,6 @@ This notice must appear in all copies of this file and its derivatives.
 #include "Utils/Common.hpp"
 #include "Utils/ErrorHandling.hpp"
 
-#define PI 3.141592653589793
 #define CARTESIAN_DIMS 6
 #define TRANS_DIMS 3
 #define AXIS_DIMS 3

@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "Utils/FileIO.hpp"
 
-namespace task_definition
+namespace task_def
 {
     // forward decalre
     class Activity;
@@ -27,7 +27,7 @@ namespace task_definition
         ActPtr prev_detach;
         ActPtr next_attach;
     };
-    typedef std::shared_ptr<ObjectNode> ObjPtr;
+    typedef std::shared_ptr<ObjectNode> ObjNodePtr;
 
     struct EnvState {
         std::vector<object::Object> objects;
@@ -125,8 +125,8 @@ namespace task_definition
         std::shared_ptr<Activity> type1_next;
         robot::RobotState start_pose;
         robot::RobotState end_pose;
-        std::vector<ObjPtr> obj_detached;
-        std::vector<ObjPtr> obj_attached;
+        std::vector<ObjNodePtr> obj_detached;
+        std::vector<ObjNodePtr> obj_attached;
         std::vector<SetCollisionNode> collision_nodes;
     };
 
@@ -143,13 +143,13 @@ namespace task_definition
         ActPtr add_act(int robot_id, Activity::Type type, ActPtr type2_dep);
     
         /* add a static object to the scene (no attached parent)*/
-        ObjPtr add_obj(const object::Object &obj);
+        ObjNodePtr add_obj(const object::Object &obj);
 
         /* set the object node to be attached to a robot at the onset of selected activity */
-        void attach_obj(ObjPtr obj, const std::string &link_name, ActPtr act);
+        void attach_obj(ObjNodePtr obj, const std::string &link_name, ActPtr act);
 
         /* set the object node to be detached from a robot at the onset of selected activity */
-        void detach_obj(ObjPtr obj, ActPtr act);
+        void detach_obj(ObjNodePtr obj, ActPtr act);
 
         void add_type2_dep(ActPtr act, ActPtr dep);
 
@@ -162,7 +162,7 @@ namespace task_definition
         std::shared_ptr<const Activity> get(int robot_id, int act_id) const;
         ActPtr get_last_act(int robot_id);
         ActPtr get_last_act(int robot_id, Activity::Type type);
-        ObjPtr get_last_obj(const std::string &obj_name);
+        ObjNodePtr get_last_obj(const std::string &obj_name);
 
         int num_activities(int robot_id) const {
                     return activities_[robot_id].size();
@@ -172,24 +172,46 @@ namespace task_definition
             return num_robots_;
         }
         
-        std::vector<ObjPtr> get_obj_nodes() const {
+        std::vector<ObjNodePtr> get_obj_nodes() const {
             return obj_nodes_;
         }
 
-        std::vector<ObjPtr> get_start_obj_nodes() const;
-        std::vector<ObjPtr> get_end_obj_nodes() const;
+        std::vector<ObjNodePtr> get_start_obj_nodes() const;
+        std::vector<ObjNodePtr> get_end_obj_nodes() const;
 
         bool bfs(ActPtr act_i, std::vector<std::vector<bool>> &visited, bool forward) const;
 
-        std::vector<ObjPtr> find_indep_obj(ActPtr act) const;
+        std::vector<ObjNodePtr> find_indep_obj(ActPtr act) const;
 
         void remove_act(int robot_id, int act_id);
 
-    private:
+    protected:
         int num_robots_ = 0;
         std::vector<std::vector<ActPtr>> activities_;
-        std::vector<ObjPtr> obj_nodes_;
+        std::vector<ObjNodePtr> obj_nodes_;
         
     };  
+
+    class AssemblySeq {
+    public:
+        AssemblySeq() = default;
+        virtual std::vector<ObjNodePtr> get_sequence();
+        int num_tasks() {return num_tasks_;}
+    
+    protected:
+        int num_tasks_;
+        std::vector<ObjNodePtr> obj_seq_;
+    };
+
+    class LegoAssemblySeq : public AssemblySeq {
+    public:
+        LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
+                        const std::string &task_json);
+    
+    private:
+        lego_manipulation::lego::Lego::Ptr lego_ptr_;
+        Json::Value task_json_;
+        std::vector<ObjNodePtr> lego_seq_;
+    };
 
 }

@@ -2,17 +2,6 @@
 #include "Utils/Common.hpp"
 
 namespace robot {
-    struct Capability {
-        enum EE {
-            // end effector type
-            NoTool = 0,
-            LegoTool = 1,
-            SuctionCup = 2,
-            TwoFingerGripper = 3,
-            ThreeFingerGripper = 4
-        };
-    };
-
     struct RobotState {
         int robot_id;
         std::string robot_name; // same as group name in moveit
@@ -48,9 +37,26 @@ namespace robot {
 
     typedef std::vector<RobotTrajectory> MRTrajectory;
 
-    struct Robot {
+    class Robot {
+        enum Type {
+            GP4 = 0,
+            Kinova = 1,
+            Panda = 2
+        };
+
+
+        enum Tool {
+            // end effector type
+            NoTool = 0,
+            LegoTool = 1,
+            SuctionCup = 2,
+            TwoFingerGripper = 3,
+            ThreeFingerGripper = 4
+        };
+
+        Tool tool;
+        Type type;
         std::string robot_name;
-        Capability capability;
         int robot_dof; // degree of freedom of the robot links
         int hand_dof; // degree of freefom of end-effector
     };

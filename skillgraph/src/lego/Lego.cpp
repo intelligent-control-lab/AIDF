@@ -41,7 +41,7 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
                  -450, 450;
     for(int i=0; i<r1_robot_dof_; i++)
     {
-        thetamax_rad_.row(i) << thetamax_(i, 0) / 180 * PI, thetamax_(i, 1) / 180 * PI;
+        thetamax_rad_.row(i) << thetamax_(i, 0) / 180 * M_PI, thetamax_(i, 1) / 180 * M_PI;
     }
     set_world_base(world_base_fname);
     set_robot_base(r1_base_fname, r2_base_fname);
@@ -884,7 +884,7 @@ bool Lego::joint_in_range(const math::VectorJd& theta, const bool& is_rad)
         // Rad to Deg
         for(int i=0; i<theta.rows(); i++)
         {
-            theta_deg(i) = theta_deg(i) / PI * 180;
+            theta_deg(i) = theta_deg(i) / M_PI * 180;
         }
     }
     for(int i=0; i<theta.rows(); i++)
@@ -909,7 +909,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
         // Deg to Rad
         for(int i=0; i<cur_q.rows(); i++)
         {
-            theta(i) = theta(i) * PI / 180;
+            theta(i) = theta(i) * M_PI / 180;
         }
     }
     math::VectorJd cur_theta = theta;
@@ -970,8 +970,8 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
             t1 = f2;
             t2 = -f1-a2;
             t3 = Z;
-            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
-            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
+            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
+            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
 
             if(th3_tmp < thetamax_rad_(2, 1) && th3_tmp > thetamax_rad_(2, 0))
             {
@@ -997,8 +997,8 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
             t1 = f2;
             t2 = -f1-a2;
             t3 = Z;
-            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
-            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
+            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
+            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
             if(th3_tmp < thetamax_rad_(2, 1) && th3_tmp > thetamax_rad_(2, 0))
             {
                 if(th2_tmp1 < thetamax_rad_(1, 1) && th2_tmp1 > thetamax_rad_(1, 0))
@@ -1027,8 +1027,8 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
             t1 = f2;
             t2 = -f1-a2;
             t3 = Z;
-            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
-            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
+            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
+            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
             if(th3_tmp < thetamax_rad_(2, 1) && th3_tmp > thetamax_rad_(2, 0))
             {
                 if(th2_tmp1 < thetamax_rad_(1, 1) && th2_tmp1 > thetamax_rad_(1, 0))
@@ -1053,8 +1053,8 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
             t1 = f2;
             t2 = -f1-a2;
             t3 = Z;
-            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
-            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + PI / 2;
+            th2_tmp1 = 2 * atan((t2 + sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
+            th2_tmp2 = 2 * atan((t2 - sqrt(pow(t2, 2) + pow(t1, 2) - pow(t3, 2))) / (t1 + t3 + eps)) + M_PI / 2;
             if(th3_tmp < thetamax_rad_(2, 1) && th3_tmp > thetamax_rad_(2, 0))
             {
                 if(th2_tmp1 < thetamax_rad_(1, 1) && th2_tmp1 > thetamax_rad_(1, 0))
@@ -1084,7 +1084,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
     double th1_tmp1, th1_tmp2;
     for(int i=0; i<th23_candidate_cnt; i++)
     {
-        th2_tmp = th23_candidates(i, 0) - PI / 2;
+        th2_tmp = th23_candidates(i, 0) - M_PI / 2;
         th3_tmp = th23_candidates(i, 1);
         th1_candidate_cnt = 0;
 
@@ -1110,7 +1110,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
         for(int j=0; j<th1_candidate_cnt; j++)
         {
             theta_tmp(0) = th1_candidates(j, 0);
-            theta_tmp(1) = th2_tmp + PI / 2;;
+            theta_tmp(1) = th2_tmp + M_PI / 2;;
             theta_tmp(2) = th3_tmp;
             DH_cur.col(0) = DH.col(0) + theta_tmp;
             Eigen::Matrix3d R03 = Eigen::Matrix3d::Identity(3, 3);
@@ -1142,7 +1142,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
                     all_candidate_cnt ++;
                 }
 
-                th5_tmp = PI;
+                th5_tmp = M_PI;
                 th6_tmp = atan2(R36(1, 0), -R36(1, 1));
                 theta_tmp(3) = th4_tmp;
                 theta_tmp(4) = th5_tmp;
@@ -1194,7 +1194,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
         for(int j=-1; j<2; j++)
         {
             theta_tmp = candidates.row(i);
-            theta_tmp(5) = theta_tmp(5) + j * 2 * PI;
+            theta_tmp(5) = theta_tmp(5) + j * 2 * M_PI;
             verify_T = math::FK(theta_tmp, DH, T_base, 1);
             
             if(verify_T.isApprox(goal_T, 0.1) && verify_T.col(3).isApprox(goal_T.col(3), 0.01) && (theta_tmp - cur_theta).norm() < min_diff && joint_in_range(theta_tmp, 1))
@@ -1215,7 +1215,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
     // Rad to Deg
     for(int i=0; i<theta.rows(); i++)
     {
-        theta(i) = theta(i) * 180 / PI;
+        theta(i) = theta(i) * 180 / M_PI;
     }
     return theta;
 }

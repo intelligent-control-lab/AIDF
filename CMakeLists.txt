@@ -39,6 +39,13 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(yk_tasks QUIET)
+# Conditionally define a macro if yk_tasks is found
+if(yk_tasks_FOUND)
+  message(STATUS "yk_tasks found, defining HAVE_YK_TASKS")
+  target_compile_definitions(lego PRIVATE HAVE_YK_TASKS)
+else()
+  message(WARNING "yk_tasks not found, excluding related code")
+endif()
 
 
 add_service_files(
@@ -77,7 +84,7 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${EIGEN3_
 # /*                               Create Library                               */
 # /* -------------------------------------------------------------------------- */
 file(GLOB src_files skillgraph/src/*.cpp skillgraph/src/lego/*.cpp
-          skillgraph/src/Utils/*.cpp )
+          skillgraph/src/Utils/*.cpp planner/src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${src_files})
 
@@ -96,6 +103,7 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/planner/include>
   $<INSTALL_INTERFACE:include>
   PRIVATE src)
 
