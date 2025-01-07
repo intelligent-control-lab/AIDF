@@ -8,6 +8,19 @@ using namespace task_def;
 
 namespace algo {
 
+LegoGripperPlanner::LegoGripperPlanner(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
+                    std::shared_ptr<robot::PlanInstance> instance,
+                    const LegoPolicyCfg &config) :
+        lego_ptr_(lego_ptr), instance_(instance), config_(config) 
+    {
+
+    }
+
+bool LegoGripperPlanner::plan_pick(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks)
+{
+
+}
+
 LegoPolicy::LegoPolicy(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr, 
                 const std::vector<std::string> &group_names,
                 const std::vector<std::vector<std::string>> &joint_names,

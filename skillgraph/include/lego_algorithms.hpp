@@ -1,5 +1,6 @@
 #include "algorithms.hpp"
 #include "adg.h"
+#include "object.hpp"
 #include <geometry_msgs/WrenchStamped.h>
 
 namespace algo {
@@ -14,6 +15,25 @@ struct LegoPolicyCfg {
     double dt = 0.1;
     double velocity = 1.0;
     double sup_force_tol = 0.03;
+};
+
+class LegoGripperPlanner : public Algorithm {
+public:
+    LegoGripperPlanner(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
+                    std::shared_ptr<robot::PlanInstance> instance,
+                    const LegoPolicyCfg &config);
+    
+    virtual bool plan_pick(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks);
+
+    virtual bool plan_place(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks);
+
+    virtual bool plan_support(const object::LegoBrick &brick, std::vector<task_def::ActPtr> &sub_tasks);
+
+protected:
+    std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
+    std::shared_ptr<robot::PlanInstance> instance_;
+    LegoPolicyCfg config_;
+
 };
 
 class LegoPolicy : public Algorithm {

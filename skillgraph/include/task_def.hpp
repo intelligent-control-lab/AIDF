@@ -32,14 +32,6 @@ namespace task_def
     struct EnvState {
         std::vector<object::Object> objects;
     };
-    
-    struct State{
-        // robot state and env state
-        // feasibility functions rely on lego state (cannot be task-agnostic?)
-        // robot state (can be task-agnostic?)
-        EnvState env_state;
-        robot::RobotState robot_state;
-    };
 
     class SetCollisionNode {
     public:
@@ -202,6 +194,17 @@ namespace task_def
         int num_tasks_;
         std::vector<ObjNodePtr> obj_seq_;
     };
+
+    struct State {
+        // robot state and env state
+        // feasibility functions rely on lego state (cannot be task-agnostic?)
+        // robot state (can be task-agnostic?)
+        EnvState env_state;
+        robot::RobotState robot_state;
+        AssemblySeq assembly_state;
+        int cur_step = 0;
+    };
+
 
     class LegoAssemblySeq : public AssemblySeq {
     public:

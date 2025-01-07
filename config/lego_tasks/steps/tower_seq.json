@@ -1,0 +1,57 @@
+{
+    "1": {
+        "x": 23,
+        "y": 10,
+        "z": 1,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 5,
+        "press_side": 1,
+        "robot_id": 1,
+        "sup_robot_id": 0
+    },
+    "2": {
+        "x": 23,
+        "y": 10,
+        "z": 2,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 9,
+        "press_side": 4,
+        "robot_id": 2,
+        "sup_robot_id": 0
+    },
+    "3": {
+        "x": 23,
+        "y": 10,
+        "z": 3,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 3,
+        "press_side": 1,
+        "robot_id": 1,
+        "sup_robot_id": 0
+    },
+    "4": {
+        "x": 23,
+        "y": 10,
+        "z": 4,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 8,
+        "press_side": 4,
+        "robot_id": 2,
+        "sup_robot_id": 0
+    },
+    "5": {
+        "x": 23,
+        "y": 10,
+        "z": 5,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 4,
+        "press_side": 1,
+        "robot_id": 1,
+        "sup_robot_id": 0
+    }
+}

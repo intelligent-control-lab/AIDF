@@ -1,0 +1,30 @@
+{
+    "task_type": "lego",
+    "task_seq": "stairs_new",
+    "legoConig": "config/lego_tasks/user_config.json",
+    "backend": "moveit",
+    "robots": {
+        "numRobot": 2,
+        "type": ["gp4", "gp4"],
+        "gripperTypes": ["lego", "lego"],
+        "moveitNames": ["left_arm", "right_arm"],
+        "moveitConfigPkg": "dual_gp4_moveit_config"
+    },
+    "env": "mfi_testbed",
+    "skills": {
+        "gp4_lego": [
+            "transit",
+            "transfer",
+            "pick",
+            "place",
+            "support"
+        ]
+    },
+    "metaskills": {
+        "place_w_sup": {
+            "numRobot": 2,
+            "r1": ["place"],
+            "r2": ["support"]
+        }
+    }
+}

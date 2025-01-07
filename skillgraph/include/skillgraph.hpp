@@ -9,6 +9,16 @@ using namespace robot;
 
 namespace skillgraph
 {   
+    enum TaskType {
+        Lego = 1,
+        NIST = 2,
+    };
+
+    enum BackEnd {
+        MOVEIT = 1,
+        MUJOCO = 2,
+    };
+
     struct Skill {
         enum Type {
             pick = 1,
@@ -26,7 +36,7 @@ namespace skillgraph
         algo::Algorithm algorithm;
     };
 
-    class Skillgraph{
+    class SkillGraph{
         private:
             std::vector<std::string> meta_skills;
             std::map<std::string, std::vector<std::string>> atmoic_skills;
@@ -38,8 +48,8 @@ namespace skillgraph
             std::map<std::string, task_def::EnvState> env_state_form;
 
         public:
-            Skillgraph();
-            ~Skillgraph(){}
+            SkillGraph(const std::string &config);
+            ~SkillGraph(){}
             
             void print_skillgraph();
 
@@ -52,9 +62,16 @@ namespace skillgraph
             std::vector<std::string> get_robot_capabilities();
             
             std::set<Skill> feasible_u(const task_def::State& state);
+            std::set<Skill> lego_feasible_u(const task_def::State &state);
 
         protected:
-            std::shared_ptr<PlanInstance> instance;
+            BackEnd backend_;
+            TaskType task_type_;
+            std::vector<robot::Robot> robots;
+            std::vector<Skill::Type> skill_types;
+            std::shared_ptr<robot::PlanInstance> instance;
+            task_def::AssemblySeq task_seq_;
+
             // std::tuple<std::vector<std::string>, std::function<bool(const std::map<std::string, std::any>&)>> 
             //     feasible_target_states(const std::string& skill, const task_def::Object& obj, const task_def::State& state);
             // std::set<std::map> feasible_atomic_skills(const task_def::State& state);
