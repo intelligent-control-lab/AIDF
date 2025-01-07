@@ -2,7 +2,7 @@
 #include <Utils/Math.hpp>
 #include <Utils/ErrorHandling.hpp>
 
-namespace skillgraph
+namespace lego_manipulation
 {
 namespace io
 {

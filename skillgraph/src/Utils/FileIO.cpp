@@ -17,7 +17,7 @@ This notice must appear in all copies of this file and its derivatives.
 */
 #include <Utils/FileIO.hpp>
 
-namespace skillgraph
+namespace lego_manipulation
 {
 namespace io
 {

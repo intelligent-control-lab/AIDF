@@ -44,6 +44,8 @@ This notice must appear in all copies of this file and its derivatives.
 #include <cmath>
 #include <iomanip>
 #include <map>
+#include <unordered_map>
+#include <random>
 #include <utility>
 #include <memory>
 #include <chrono>

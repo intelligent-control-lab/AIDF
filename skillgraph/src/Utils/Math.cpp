@@ -2,7 +2,7 @@
 
 #undef inverse
 
-namespace skillgraph
+namespace lego_manipulation
 {
 namespace math
 {
@@ -656,7 +656,7 @@ VectorJd IK(const VectorJd& q, const Eigen::Matrix<double, 3, 1>& cart_goal, con
     {
         if(iter_num >= max_iter)
         {
-            std::cout << "IK failed!" << std::endl;
+            // std::cout << "IK failed!" << std::endl;
             theta = theta_init;
             break;
         }
@@ -672,7 +672,7 @@ VectorJd IK(const VectorJd& q, const Eigen::Matrix<double, 3, 1>& cart_goal, con
         error = get_6d_error(pos_s, quat_s, pos_e, quat_e);
         iter_num ++;
     }
-    ROS_INFO_STREAM("IK iter num: " << iter_num);
+    ROS_DEBUG_STREAM("IK iter num: " << iter_num);
     // Rad to Deg
     for(int i=0; i<q.rows(); i++)
     {
@@ -689,7 +689,7 @@ VectorJd IK(const VectorJd& q, const Eigen::Matrix<double, 3, 1>& cart_goal, con
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
-    ROS_INFO_STREAM("IK calc time: " << duration.count() / 1000000.0 << " s");
+    ROS_DEBUG_STREAM("IK calc time: " << duration.count() / 1000000.0 << " s");
     return theta;
 }
 
