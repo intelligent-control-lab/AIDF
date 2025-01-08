@@ -187,7 +187,12 @@ namespace task_def
     class AssemblySeq {
     public:
         AssemblySeq() = default;
-        virtual std::vector<ObjNodePtr> get_sequence() {};
+        virtual ~AssemblySeq() {};
+        virtual std::vector<ObjNodePtr> get_sequence() {return obj_seq_;}
+
+        virtual ObjNodePtr get_object_at(int i);
+
+        virtual void print();
         int num_tasks() {return num_tasks_;}
     
     protected:
@@ -210,7 +215,10 @@ namespace task_def
     public:
         LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
                         const std::string &task_json);
+        virtual  ~LegoAssemblySeq() {};
     
+        void remove_brick_seq();
+
     private:
         lego_manipulation::lego::Lego::Ptr lego_ptr_;
         Json::Value task_json_;

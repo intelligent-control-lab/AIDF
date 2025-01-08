@@ -2,19 +2,19 @@
 
 namespace skillgraph {
 
-SkillGraph::SkillGraph(const std::string &config) {
+SkillGraph::SkillGraph(const std::string &config_fname) {
     // Open the JSON file
-    std::ifstream file(config, std::ifstream::binary);
+    std::cout << "path name " << config_fname << std::endl;
+    std::ifstream file(config_fname, std::ifstream::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("Unable to open config file: " + config);
+        throw std::runtime_error("Unable to open config file: " + config_fname);
     }
 
     // Parse the JSON
-    Json::Value root;
-    file >> root;
+    file >> root_config_;
 
     // Parse task type
-    std::string task_type_str = root["task_type"].asString();
+    std::string task_type_str = root_config_["task_type"].asString();
     if (task_type_str == "lego") {
         task_type_ = TaskType::Lego;
     } else if (task_type_str == "nist") {
@@ -23,13 +23,8 @@ SkillGraph::SkillGraph(const std::string &config) {
         throw std::runtime_error("Unknown task type: " + task_type_str);
     }
 
-    // Parse task sequence
-    if (task_type_str == "lego") {
-        // TODO initialize lego sequence
-    }
-
     // Parse backend
-    std::string backend_str = root["backend"].asString();
+    std::string backend_str = root_config_["backend"].asString();
     if (backend_str == "moveit") {
         backend_ = BackEnd::MOVEIT;
     } else if (backend_str == "mujoco") {
@@ -39,7 +34,7 @@ SkillGraph::SkillGraph(const std::string &config) {
     }
 
     // Parse robots
-    const Json::Value &robots_json = root["robots"];
+    const Json::Value &robots_json = root_config_["robots"];
     int num_robots = robots_json["numRobot"].asInt();
     for (int i = 0; i < num_robots; ++i) {
         robot::Robot robot;
@@ -50,7 +45,7 @@ SkillGraph::SkillGraph(const std::string &config) {
     }
 
     // Parse skills
-    const Json::Value &skills_json = root["skills"];
+    const Json::Value &skills_json = root_config_["skills"];
     for (const auto &skill_key : skills_json.getMemberNames()) {
         std::vector<std::string> skill_list;
         for (const auto &skill : skills_json[skill_key]) {
@@ -60,7 +55,7 @@ SkillGraph::SkillGraph(const std::string &config) {
     }
 
     // Parse meta-skills
-    const Json::Value &metaskills_json = root["metaskills"];
+    const Json::Value &metaskills_json = root_config_["metaskills"];
     for (const auto &meta_key : metaskills_json.getMemberNames()) {
         const Json::Value &meta_value = metaskills_json[meta_key];
         int num_robots = meta_value["numRobot"].asInt();
@@ -77,7 +72,10 @@ SkillGraph::SkillGraph(const std::string &config) {
 
 void SkillGraph::print_skillgraph() {
     std::cout << "Task Type: " << (task_type_ == TaskType::Lego ? "Lego" : "NIST") << std::endl;
-    std::cout << "Task Sequence: " << task_seq_.num_tasks() << std::endl;
+    if (task_seq_ != nullptr)  {
+        std::cout << "Task Sequence: " << task_seq_->num_tasks() << std::endl;
+        task_seq_->print();
+    }
     std::cout << "Backend: " << (backend_ == BackEnd::MOVEIT ? "MoveIt" : "Mujoco") << std::endl;
 
     std::cout << "Robots:" << std::endl;
@@ -109,19 +107,5 @@ void SkillGraph::add_atomic_skill(const std::string &skill) {
 
 };
 
-std::set<Skill> SkillGraph::feasible_u(const task_def::State& state)
-{
-    if (task_type_ == TaskType::Lego) {
-        return lego_feasible_u(state);
-    }
-    
-}
-
-std::set<Skill> SkillGraph::lego_feasible_u(const task_def::State &state)
-{
-    std::set<Skill> feasible_set;
-    
-    return feasible_set;
-}
 
 }
