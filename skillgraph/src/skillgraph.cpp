@@ -45,29 +45,8 @@ SkillGraph::SkillGraph(const std::string &config_fname) {
     }
 
     // Parse skills
-    const Json::Value &skills_json = root_config_["skills"];
-    for (const auto &skill_key : skills_json.getMemberNames()) {
-        std::vector<std::string> skill_list;
-        for (const auto &skill : skills_json[skill_key]) {
-            skill_list.push_back(skill.asString());
-        }
-        atmoic_skills[skill_key] = skill_list;
-    }
 
     // Parse meta-skills
-    const Json::Value &metaskills_json = root_config_["metaskills"];
-    for (const auto &meta_key : metaskills_json.getMemberNames()) {
-        const Json::Value &meta_value = metaskills_json[meta_key];
-        int num_robots = meta_value["numRobot"].asInt();
-        std::vector<std::string> meta_skill_list;
-        for (int i = 1; i <= num_robots; ++i) {
-            std::string robot_key = "r" + std::to_string(i);
-            for (const auto &sub_skill : meta_value[robot_key]) {
-                meta_skill_list.push_back(sub_skill.asString());
-            }
-        }
-        add_meta_skill(meta_key, meta_skill_list);
-    }
 }
 
 void SkillGraph::print_skillgraph() {
@@ -84,22 +63,13 @@ void SkillGraph::print_skillgraph() {
     }
 
     std::cout << "Atomic Skills:" << std::endl;
-    for (const auto &[key, skills] : atmoic_skills) {
-        std::cout << key << ": ";
-        for (const auto &skill : skills) {
-            std::cout << skill << " ";
-        }
-        std::cout << std::endl;
-    }
-
+    //TOTO print atomic skills
     std::cout << "Meta Skills:" << std::endl;
-    for (const auto &meta_skill : meta_skills) {
-        std::cout << " - " << meta_skill << std::endl;
-    }
+    //TOTO print meta skills
 }
 
 void SkillGraph::add_meta_skill(const std::string &meta_skill, const std::vector<std::string> &atomic_skill) {
-    meta_skills.push_back(meta_skill);
+
 }
 
 

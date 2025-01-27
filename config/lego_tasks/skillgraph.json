@@ -8,9 +8,13 @@
         "type": ["gp4", "gp4"],
         "gripperTypes": ["lego", "lego"],
         "moveitNames": ["left_arm", "right_arm"],
-        "moveitConfigPkg": "dual_gp4_moveit_config"
+        "moveitConfigPkg": "dual_gp4_moveit_config",
+        "stateForm": "RobotArmState"
     },
-    "env": "mfi_testbed",
+    "env": {
+        "name": "mfi_testbed",
+        "stateForm": "LegoEnvState"
+    },
     "skills": {
         "gp4_lego": [
             "transit",

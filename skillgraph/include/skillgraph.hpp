@@ -29,6 +29,9 @@ namespace skillgraph
             transit = 6,
         };
 
+        bool isAtomic(Type type);
+        bool isMeta(Type type);
+
         Type type;
         task_def::ActPtr act_ptr;
         object::Object object;
@@ -38,24 +41,27 @@ namespace skillgraph
 
     class SkillGraph{
         protected:
-            std::vector<std::string> meta_skills;
-            std::map<std::string, std::vector<std::string>> atmoic_skills;
-            std::vector<std::string> robot_capabilities;
+            // symbols defined by user
+            std::map<std::string, object::Object> object_library; // maps of all objects
+            std::map<std::string, Skill::Type> skill_types;             // maps from user-defined string to enum
 
-            std::map<std::string, object::Object> object_library;
-            std::map<std::string, task_def::Activity> user_task;
-            std::map<std::string, robot::RobotState> robot_state_form;
-            std::map<std::string, task_def::EnvState> env_state_form;
+            std::string robot_state_form; // choice of robot state representation
+            std::string env_state_form; // choice of env state representation
 
-            BackEnd backend_;
-            TaskType task_type_;
-            Json::Value root_config_;
-            std::vector<robot::Robot> robots;
-            std::vector<Skill::Type> skill_types;
-            std::shared_ptr<robot::PlanInstance> instance;
+            Json::Value root_config_; // user-provided Json config of this skill graph
+            std::vector<robot::Robot> robots; // list of robots and capabilities
+            std::vector<Skill::Type> atmoic_skills; // list of atomic skills
+            std::map<Skill::Type, std::vector<Skill::Type>> meta_skills; // map of all meta stkills
 
-            // task seq
+            // task defintion for feasible_u
+            TaskType task_type_; // task type
+            task_def::State initial_state_;
+            task_def::State target_state_;
             std::shared_ptr<task_def::AssemblySeq> task_seq_;
+
+            // environemnt
+            BackEnd backend_; // kinematic engine type
+            std::shared_ptr<robot::PlanInstance> instance; // robot environment (kinematic engine)
 
             virtual void init_task_seq(const Json::Value &root_config) {throw std::runtime_error("Init Task Seq Not implemented");}
 
@@ -69,9 +75,9 @@ namespace skillgraph
             void add_atomic_skill(const std::string& atomic_skill);
             void add_robot_capability(const std::string& robot_capability);
 
-            std::vector<std::string> get_meta_skills();
-            std::map<std::string, std::vector<std::string>> get_atomic_skills();
-            std::vector<std::string> get_robot_capabilities();
+            std::vector<Skill::Type> get_meta_skills();
+            std::map<Skill::Type, std::vector<Skill::Type>> get_atomic_skills();
+            std::vector<Skill::Type> get_robot_capabilities();
             
             virtual std::set<Skill> feasible_u(const task_def::State& state) { throw std::runtime_error("Feasible u Not implemented");};
 
