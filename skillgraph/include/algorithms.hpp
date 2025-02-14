@@ -1,18 +1,43 @@
 #pragma once
-#include "moveit_env.hpp"
-#include "robots_env.hpp"
+#include "moveit_backend.hpp"
+#include "backend.hpp"
+#include "metrics.hpp"
 
 namespace algo {
     class Algorithm {
+        /*
+        * Base Algorithm Class containing the type and name of the algorithm
+        */
         enum Type {
-            RRTC = 0,
-            PrioritizedPlan = 1,
-            FTS_Pick = 2,
+            Planning = 0,
+            Control = 1,
+            Perception = 2,
         };
 
         public:
             Algorithm() = default;
             Type type;
+            std::string name;
+    };
+
+    class SkillPerformingAlgorithm : public Algorithm {
+        /*
+        * SkillPerformingAlgorithm Class containing the implementation, properties, and a function API for performing a skill
+        */
+        public:
+            SkillPerformingAlgorithm() = default;
+            SkillPerformingAlgorithm(const std::string &name);
+            
+            // chooses an implementation
+            Algorithm implementation;
+
+            // properties
+            metric::Evaluator pre_condition;
+            metric::Evaluator post_condition;
+            std::string skill_type; // corresponding skill
+
+            // funnction
+            std::function<std::any(const std::vector<std::any>&)> perform();
     };
 
     struct PlannerOptions {
@@ -33,17 +58,31 @@ namespace algo {
         }
     };
 
-    class RRTConnect : public Algorithm {
+    class PlanningAlgorithm : public Algorithm {
+        public:
+            PlanningAlgorithm() = default;
+    };
+
+    class ControlAlgorithm : public Algorithm {
+        public:
+            ControlAlgorithm() = default;
+    };
+
+    class PerceptionAlgorithm: public Algorithm {
+        public: 
+            PerceptionAlgorithm() = default;
+    };
+
+    class RRTConnect : public PlanningAlgorithm {
     public:
-        RRTConnect(robot_model::RobotModelPtr robot_model);
+        RRTConnect(robot_model::RobotModelPtr robot_model,
+                   std::shared_ptr<env::PlanInstance> instance);
         
-        virtual bool plan(robot::RobotState &start,
-                          robot::RobotState &goal,
-                          std::shared_ptr<robot::MoveitInstance> instance,
+        virtual bool plan(const robot::RobotState &start, const robot::RobotState &goal,
                           robot::MRTrajectory &traj);
     private:
         robot_model::RobotModelPtr robot_model_;
-        std::shared_ptr<robot::MoveitInstance> instance_;
+        std::shared_ptr<env::PlanInstance> instance_;
     };
 
 }

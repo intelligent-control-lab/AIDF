@@ -52,6 +52,7 @@ This notice must appear in all copies of this file and its derivatives.
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 #include <queue>
+#include <any>
 
 #include "ros/ros.h"
 #include <ros/package.h>

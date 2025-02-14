@@ -5,7 +5,9 @@ project(aidf VERSION 1.0.0 LANGUAGES CXX)
 # /* -------------------------------------------------------------------------- */
 # /*                              Build Properties                              */
 # /* -------------------------------------------------------------------------- */
-add_compile_options(-std=c++11)
+# Ensure C++20 is enabled
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-D_OS_UNIX)
 # Check if profiling is needed
 option(ENABLE_PROFILING "Enable profiling with gprof" OFF)

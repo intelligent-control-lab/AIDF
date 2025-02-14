@@ -3,6 +3,9 @@
 
 namespace robot {
     struct RobotState {
+        /*
+        * RobotState Class containing the robot state, name, and joint values
+        */
         int robot_id;
         std::string robot_name; // same as group name in moveit
         std::vector<double> joint_values;
@@ -16,18 +19,15 @@ namespace robot {
                 hand_values == other.hand_values;
         }
 
+        
+        std::unordered_map<std::string, std::any> attributes;
     };
 
 
     struct RobotTrajectory {
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int version)
-        {
-            ar & robot_id;
-            ar & trajectory;
-            ar & times;
-            ar & cost;
-        }
+        /*
+        * RobotTrajectory Class containing the robot trajectory, times, action ids, and cost
+        */ 
         int robot_id;
         std::vector<RobotState> trajectory;
         std::vector<double> times;
@@ -37,7 +37,12 @@ namespace robot {
 
     typedef std::vector<RobotTrajectory> MRTrajectory;
 
-    struct Robot {
+    class Robot {
+        /*
+        * Robot Class containing the robot type, name, degree of freedom, end-effector type, and capabilities
+        */
+    public:
+        Robot() = default;
         enum Type {
             GP4 = 0,
             Kinova = 1,
@@ -59,6 +64,7 @@ namespace robot {
         std::string robot_name;
         int robot_dof; // degree of freedom of the robot links
         int hand_dof; // degree of freefom of end-effector
+        std::vector<std::string> capabilities; // list of capabilities
     };
 
 

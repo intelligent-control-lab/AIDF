@@ -1,11 +1,13 @@
 #pragma once
 #include "Utils/Math.hpp"
 #include "Utils/FileIO.hpp"
-#include "robots_env.hpp"
-#include "task_def.hpp"
+#include "environment.hpp"
+#include "tasks.hpp"
+#include "object.hpp"
+#include "robots.hpp"
 #include "algorithms.hpp"
+#include "skills.hpp"
 
-using namespace robot;
 
 namespace skillgraph
 {   
@@ -19,30 +21,26 @@ namespace skillgraph
         MUJOCO = 2,
     };
 
-    struct Skill {
-        enum Type {
-            pick = 1,
-            assemble = 2,
-            support = 3,
-            transfer = 4,
-            reposition = 5,
-            transit = 6,
-        };
+    struct GroundedSkill : public Skill {
+        /*
+        Grounded Skill Class, containing detailed parameters for a symbolic skill
+        */
 
-        bool isAtomic(Type type);
-        bool isMeta(Type type);
-
-        Type type;
-        task_def::ActPtr act_ptr;
-        object::Object object;
+        task::TaskParam task_param;
+        env::Object object;
         robot::Robot robot;
         algo::Algorithm algorithm;
     };
 
+
     class SkillGraph{
+        /*
+        * SkillGraph Class containing that maps all the objects, robots, envs, skills, executors, and algorithms
+        * Provides the API for the skill graph in the overall ontology
+        */
         protected:
             // symbols defined by user
-            std::map<std::string, object::Object> object_library; // maps of all objects
+            std::map<std::string, env::Object> object_library; // maps of all objects
             std::map<std::string, Skill::Type> skill_types;             // maps from user-defined string to enum
 
             std::string robot_state_form; // choice of robot state representation
@@ -55,13 +53,13 @@ namespace skillgraph
 
             // task defintion for feasible_u
             TaskType task_type_; // task type
-            task_def::State initial_state_;
-            task_def::State target_state_;
-            std::shared_ptr<task_def::AssemblySeq> task_seq_;
+            env::State initial_state_;
+            env::State target_state_;
+            std::shared_ptr<task::AssemblySeq> task_seq_;
 
             // environemnt
             BackEnd backend_; // kinematic engine type
-            std::shared_ptr<robot::PlanInstance> instance; // robot environment (kinematic engine)
+            std::shared_ptr<env::PlanInstance> instance; // robot environment (kinematic engine)
 
             virtual void init_task_seq(const Json::Value &root_config) {throw std::runtime_error("Init Task Seq Not implemented");}
 
@@ -79,18 +77,21 @@ namespace skillgraph
             std::map<Skill::Type, std::vector<Skill::Type>> get_atomic_skills();
             std::vector<Skill::Type> get_robot_capabilities();
             
-            virtual std::set<Skill> feasible_u(const task_def::State& state) { throw std::runtime_error("Feasible u Not implemented");};
+            virtual std::set<GroundedSkill> feasible_u(const env::State& state) { throw std::runtime_error("Feasible u Not implemented");};
 
             // std::tuple<std::vector<std::string>, std::function<bool(const std::map<std::string, std::any>&)>> 
-            //     feasible_target_states(const std::string& skill, const task_def::Object& obj, const task_def::State& state);
-            // std::set<std::map> feasible_atomic_skills(const task_def::State& state);
+            //     feasible_target_states(const std::string& skill, const task::Object& obj, const env::State& state);
+            // std::set<std::map> feasible_atomic_skills(const env::State& state);
             // std::function<bool(const std::map<std::string, std::any>&)> 
-            //     pre_condition(const std::string& skill, const task_def::Object& obj, const task_def::State& state);
-            // std::array<task_def::State> 
-            //     trajectory_algorithm(const std::string& skill, const task_def::Object& obj, const task_def::State& initial_state, const task_def::State& target_state);
+            //     pre_condition(const std::string& skill, const task::Object& obj, const env::State& state);
+            // std::array<env::State> 
+            //     trajectory_algorithm(const std::string& skill, const task::Object& obj, const env::State& initial_state, const env::State& target_state);
     };
 
     class LegoSkillGraph : public SkillGraph {
+        /*
+        * Temporary solution for LegoSkillGraph, a subclass of SkillGraph that is Lego specific
+        */
         private:
             // lego specific
 
@@ -105,7 +106,7 @@ namespace skillgraph
             LegoSkillGraph(const std::string &config_file);
             virtual ~LegoSkillGraph() {};
     
-            virtual std::set<Skill> feasible_u(const task_def::State &state);
+            virtual std::set<GroundedSkill> feasible_u(const env::State &state);
     };
 
 }

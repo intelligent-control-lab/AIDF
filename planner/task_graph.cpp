@@ -1,10 +1,8 @@
-#include "task_def.hpp"
-#include "Utils/Logger.hpp"
+#include "task_graph.h"
 
-using namespace object;
 
-namespace task_def {
-
+namespace task
+{
 
 const std::map<Activity::Type, std::string> Activity::enumStringMap = {
     {Activity::Type::home, "home"},
@@ -388,57 +386,5 @@ std::vector<ObjNodePtr> ActivityGraph::find_indep_obj(ActPtr act) const {
     return indep_obj;
 
 }
-
-void AssemblySeq::print() {
-    std::cout << "Assembly Sequence: \n";
-    for (int i = 0; i < num_tasks_; i++) {
-        std::cout << obj_seq_[i]->name() << " ";
-    }
-    std::cout << std::endl;
-}
-
-ObjNodePtr AssemblySeq::get_object_at(int i) 
-{
-    if (i >= obj_seq_.size()) {
-        std::cerr<< "Object index out of range" << std::endl;
-        return nullptr;
-    }
-
-    return obj_seq_[i];
-}
-
-LegoAssemblySeq::LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
-                                const std::string &task_json_fname) {
-    lego_ptr_ = lego_ptr;
-
-    std::ifstream task_file(task_json_fname, std::ifstream::binary);
-    task_file >> task_json_;
-    num_tasks_ = task_json_.size();
-    remove_brick_seq();
-
-    lego_seq_.reserve(num_tasks_);
-
-    for (int i = 0; i < num_tasks_; i++) {
-        Json::Value node = task_json_[std::to_string(i+1)];
-        std::string seq = "t" + std::to_string(i+1);
-        LegoBrick obj_i(lego_ptr, node, seq);
-        ObjNodePtr obj_ptr = std::make_shared<ObjectNode>(obj_i, i);
-        lego_seq_.push_back(obj_ptr);
-    }
-}
-
-
-void LegoAssemblySeq::remove_brick_seq() {
-    for (int i = 0; i < num_tasks_; i++) {
-        int task_idx = i + 1;
-        // calculate the ik for the target pose
-        auto & cur_graph_node = task_json_[std::to_string(task_idx)];
-        if (cur_graph_node.isMember("brick_seq")) {
-            cur_graph_node.removeMember("brick_seq");
-        }
-    }
-}
-
-    
 
 }

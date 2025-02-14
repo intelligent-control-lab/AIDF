@@ -66,12 +66,12 @@ void LegoSkillGraph::init_task_seq(const Json::Value &root_config) {
                     r2_DH_tool_handover_assemble_fname, r2_robot_base_fname,
                     set_state_client_);
     
-    task_seq_ = std::make_shared<task_def::LegoAssemblySeq>(lego_ptr_, task_fname);
+    task_seq_ = std::make_shared<task::LegoAssemblySeq>(lego_ptr_, task_fname);
 }
 
-std::set<Skill> LegoSkillGraph::feasible_u(const task_def::State &state)
+std::set<GroundedSkill> LegoSkillGraph::feasible_u(const env::State &state)
 {
-    std::set<Skill> feasible_set;
+    std::set<GroundedSkill> feasible_set;
     
     return feasible_set;
 }

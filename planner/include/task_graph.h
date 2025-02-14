@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "Utils/FileIO.hpp"
 
-namespace task_def
+namespace task
 {
     // forward decalre
     class Activity;
@@ -13,13 +13,13 @@ namespace task_def
     /* contains misc information about objects in a task graph */
     public:
         ObjectNode() = default;
-        ObjectNode(const object::Object &obj, int id) : obj(obj), obj_node_id(id) {}
+        ObjectNode(const env::Object &obj, int id) : obj(obj), obj_node_id(id) {}
 
         std::string name() const {
             return obj.name;
         }
 
-        object::Object obj;
+        env::Object obj;
         int obj_node_id;
         std::string next_attach_link;
         bool vanish = false; // vanish before attach or after detach
@@ -30,7 +30,7 @@ namespace task_def
     typedef std::shared_ptr<ObjectNode> ObjNodePtr;
 
     struct EnvState {
-        std::vector<object::Object> objects;
+        std::vector<env::Object> objects;
     };
 
     class SetCollisionNode {
@@ -135,7 +135,7 @@ namespace task_def
         ActPtr add_act(int robot_id, Activity::Type type, ActPtr type2_dep);
     
         /* add a static object to the scene (no attached parent)*/
-        ObjNodePtr add_obj(const object::Object &obj);
+        ObjNodePtr add_obj(const env::Object &obj);
 
         /* set the object node to be attached to a robot at the onset of selected activity */
         void attach_obj(ObjNodePtr obj, const std::string &link_name, ActPtr act);
@@ -184,45 +184,5 @@ namespace task_def
         
     };  
 
-    class AssemblySeq {
-    public:
-        AssemblySeq() = default;
-        virtual ~AssemblySeq() {};
-        virtual std::vector<ObjNodePtr> get_sequence() {return obj_seq_;}
-
-        virtual ObjNodePtr get_object_at(int i);
-
-        virtual void print();
-        int num_tasks() {return num_tasks_;}
-    
-    protected:
-        int num_tasks_;
-        std::vector<ObjNodePtr> obj_seq_;
-    };
-
-    struct State {
-        // robot state and env state
-        // feasibility functions rely on lego state (cannot be task-agnostic?)
-        // robot state (can be task-agnostic?)
-        EnvState env_state;
-        robot::RobotState robot_state;
-        AssemblySeq assembly_state;
-        int cur_step = 0;
-    };
-
-
-    class LegoAssemblySeq : public AssemblySeq {
-    public:
-        LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
-                        const std::string &task_json);
-        virtual  ~LegoAssemblySeq() {};
-    
-        void remove_brick_seq();
-
-    private:
-        lego_manipulation::lego::Lego::Ptr lego_ptr_;
-        Json::Value task_json_;
-        std::vector<ObjNodePtr> lego_seq_;
-    };
 
 }

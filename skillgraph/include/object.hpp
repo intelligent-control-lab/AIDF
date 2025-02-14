@@ -2,21 +2,28 @@
 #include "Utils/Common.hpp"
 #include "lego/Lego.hpp"
 
-namespace object {
+namespace env {
     struct Object  {
+        /*
+        * Object Class containing the object state, name, type and geometry
+        */
+
         enum State {
+            /* Object State Enum */
             Static = 0,
             Attached = 1,
             Supported = 2,
             Handover = 3,
         };
         enum Shape {
+            /* Object Shape Enum */
             Box = 0,
             Sphere = 1,
             Cylinder = 2,
             Mesh = 3,
         };
         enum Type {
+            /* Object Type Enum */
             LegoBrick = 0,
             MagneticBlock = 1,
         };
