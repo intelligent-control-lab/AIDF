@@ -1,6 +1,6 @@
-#include "object.hpp"
+#include "lego/lego_objects.hpp"
 
-namespace env {
+namespace skillgraph {
     LegoBrick::LegoBrick(lego_manipulation::lego::Lego::Ptr lego_ptr, const Json::Value &node, const std::string &brick_seq) {
         this->type = Object::Type::LegoBrick;
         this->brick_id = node["brick_id"].asInt();

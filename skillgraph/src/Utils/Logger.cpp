@@ -76,7 +76,7 @@ void Logger::log(const std::string& message, LogLevel level) {
     }
 }
 
-void Logger::log(const robot::RobotState& pose, LogLevel level) {
+void Logger::log(const skillgraph::RobotState& pose, LogLevel level) {
     if (level < logLevel) {
         return;
     }
@@ -88,7 +88,7 @@ void Logger::log(const robot::RobotState& pose, LogLevel level) {
     log(message, level);
 }
 
-void Logger::log(const robot::RobotTrajectory& traj, LogLevel level) {
+void Logger::log(const skillgraph::RobotTrajectory& traj, LogLevel level) {
     if (level < logLevel) {
         return;
     }
@@ -123,15 +123,15 @@ void log(const std::string& message, LogLevel level) {
     Logger::getInstance().log(message, level);
 }
 
-void log(const robot::RobotState& pose, LogLevel level) {
+void log(const skillgraph::RobotState& pose, LogLevel level) {
     Logger::getInstance().log(pose, level);
 }
 
-void log(const robot::RobotTrajectory& traj, LogLevel level) {
+void log(const skillgraph::RobotTrajectory& traj, LogLevel level) {
     Logger::getInstance().log(traj, level);
 }
 
-void log(const robot::MRTrajectory& traj, LogLevel level) {
+void log(const skillgraph::MRTrajectory& traj, LogLevel level) {
     for (const auto& robot_traj : traj) {
         log(robot_traj, level);
     }

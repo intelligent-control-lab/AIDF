@@ -1,9 +1,9 @@
 #pragma once
 #include "robots.hpp"
-#include "object.hpp"
+#include "objects.hpp"
 #include "Utils/FileIO.hpp"
 
-namespace task
+namespace skillgraph
 {
     // forward decalre
     class Activity;
@@ -13,13 +13,13 @@ namespace task
     /* contains misc information about objects in a task graph */
     public:
         ObjectNode() = default;
-        ObjectNode(const env::Object &obj, int id) : obj(obj), obj_node_id(id) {}
+        ObjectNode(const skillgraph::Object &obj, int id) : obj(obj), obj_node_id(id) {}
 
         std::string name() const {
             return obj.name;
         }
 
-        env::Object obj;
+        skillgraph::Object obj;
         int obj_node_id;
         std::string next_attach_link;
         bool vanish = false; // vanish before attach or after detach
@@ -29,9 +29,6 @@ namespace task
     };
     typedef std::shared_ptr<ObjectNode> ObjNodePtr;
 
-    struct EnvState {
-        std::vector<env::Object> objects;
-    };
 
     class SetCollisionNode {
     public:
@@ -115,8 +112,8 @@ namespace task
         std::vector<std::shared_ptr<Activity>> type2_next;
         std::shared_ptr<Activity> type1_prev;
         std::shared_ptr<Activity> type1_next;
-        robot::RobotState start_pose;
-        robot::RobotState end_pose;
+        skillgraph::RobotState start_pose;
+        skillgraph::RobotState end_pose;
         std::vector<ObjNodePtr> obj_detached;
         std::vector<ObjNodePtr> obj_attached;
         std::vector<SetCollisionNode> collision_nodes;
@@ -135,7 +132,7 @@ namespace task
         ActPtr add_act(int robot_id, Activity::Type type, ActPtr type2_dep);
     
         /* add a static object to the scene (no attached parent)*/
-        ObjNodePtr add_obj(const env::Object &obj);
+        ObjNodePtr add_obj(const skillgraph::Object &obj);
 
         /* set the object node to be attached to a robot at the onset of selected activity */
         void attach_obj(ObjNodePtr obj, const std::string &link_name, ActPtr act);

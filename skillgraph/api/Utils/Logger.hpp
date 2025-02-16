@@ -37,8 +37,8 @@ public:
     void setLogLevel(const std::string &level);
 
     void log(const std::string& message, LogLevel level);
-    void log(const robot::RobotState& pose, LogLevel level);
-    void log(const robot::RobotTrajectory& traj, LogLevel level);
+    void log(const skillgraph::RobotState& pose, LogLevel level);
+    void log(const skillgraph::RobotTrajectory& traj, LogLevel level);
 
 private:
     LogMethod method;
@@ -61,11 +61,11 @@ void setLogLevel(const std::string &level);
 
 void log(const std::string& message, LogLevel level = LogLevel::INFO);
 
-void log(const robot::RobotState& pose, LogLevel level = LogLevel::INFO);
+void log(const skillgraph::RobotState& pose, LogLevel level = LogLevel::INFO);
 
-void log(const robot::RobotTrajectory& traj, LogLevel level = LogLevel::INFO);
+void log(const skillgraph::RobotTrajectory& traj, LogLevel level = LogLevel::INFO);
 
-void log(const robot::MRTrajectory& traj, LogLevel level = LogLevel::INFO);
+void log(const skillgraph::MRTrajectory& traj, LogLevel level = LogLevel::INFO);
 
 void logProgressFileStart(const std::string& filename);
 

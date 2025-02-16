@@ -37,10 +37,10 @@ SkillGraph::SkillGraph(const std::string &config_fname) {
     const Json::Value &robots_json = root_config_["robots"];
     int num_robots = robots_json["numRobot"].asInt();
     for (int i = 0; i < num_robots; ++i) {
-        robot::Robot robot;
+        skillgraph::Robot robot;
         // Assuming the `type` matches your Robot's enum or can be mapped
         robot.robot_name = robots_json["type"][i].asString();
-        robot.tool = robot::Robot::Tool::LegoTool; // Default to LegoTool (adjust based on your tool logic)
+        robot.tool = skillgraph::Robot::Tool::LegoTool; // Default to LegoTool (adjust based on your tool logic)
         robots.push_back(robot);
     }
 

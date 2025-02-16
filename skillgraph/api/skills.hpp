@@ -54,11 +54,11 @@ namespace skillgraph {
             SkillExecutor(const std::string &name);
             
             // chooses one or many algorithms to implement the skill 
-            std::vector<algo::Algorithm> implementation;
+            std::vector<skillgraph::Algorithm> implementation;
 
             // properties
-            metric::Evaluator pre_condition;
-            metric::Evaluator post_condition;
+            skillgraph::ConditionEvaluator pre_condition;
+            skillgraph::ConditionEvaluator post_condition;
             Skill::Type skill_type; // corresponding skill
 
             // funnction implementation for executing this skill

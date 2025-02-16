@@ -50,7 +50,7 @@ namespace tpg {
     struct Node
     {
 
-        robot::RobotState pose; // < The pose of the robot at this Node
+        skillgraph::RobotState pose; // < The pose of the robot at this Node
         NodePtr Type1Next;                    ///< Pointer to the next Node of type 1
         std::vector<type2EdgePtr> Type2Next; ///< Vector of pointers to the next Nodes of type 2
         NodePtr Type1Prev;                    ///< Pointer to the previous Node of type 1
@@ -92,9 +92,9 @@ namespace tpg {
     struct Shortcut {
         std::weak_ptr<Node> ni;
         std::weak_ptr<Node> nj;
-        std::vector<robot::RobotState> path;
+        std::vector<skillgraph::RobotState> path;
         std::weak_ptr<Node> n_robot_col;
-        std::shared_ptr<task::Activity> activity;
+        std::shared_ptr<skillgraph::Activity> activity;
         std::vector<int> subset_indices;
         CollisionType col_type = CollisionType::UNKNOWN;
 
@@ -189,10 +189,10 @@ namespace tpg {
         // copy constructor
         TPG(const TPG &tpg);
         virtual void reset();
-        virtual bool init(std::shared_ptr<env::PlanInstance> instance, const robot::MRTrajectory &solution, const TPGConfig &config);
-        virtual bool optimize(std::shared_ptr<env::PlanInstance> instance, const TPGConfig &config);
+        virtual bool init(std::shared_ptr<skillgraph::PlanInstance> instance, const skillgraph::MRTrajectory &solution, const TPGConfig &config);
+        virtual bool optimize(std::shared_ptr<skillgraph::PlanInstance> instance, const TPGConfig &config);
         virtual bool saveToDotFile(const std::string &filename) const;
-        virtual bool moveit_execute(std::shared_ptr<env::MoveitInstance> instance, 
+        virtual bool moveit_execute(std::shared_ptr<skillgraph::MoveitInstance> instance, 
             std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group);
         virtual bool actionlib_execute(const std::vector<std::string> &joint_names, TrajectoryClient &client);
         virtual bool moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_names, std::vector<ros::ServiceClient> &clients);
@@ -203,8 +203,8 @@ namespace tpg {
         virtual Eigen::MatrixXd get_r2_inhand_goal_q();
         virtual void saveStats(const std::string &filename, const std::string &start_pose = "", const std::string &goal_pose = "") const;
         virtual void setSyncJointTrajectory(trajectory_msgs::JointTrajectory &joint_traj, double &flowtime, double &makespan) const;
-        virtual robot::MRTrajectory getSyncJointTrajectory(std::shared_ptr<env::PlanInstance> instance) const;
-        void getSolution(robot::MRTrajectory &solution) const {
+        virtual skillgraph::MRTrajectory getSyncJointTrajectory(std::shared_ptr<skillgraph::PlanInstance> instance) const;
+        void getSolution(skillgraph::MRTrajectory &solution) const {
             solution = solution_;
         }
 
@@ -220,7 +220,7 @@ namespace tpg {
             return (robot_id < numNodes_.size()) ? numNodes_[robot_id] : 0;
         }
 
-        void getSolutionTraj(int robot_id, robot::RobotTrajectory &traj) const {
+        void getSolutionTraj(int robot_id, skillgraph::RobotTrajectory &traj) const {
             if (robot_id < solution_.size()) {
                 traj = solution_[robot_id];
             }
@@ -238,7 +238,7 @@ namespace tpg {
             return 0;
         }
 
-        virtual std::shared_ptr<task::ActivityGraph> getActGraph() const {return nullptr;}
+        virtual std::shared_ptr<skillgraph::ActivityGraph> getActGraph() const {return nullptr;}
 
     protected:
         int getTotalNodes() const;
@@ -248,8 +248,8 @@ namespace tpg {
         void transitiveReduction();
         virtual void initSampler(const std::vector<std::vector<int>> &earliest_t, const std::vector<std::vector<NodePtr>> &timed_nodes);
         virtual void initIterator();
-        virtual void findShortcuts(std::shared_ptr<env::PlanInstance> instance, double runtime_limit);
-        virtual void findShortcutsRandom(std::shared_ptr<env::PlanInstance> instance, double runtime_limit);
+        virtual void findShortcuts(std::shared_ptr<skillgraph::PlanInstance> instance, double runtime_limit);
+        virtual void findShortcutsRandom(std::shared_ptr<skillgraph::PlanInstance> instance, double runtime_limit);
         void findEarliestReachTime(std::vector<std::vector<int>> &reached_t, std::vector<int> &reached_end) const;
         void updateEarliestReachTime(std::vector<std::vector<int>> &reached_t, std::vector<int> &reached_end, Shortcut &shortcut);
         void findLatestReachTime(std::vector<std::vector<int>> &reached_t, const std::vector<int> &reached_end);
@@ -257,18 +257,18 @@ namespace tpg {
         void findTightType2Edges(const std::vector<std::vector<int>> &earliest_t, const std::vector<std::vector<int>> &latest_t);
         void findFlowtimeMakespan(double &flowtime, double &makespan);
         void logProgressStep(const std::vector<int>& reached_end);
-        void computePathLength(std::shared_ptr<env::PlanInstance> instance);
-        void preCheckShortcuts(std::shared_ptr<env::PlanInstance> instance, Shortcut &shortcut,
+        void computePathLength(std::shared_ptr<skillgraph::PlanInstance> instance);
+        void preCheckShortcuts(std::shared_ptr<skillgraph::PlanInstance> instance, Shortcut &shortcut,
             const std::vector<int> &earliest_t, const std::vector<int> &latest_t) const;
-        int computeShortcutSteps(std::shared_ptr<env::PlanInstance> instance, Shortcut &shortcut) const;
-        void retimeShortcut(std::shared_ptr<env::PlanInstance> instance, int shortcutSteps, Shortcut &shortcut) const;
-        virtual void checkShortcuts(std::shared_ptr<env::PlanInstance> instance, Shortcut &shortcut, const std::vector<std::vector<NodePtr>> &timedNodes) const;
+        int computeShortcutSteps(std::shared_ptr<skillgraph::PlanInstance> instance, Shortcut &shortcut) const;
+        void retimeShortcut(std::shared_ptr<skillgraph::PlanInstance> instance, int shortcutSteps, Shortcut &shortcut) const;
+        virtual void checkShortcuts(std::shared_ptr<skillgraph::PlanInstance> instance, Shortcut &shortcut, const std::vector<std::vector<NodePtr>> &timedNodes) const;
         void switchShortcuts();
-        void updateTPG(std::shared_ptr<env::PlanInstance> instance, const Shortcut &shortcut, const std::vector<Eigen::MatrixXi> &col_matrix);
+        void updateTPG(std::shared_ptr<skillgraph::PlanInstance> instance, const Shortcut &shortcut, const std::vector<Eigen::MatrixXi> &col_matrix);
         bool dfs(NodePtr ni, NodePtr nj, std::vector<std::vector<bool>> &visited) const;
         bool bfs(NodePtr ni, std::vector<std::vector<bool>> &visited, bool forward, bool bwd_shiftone=true) const;
         bool hasCycle() const;
-        bool repairTPG(std::shared_ptr<env::PlanInstance> instance, Shortcut &shortcut, const std::vector<std::vector<int>> &earliest_t);
+        bool repairTPG(std::shared_ptr<skillgraph::PlanInstance> instance, Shortcut &shortcut, const std::vector<std::vector<int>> &earliest_t);
         virtual void moveit_async_execute_thread(const std::vector<std::string> &joint_names, ros::ServiceClient &clients, int robot_id);
         virtual bool isPolicyNode(NodePtr node) const;
         virtual NodePtr getExecStartNode(int robot_id) const;
@@ -283,7 +283,7 @@ namespace tpg {
         std::vector<NodePtr> start_nodes_;
         std::vector<NodePtr> end_nodes_;
         std::vector<int> numNodes_;
-        robot::MRTrajectory solution_;
+        skillgraph::MRTrajectory solution_;
 
         std::vector<std::vector<double>> joint_states_;
         std::vector<std::unique_ptr<std::atomic_int>> executed_steps_;

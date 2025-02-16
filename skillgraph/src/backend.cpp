@@ -1,6 +1,6 @@
 #include "backend.hpp"
 
-namespace env {
+namespace skillgraph {
 
 void PlanInstance::setNumberOfRobots(int num_robots) {
     num_robots_ = num_robots;
@@ -45,8 +45,8 @@ size_t PlanInstance::getHandDOF(int robot_id) const {
     return hand_dof_[robot_id];
 }
 
-robot::RobotState PlanInstance::initRobotState(int robot_id) const {
-    robot::RobotState pose;
+skillgraph::RobotState PlanInstance::initRobotState(int robot_id) const {
+    skillgraph::RobotState pose;
     pose.robot_id = robot_id;
     pose.robot_name = robot_names_[robot_id];
     pose.joint_values.resize(robot_dof_[robot_id]);

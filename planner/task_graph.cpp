@@ -1,7 +1,7 @@
 #include "task_graph.h"
 
 
-namespace task
+namespace skillgraph
 {
 
 const std::map<Activity::Type, std::string> Activity::enumStringMap = {

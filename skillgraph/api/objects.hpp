@@ -1,8 +1,7 @@
 #pragma once
 #include "Utils/Common.hpp"
-#include "lego/Lego.hpp"
 
-namespace env {
+namespace skillgraph {
     struct Object  {
         /*
         * Object Class containing the object state, name, type and geometry
@@ -63,19 +62,5 @@ namespace env {
         std::string mesh_path;
     };
     typedef std::shared_ptr<Object> ObjPtr;
-
-    struct LegoBrick : public Object {
-        LegoBrick(lego_manipulation::lego::Lego::Ptr lego_ptr, const Json::Value &node, const std::string &brick_seq);
-        virtual bool sameType(const LegoBrick &other) const {
-            return this->brick_id == other.brick_id;
-        }
-
-        int brick_id;
-        lego_manipulation::lego::lego_brick brick;
-    };
-
-    struct Requirement {
-        double precision;
-    };
 
 }

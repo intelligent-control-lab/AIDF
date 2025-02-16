@@ -1,10 +1,10 @@
-#include "skillgraph.hpp"
+#include "lego/lego_skillgraph.hpp"
 
 namespace skillgraph {
 
 LegoSkillGraph::LegoSkillGraph(const std::string &config_file) : SkillGraph(config_file)
 {
-    // Parse task sequence
+    // Parse skillgraph sequence
     init_task_seq(root_config_);
 }
 
@@ -66,10 +66,10 @@ void LegoSkillGraph::init_task_seq(const Json::Value &root_config) {
                     r2_DH_tool_handover_assemble_fname, r2_robot_base_fname,
                     set_state_client_);
     
-    task_seq_ = std::make_shared<task::LegoAssemblySeq>(lego_ptr_, task_fname);
+    task_seq_ = std::make_shared<skillgraph::LegoAssemblySeq>(lego_ptr_, task_fname);
 }
 
-std::set<GroundedSkill> LegoSkillGraph::feasible_u(const env::State &state)
+std::set<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
     std::set<GroundedSkill> feasible_set;
     

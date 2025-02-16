@@ -1,10 +1,12 @@
 #pragma once
 #include "algorithms.hpp"
-#include "object.hpp"
 #include "tasks.hpp"
+#include "lego/Lego.hpp"
+#include "lego/lego_objects.hpp"
+#include "moveit_backend.hpp"
 #include <geometry_msgs/WrenchStamped.h>
 
-namespace algo {
+namespace skillgraph {
 
 struct LegoPolicyCfg {
     double twist_rad = 0.244346;
@@ -21,24 +23,24 @@ struct LegoPolicyCfg {
 class LegoPlan : public PlanningAlgorithm {
 public:
     LegoPlan(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
-                    std::shared_ptr<env::PlanInstance> instance,
+                    std::shared_ptr<skillgraph::PlanInstance> instance,
                     const LegoPolicyCfg &config);
     
-    virtual bool plan_pick(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_pick(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
-    virtual bool plan_place(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_place(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
-    virtual bool plan_support(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_support(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
-    virtual bool plan_pressdown(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_pressdown(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
-    virtual bool plan_align(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_align(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
-    virtual bool plan_transfer(const task::TaskParam &task_param, robot::MRTrajectory &traj);
+    virtual bool plan_transfer(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
 
 protected:
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
-    std::shared_ptr<env::PlanInstance> instance_;
+    std::shared_ptr<skillgraph::PlanInstance> instance_;
     LegoPolicyCfg config_;
 
 };
@@ -49,7 +51,7 @@ public:
                 const std::vector<std::string> & group_names,
                 const std::vector<std::vector<std::string>> &joint_names,
                 const LegoPolicyCfg &config);
-    virtual bool execute(const task::TaskParam &task_param);
+    virtual bool execute(const skillgraph::TaskParam &task_param);
     virtual void update_joint_states(const std::vector<double> &joint_states, int robot_id);
 
 #ifdef HAVE_YK_TASKS
@@ -60,10 +62,10 @@ public:
 #endif
 
 private:
-    bool pickplace(const task::TaskParam &task_param);
-    bool support(const task::TaskParam &task_param);
-    bool placeup(const task::TaskParam &task_param);
-    bool pressdown(const task::TaskParam &task_param);
+    bool pickplace(const skillgraph::TaskParam &task_param);
+    bool support(const skillgraph::TaskParam &task_param);
+    bool placeup(const skillgraph::TaskParam &task_param);
+    bool pressdown(const skillgraph::TaskParam &task_param);
     std::vector<double> convertQ(const lego_manipulation::math::VectorJd &q_deg);
     void setTrajectory(int robot_id, const std::vector<double>&q1, double t0,
         const std::vector<double> &q2, trajectory_msgs::JointTrajectory &joint_traj);
@@ -71,7 +73,7 @@ private:
 
     void wrenchCallbackA(const geometry_msgs::WrenchStamped::ConstPtr &msg);
     void wrenchCallbackB(const geometry_msgs::WrenchStamped::ConstPtr &msg);
-    bool checkForce(int robot_id, const task::TaskParam &task_param, double &force_reading);
+    bool checkForce(int robot_id, const skillgraph::TaskParam &task_param, double &force_reading);
     bool stop(int robot_id);
     bool enable(int robot_id);
 

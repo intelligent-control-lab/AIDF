@@ -1,10 +1,7 @@
 #include "moveit_backend.hpp"
 #include "Utils/Logger.hpp"
 
-using namespace env;
-using namespace robot;
-
-namespace env {
+namespace skillgraph {
 
 MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
                                const std::string &joint_group_name,

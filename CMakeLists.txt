@@ -104,6 +104,7 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/api>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/planner/include>
   $<INSTALL_INTERFACE:include>
