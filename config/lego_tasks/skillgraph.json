@@ -1,34 +1,119 @@
 {
-    "task_type": "lego",
-    "task_seq": "stairs_new",
-    "legoConig": "config/lego_tasks/user_config.json",
-    "backend": "moveit",
     "robots": {
         "numRobot": 2,
+        "names": ["left_arm", "right_arm"],
         "type": ["gp4", "gp4"],
         "gripperTypes": ["lego", "lego"],
-        "moveitNames": ["left_arm", "right_arm"],
-        "moveitConfigPkg": "dual_gp4_moveit_config",
+        "sensorTypes": ["fts", "fts"],
         "stateForm": "RobotArmState"
     },
-    "env": {
+    "environment": {
         "name": "mfi_testbed",
-        "stateForm": "LegoEnvState"
+        "type": "Lego",
+        "legoConfig": "config/lego_tasks/user_config.json",
+        "moveitConfigPkg": "dual_gp4_moveit_config",
+        "stateForm": "LegoEnvState",
+        "backend": "moveit",
+        "calibration": {
+            "type": "mfi_lego",
+            "world": "config/lego_tasks/robot_properties/world_base.txt",
+            "plate": "config/lego_tasks/plate_calibration.json",
+            "r1": {
+                "tool": "config/lego_tasks/robot_properties/gp4_tool_DH.txt",
+                "tool_assemble": "config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt",
+                "tool_disassemble": "config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt",
+                "tool_alt": "config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt",
+                "tool_alt_assemble": "config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt",
+                "tool_handover_assemble": "config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt",
+                "base": "config/lego_tasks/robot_properties/r1_base.txt",
+                "DH": "config/lego_tasks/robot_properties/gp4_DH.txt"
+            },
+            "r2": {
+                "tool": "config/lego_tasks/robot_properties/gp4_tool_DH.txt",
+                "tool_assemble": "config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt",
+                "tool_disassemble": "config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt",
+                "tool_alt": "config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt",
+                "tool_alt_assemble": "config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt",
+                "tool_handover_assemble": "config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt",
+                "base": "config/lego_tasks/robot_properties/r2_base.txt",
+                "DH": "config/lego_tasks/robot_properties/gp4_DH.txt"
+            }
+        },
+        "lego_library": "config/lego_tasks/lego_library.json",
+        "object_library": "config/lego_tasks/env_setup/env_setup_stairs_new.json"
     },
     "skills": {
-        "gp4_lego": [
-            "transit",
-            "transfer",
-            "pick",
-            "place",
-            "support"
-        ]
+        "gp4": {
+            "Transit": {
+            },
+            "Pick": {
+            },
+            "Place-Down": {
+            },
+            "Place-Up": {
+            },
+            "Support-Top": {
+            },
+            "Support-Bottom": {
+            },
+            "Handover": {
+            }
+        }
     },
     "metaskills": {
-        "place_w_sup": {
-            "numRobot": 2,
-            "r1": ["place"],
-            "r2": ["support"]
+        "gp4": {
+            "PlaceWithSupport" : {
+                "numRobot": 2,
+                "atomicSkills": ["Support-Bottom", "Place-Down"],
+                "robotId": [0, 1]
+            },
+            "PickAndPlace": {
+                "numRobot": 1,
+                "atomicSkills": ["Transit", "Pick", "Transit", "Place-Down", "Transit"],
+                "robotId": [0, 0, 0, 0, 0]
+            },
+            "PickAndPlaceWithSupport": {
+                "numRobot": 2,
+                "atomicSkills": ["Transit", "Pick", "Transit", "Transit", "Support-Bottom", "Transit", "Place-Down", "Transit", "Transit"],
+                "robotId": [0, 0, 0, 1, 1, 0, 0, 0, 1]
+            },
+            "PickHandoverAndPlace": {
+                "numRobot": 2,
+                "atomicSkills": ["Transit", "Pick", "Transit", "Transit", "Transit", "Handover", "Transit", "Transit", "Transit", "Support-Top", "Place-Up", "Transit", "Transit"],
+                "robotId": [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]
+            }
+        }
+    },
+    "tasks": {
+        "type": "Lego",
+        "name": "stairs_new",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs_new.json",
+        "params": {
+            "Transit": {
+                "speed": 1.0
+            },
+            "Pick": {
+                "twist_deg": 15,
+                "force_threshold": 5
+            },
+            "Place-Down": {
+                "twist_deg": 15,
+                "force_threshold": 5
+            },
+            "Place-Up": {
+                "twist_deg": 15,
+                "force_threshold": 5
+            },
+            "Support-Top": {
+                "force_threshold": 5
+            },
+            "Support-Bottom": {
+                "force_threshold": 5
+            },
+            "handover": {
+                "twist_deg": 18,
+                "force_threshold": 5
+            }
         }
     }
 }

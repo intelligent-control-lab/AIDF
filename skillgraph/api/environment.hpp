@@ -5,14 +5,26 @@
 
 
 namespace skillgraph {
-    class Environmnet {
+    class Environment {
     /*
     * Environment class containing the environment specification and backend
     */
     public:
-        Environmnet() = default;
+        enum Type {
+            Lego = 1,
+            NIST = 2,
+        };
 
-        Json::Value spec_;
+        Environment() = default;
+        Environment(const std::string &name, const std::string &type, const Json::Value &spec);
+
+        void setBackend(std::shared_ptr<PlanInstance> backend);
+
+        std::string name;
+        Type type;
+
+        Json::Value spec_; // environment specification
+        std::vector<ObjPtr> objects_;
         std::shared_ptr<PlanInstance> backend_;
     };
 

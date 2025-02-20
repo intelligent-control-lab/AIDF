@@ -3,79 +3,147 @@
 namespace skillgraph {
 
 SkillGraph::SkillGraph(const std::string &config_fname) {
-    // Open the JSON file
-    std::cout << "path name " << config_fname << std::endl;
-    std::ifstream file(config_fname, std::ifstream::binary);
-    if (!file.is_open()) {
+    // Open and parse JSON file
+    std::ifstream config_file(config_fname);
+    if (!config_file.is_open()) {
         throw std::runtime_error("Unable to open config file: " + config_fname);
     }
+    
+    Json::Value root;
+    config_file >> root;
 
-    // Parse the JSON
-    file >> root_config_;
 
-    // Parse task type
-    std::string task_type_str = root_config_["task_type"].asString();
-    if (task_type_str == "lego") {
-        task_type_ = TaskType::Lego;
-    } else if (task_type_str == "nist") {
-        task_type_ = TaskType::NIST;
-    } else {
-        throw std::runtime_error("Unknown task type: " + task_type_str);
+    // parse skill
+    std::map<std::string, std::vector<std::string>> robot_capabilities;
+    if (root.isMember("skills")) {
+        const Json::Value& skills_config = root["skills"];
+
+        for (const auto& robot_type : skills_config.getMemberNames()) {
+            std::vector<std::string> capabilities_of_robot;
+
+            const Json::Value& robot_skills = skills_config[robot_type];
+            for (const auto& skill_name : robot_skills.getMemberNames()) {
+                auto skill = std::make_shared<AtomicSkill>(skill_name);
+                skill_map_[skill->type] = skill;
+                atmoic_skills.push_back(skill->type);
+                capabilities_of_robot.push_back(skill_name);
+            }
+
+            // extend the robot capabilities vector of the entry in the map
+            robot_capabilities[robot_type] = capabilities_of_robot;
+        }
+    }   
+
+    // parse meta skills
+    if (root.isMember("metaskills")) {
+        const Json::Value& meta_skills_config = root["metaskills"];
+        
+        for (const auto& robot_type : meta_skills_config.getMemberNames()) {
+            std::vector<std::string> capabilities_of_robot;
+
+            const Json::Value& robot_meta_skills = meta_skills_config[robot_type];
+            
+            for (const auto& meta_skill_name : robot_meta_skills.getMemberNames()) {
+                const Json::Value& meta_skill_config = robot_meta_skills[meta_skill_name];
+                
+                auto meta_skill = std::make_shared<MetaSkill>(meta_skill_name);
+                
+                // Get atomic skills that make up this meta skill
+                const Json::Value& atomic_skills = meta_skill_config["atomicSkills"];
+                for (const auto& atomic_skill : atomic_skills) {
+                    Skill::Type type = Skill::from_string(atomic_skill.asString());
+
+                    meta_skill->atomic_skills.push_back(type);
+                }
+                
+                skill_map_[meta_skill->type] = meta_skill;
+                meta_skills[meta_skill->type] = meta_skill->atomic_skills;
+                capabilities_of_robot.push_back(meta_skill_name);
+            }
+        
+            // extend the robot capabilities vector of the entry in the map
+            robot_capabilities[robot_type].insert(robot_capabilities[robot_type].end(), 
+                capabilities_of_robot.begin(), capabilities_of_robot.end());
+        }
     }
 
-    // Parse backend
-    std::string backend_str = root_config_["backend"].asString();
-    if (backend_str == "moveit") {
-        backend_ = BackEnd::MOVEIT;
-    } else if (backend_str == "mujoco") {
-        backend_ = BackEnd::MUJOCO;
-    } else {
-        throw std::runtime_error("Unknown backend: " + backend_str);
+
+    // Parse robots configuration
+    if (root.isMember("robots")) {
+        const Json::Value& robots_config = root["robots"];
+        num_robots_ = robots_config["numRobot"].asInt();
+        
+        // Initialize vectors based on number of robots
+        for (int i = 0; i < num_robots_; i++) {
+            std::string robot_type = robots_config["type"][i].asString();
+            std::string gripper_type = robots_config["gripperTypes"][i].asString();
+            std::string sensor_type = robots_config["sensorTypes"][i].asString();
+            std::string robot_name = robots_config["robotNames"][i].asString();
+            std::vector<std::string> capabilities = robot_capabilities[robot_type];
+            auto robot = std::make_shared<Robot>(robot_type, gripper_type, sensor_type, robot_name, capabilities);
+             
+            robots.push_back(robot);
+        }
+        
     }
 
-    // Parse robots
-    const Json::Value &robots_json = root_config_["robots"];
-    int num_robots = robots_json["numRobot"].asInt();
-    for (int i = 0; i < num_robots; ++i) {
-        skillgraph::Robot robot;
-        // Assuming the `type` matches your Robot's enum or can be mapped
-        robot.robot_name = robots_json["type"][i].asString();
-        robot.tool = skillgraph::Robot::Tool::LegoTool; // Default to LegoTool (adjust based on your tool logic)
-        robots.push_back(robot);
+    // Prase environment
+    if (root.isMember("environment")) {
+        const Json::Value& env_config = root["environment"];
+        std::string env_name = env_config["name"].asString();
+        std::string env_type = env_config["type"].asString();
+        std::string moveitConfigPkg = env_config["moveitConfigPkg"].asString();
+        std::string backend = env_config["backend"].asString();
+        Environment::Type type = env_type == "Lego" ? Environment::Type::Lego : Environment::Type::NIST;
+        env_ = std::make_shared<Environment>(env_name, env_type, env_config);
+        //Todo: set backend
     }
-
-    // Parse skills
-
-    // Parse meta-skills
 }
 
 void SkillGraph::print_skillgraph() {
-    std::cout << "Task Type: " << (task_type_ == TaskType::Lego ? "Lego" : "NIST") << std::endl;
-    if (task_seq_ != nullptr)  {
-        std::cout << "Task Sequence: " << task_seq_->num_tasks() << std::endl;
-        task_seq_->print();
+    // Print Robots Information
+    std::cout << "\n=== Skill Graph Information ===\n";
+    std::cout << "\nRobots (" << num_robots_ << "):\n";
+    for (const auto& robot : robots) {
+        std::cout << "  Robot: " << robot->robot_name << "\n";
+        std::cout << "    Type: " << robot->robot_name << "\n";
+        std::cout << "    Tool: " << static_cast<int>(robot->tool) << "\n";
+        std::cout << "    Capabilities:\n";
+        for (const auto& cap : robot->capabilities) {
+            std::cout << "      - " << cap << "\n";
+        }
     }
-    std::cout << "Backend: " << (backend_ == BackEnd::MOVEIT ? "MoveIt" : "Mujoco") << std::endl;
 
-    std::cout << "Robots:" << std::endl;
-    for (const auto &robot : robots) {
-        std::cout << " - " << robot.robot_name << std::endl;
+    // Print Atomic Skills
+    std::cout << "\nAtomic Skills:\n";
+    for (const auto& skill_type : atmoic_skills) {
+        auto skill = skill_map_[skill_type];
+        std::cout << "  - " << skill->name << "\n";
     }
 
-    std::cout << "Atomic Skills:" << std::endl;
-    //TOTO print atomic skills
-    std::cout << "Meta Skills:" << std::endl;
-    //TOTO print meta skills
+    // Print Meta Skills
+    std::cout << "\nMeta Skills:\n";
+    for (const auto& [meta_type, atomic_skills] : meta_skills) {
+        auto meta_skill = skill_map_[meta_type];
+        std::cout << "  " << meta_skill->name << ":\n";
+        std::cout << "    Atomic Skills:\n";
+        for (const auto& atomic_type : atomic_skills) {
+            auto atomic_skill = skill_map_[atomic_type];
+            std::cout << "      - " << atomic_skill->name << "\n";
+        }
+    }
+
+    // Print Environment Information
+    if (env_) {
+        std::cout << "\nEnvironment:\n";
+        std::cout << "  Name: " << env_->name << "\n";
+        std::cout << "  Type: " << static_cast<int>(env_->type) << "\n";
+        std::cout << "  Objects: " << env_->objects_.size() << "\n";
+    }
+    
+    std::cout << "\n=== End of Skill Graph ===\n";
 }
 
-void SkillGraph::add_meta_skill(const std::string &meta_skill, const std::vector<std::string> &atomic_skill) {
-
-}
-
-
-void SkillGraph::add_atomic_skill(const std::string &skill) {
-
-};
 
 
 }

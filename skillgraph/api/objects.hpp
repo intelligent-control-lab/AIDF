@@ -28,10 +28,9 @@ namespace skillgraph {
         };
 
         Object() = default;
-        Object(const std::string &name, const std::string& parent_link, State state, double x, double y, double z, double qx, double qy, double qz, double qw):
-            name(name), parent_link(parent_link), state(state), x(x), y(y), z(z), qx(qx), qy(qy), qz(qz), qw(qw) 
-            {}
-        
+        Object(const std::string &name, const std::string& parent_link, State state, 
+            double x, double y, double z, double qx, double qy, double qz, double qw);
+
         virtual bool operator==(const Object& other) const {
             return name == other.name;
         }

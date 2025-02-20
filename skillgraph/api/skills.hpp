@@ -11,18 +11,23 @@ namespace skillgraph {
         Class definition of Skill and Type
         */
         enum Type {
-            pick = 1,
-            place_top = 2,
-            place_bottom = 3,
-            support_bottom = 4,
-            support_top = 5,
-            handover = 6,
-            transfer = 7,
+            Pick = 1,
+            PlaceTop = 2,
+            PlaceBottom = 3,
+            SupportBottom = 4,
+            SupportTop = 5,
+            Handover = 6,
+            Transit = 7,
             align = 8,
+            PlaceWithSupport = 101,
+            PickAndPlace = 102,
+            PickAndPlaceWithSupport = 103,
+            PickHandoverAndPlace = 104,
         };
 
-        bool isAtomic(Type type);
-        bool isMeta(Type type);
+        static bool isAtomic(Type type);
+        static bool isMeta(Type type);
+        static Type from_string(const std::string &type);
 
         Type type; // enum type
         std::string name; // name
@@ -51,14 +56,14 @@ namespace skillgraph {
         */
         public:
             SkillExecutor() = default;
-            SkillExecutor(const std::string &name);
+            SkillExecutor(Skill::Type type);
             
             // chooses one or many algorithms to implement the skill 
             std::vector<skillgraph::Algorithm> implementation;
 
             // properties
-            skillgraph::ConditionEvaluator pre_condition;
-            skillgraph::ConditionEvaluator post_condition;
+            std::shared_ptr<skillgraph::ConditionEvaluator> pre_condition;
+            std::shared_ptr<skillgraph::ConditionEvaluator> post_condition;
             Skill::Type skill_type; // corresponding skill
 
             // funnction implementation for executing this skill

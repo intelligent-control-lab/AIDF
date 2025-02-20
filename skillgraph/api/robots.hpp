@@ -10,6 +10,17 @@ namespace skillgraph {
         */
     public:
         Robot() = default;
+
+        /*
+        * Constructor for Robot Class
+        * @param type: type of the robot
+        * @param gripperType: type of the end-effector
+        * @param sensorType: type of the sensor
+        * @param name: name of the robot
+        */
+        Robot(const std::string &type, const std::string &gripperType, const std::string &sensorType,
+            const std::string &name, const std::vector<std::string> &capabilities);
+        
         enum Type {
             GP4 = 0,
             Kinova = 1,
@@ -33,6 +44,9 @@ namespace skillgraph {
         int hand_dof; // degree of freefom of end-effector
         std::vector<std::string> capabilities; // list of capabilities
     };
+
+    // define a pointer to the robot
+    typedef std::shared_ptr<Robot> RobotPtr;
 
 
 }
