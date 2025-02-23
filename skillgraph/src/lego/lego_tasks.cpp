@@ -15,6 +15,23 @@ LegoAssemblySeq::LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
     for (int i = 0; i < num_tasks_; i++) {
         Json::Value node = task_json_[std::to_string(i+1)];
         std::string seq = "t" + std::to_string(i+1);
+        int brick_id = node["brick_id"].asInt();
+        int brick_x = node["x"].asInt();
+        int brick_y = node["y"].asInt();
+        int brick_z = node["z"].asInt() - 1;
+        int ori = node["ori"].asInt();
+        int manip_type = node["manip_type"].asInt();
+        int support_x = node["support_x"].asInt();
+        int support_y = node["support_y"].asInt();
+        int support_z = node["support_z"].asInt() - 1;
+        int support_ori = node["support_ori"].asInt();
+
+        // Initialize a task
+        TaskPtr task = std::make_shared<Task>();
+        task->name = seq;
+        task->description = "Pick and place brick " + std::to_string(brick_id) + " to " + std::to_string(brick_x) + " " + std::to_string(brick_y) + " " + std::to_string(brick_z);
+
+        task_seq_.push_back(task);
     }
 }
 
@@ -28,6 +45,14 @@ void LegoAssemblySeq::remove_brick_seq() {
             cur_graph_node.removeMember("brick_seq");
         }
     }
+}
+
+void LegoAssemblySeq::print() {
+    std::cout << "Assembly Sequence: \n";
+    for (int i = 0; i < num_tasks_; i++) {
+        std::cout << task_seq_[i]->name << " " << task_seq_[i]->description << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 } // namespace skillgraph

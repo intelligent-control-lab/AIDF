@@ -28,10 +28,12 @@ namespace skillgraph {
         static bool isAtomic(Type type);
         static bool isMeta(Type type);
         static Type from_string(const std::string &type);
+        void set_param(const Json::Value &param);
 
         Type type; // enum type
         std::string name; // name
         std::shared_ptr<SkillExecutor> executor; // skill executor
+        Json::Value param; // parameters
     };
 
     struct AtomicSkill : public Skill {

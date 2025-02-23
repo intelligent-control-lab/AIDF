@@ -1,7 +1,7 @@
 #include "tpg.h"
 #include "logger.h"
 
-using namespace robot;
+using namespace skillgraph;
 
 namespace tpg {
 

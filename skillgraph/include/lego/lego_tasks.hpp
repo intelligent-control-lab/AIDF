@@ -12,6 +12,8 @@ namespace skillgraph {
             LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
                             const std::string &task_json);
             virtual  ~LegoAssemblySeq() {};
+
+            virtual void print() override;
         
             void remove_brick_seq();
     

@@ -14,6 +14,8 @@
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
 
+#include <ros/ros.h>
+
 #include "backend.hpp"
 #include "robots.hpp"
 

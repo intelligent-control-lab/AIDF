@@ -29,6 +29,11 @@ Skill::Type Skill::from_string(const std::string &name) {
 
 }
 
+void Skill::set_param(const Json::Value &param) {
+    this->param = param;
+}
+
+
 AtomicSkill::AtomicSkill(const std::string &name) {
     this->name = name;
     this->type = from_string(name);

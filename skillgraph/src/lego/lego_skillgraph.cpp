@@ -1,63 +1,89 @@
 #include "lego/lego_skillgraph.hpp"
+#include "Utils/Logger.hpp"
+#include "moveit_backend.hpp"
 
 namespace skillgraph {
 
 LegoSkillGraph::LegoSkillGraph(const std::string &config_file) : SkillGraph(config_file)
 {
-    // Parse skillgraph sequence
-    init_task_seq(root_config_);
 }
 
-void LegoSkillGraph::init_task_seq(const Json::Value &root_config) {
+void LegoSkillGraph::parse_env(const Json::Value &root_config) {
+    // first, use the base class implementation
+    SkillGraph::parse_env(root_config);
+ 
+    // create moveit and ROS backend
+    int argc = 0;
+    char **argv = NULL;
+    ros::init(argc, argv, "lego_skillgraph");
+    nh_ = std::make_shared<ros::NodeHandle>();
+
+    // TODO: setup the moveit backend
+    const Json::Value& env_config = root_config["environment"];
+    std::string moveitConfigPkg = env_config["moveitConfigPkg"].asString();
+    std::string backend = env_config["backend"].asString();
+    if (backend != "moveit") {
+        throw std::runtime_error("Backend must be moveit for Lego assembly! " + backend);
+    }
+
+}
+
+void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
     // Open the JSON file
-    if (!root_config.isMember("legoConig")) {
-        throw std::runtime_error("Lego Config file not found in config");
-    }
+    std::cout << "Parsing Lego Task" << std::endl;
+    if (root_config.isMember("environment") && root_config.isMember("tasks")) {
+        std::cout << "Parsing Lego Task" << std::endl;
+        const Json::Value& env_config = root_config["environment"];
+        std::string env_name = env_config["name"].asString();
+        std::string env_type = env_config["type"].asString();
+        if (env_type != "Lego") {
+            throw std::runtime_error("Environment type is not Lego! " + env_type);
+        }
 
-    std::string task_name = root_config["task_name"].asString();
-    Json::Value legoConfig = root_config["legoConfig"];
-    std::string root_pwd = legoConfig["root_pwd"].asString();
-    std::string lego_config_name = root_pwd + legoConfig["user_config"].asString();
+        std::string root_pwd = env_config["rootPwd"].asString();
+        auto calib_config = env_config["calibration"];
 
-    std::ifstream config_file(lego_config_name, std::ifstream::binary);
-    if (!config_file.is_open()) {
-        throw std::runtime_error("Unable to open config file: " + lego_config_name);
-    }
+        // read calibration
+        std::string r1_DH_fname = root_pwd + calib_config["r1"]["DH"].asString();
+        std::string r1_DH_tool_fname = root_pwd + calib_config["r1"]["DH_tool"].asString();
+        std::string r1_DH_tool_assemble_fname = root_pwd + calib_config["r1"]["DH_tool_assemble"].asString();
+        std::string r1_DH_tool_disassemble_fname = root_pwd + calib_config["r1"]["DH_tool_disassemble"].asString();
+        std::string r1_DH_tool_alt_fname = root_pwd + calib_config["r1"]["DH_tool_alt"].asString();
+        std::string r1_DH_tool_alt_assemble_fname = root_pwd + calib_config["r1"]["DH_tool_alt_assemble"].asString();
+        std::string r1_DH_tool_handover_assemble_fname = root_pwd + calib_config["r1"]["DH_tool_handover_assemble"].asString();
+        std::string r1_robot_base_fname = root_pwd + calib_config["r1"]["robot_base"].asString();
+        
+        std::string r2_DH_fname = root_pwd + calib_config["r2"]["DH"].asString();
+        std::string r2_DH_tool_fname = root_pwd + calib_config["r2"]["DH_tool"].asString();
+        std::string r2_DH_tool_assemble_fname = root_pwd + calib_config["r2"]["DH_tool_assemble"].asString();
+        std::string r2_DH_tool_disassemble_fname = root_pwd + calib_config["r2"]["DH_tool_disassemble"].asString();
+        std::string r2_DH_tool_alt_fname = root_pwd + calib_config["r2"]["DH_tool_alt"].asString();
+        std::string r2_DH_tool_alt_assemble_fname = root_pwd + calib_config["r2"]["DH_tool_alt_assemble"].asString();
+        std::string r2_DH_tool_handover_assemble_fname = root_pwd + calib_config["r2"]["DH_tool_handover_assemble"].asString();
+        std::string r2_robot_base_fname = root_pwd + calib_config["r2"]["robot_base"].asString();
 
-    Json::Value config;
-    config_file >> config;
-    std::string r1_DH_fname = root_pwd + config["r1_DH_fname"].asString();
-    std::string r1_DH_tool_fname = root_pwd + config["r1_DH_tool_fname"].asString();
-    std::string r1_DH_tool_assemble_fname = root_pwd + config["r1_DH_tool_assemble_fname"].asString();
-    std::string r1_DH_tool_disassemble_fname = root_pwd + config["r1_DH_tool_disassemble_fname"].asString();
-    std::string r1_DH_tool_alt_fname = root_pwd + config["r1_DH_tool_alt_fname"].asString();
-    std::string r1_DH_tool_alt_assemble_fname = root_pwd + config["r1_DH_tool_alt_assemble_fname"].asString();
-    std::string r1_DH_tool_handover_assemble_fname = root_pwd + config["r1_DH_tool_handover_assemble_fname"].asString();
-    std::string r1_robot_base_fname = root_pwd + config["Robot1_Base_fname"].asString();
-    std::string r2_DH_fname = root_pwd + config["r2_DH_fname"].asString();
-    std::string r2_DH_tool_fname = root_pwd + config["r2_DH_tool_fname"].asString();
-    std::string r2_DH_tool_assemble_fname = root_pwd + config["r2_DH_tool_assemble_fname"].asString();
-    std::string r2_DH_tool_disassemble_fname = root_pwd + config["r2_DH_tool_disassemble_fname"].asString();
-    std::string r2_DH_tool_alt_fname = root_pwd + config["r2_DH_tool_alt_fname"].asString();
-    std::string r2_DH_tool_alt_assemble_fname = root_pwd + config["r2_DH_tool_alt_assemble_fname"].asString();
-    std::string r2_DH_tool_handover_assemble_fname = root_pwd + config["r2_DH_tool_handover_assemble_fname"].asString();
-    std::string r2_robot_base_fname = root_pwd + config["Robot2_Base_fname"].asString();
 
-    std::string plate_calibration_fname = root_pwd + config["plate_calibration_fname"].asString();
-    std::string env_setup_fname = root_pwd + config["env_setup_folder"].asString() + "env_setup_" + task_name + ".json";
-    std::string lego_lib_fname = root_pwd + config["lego_lib_fname"].asString();
+        std::string plate_calibration_fname = root_pwd + calib_config["plate"].asString();
+        std::string env_setup_fname = root_pwd + env_config["object_library"].asString();
+        std::string lego_lib_fname = root_pwd + env_config["lego_library"].asString();
+        std::string world_base_fname = root_pwd + calib_config["world"].asString();
+    
+        // read task file
+        const Json::Value &task_config = root_config["tasks"];
+        std::string task_name = task_config["name"].asString();
+        std::string task_fname = root_pwd + task_config["assembly_seq"].asString();
+        
+        std::ifstream task_file(task_fname, std::ifstream::binary);
+        task_file >> task_json_;
 
-    std::string task_fname = root_pwd + legoConfig["assembly_config"].asString();
-    std::string world_base_fname = root_pwd + config["world_base_fname"].asString();
+        bool assemble = task_config["Start_with_Assemble"].asBool(); 
 
-    bool assemble = config["Start_with_Assemble"].asBool();
-    double twist_rad = config["Twist_Deg"].asInt() * M_PI / 180.0;
-    double handover_twist_rad_ = config["Handover_Twist_Deg"].asInt() * M_PI / 180.0;
+        // gazebo client for updating the simulation
+        set_state_client_ = nh_->serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
 
-    set_state_client_ = nh_.serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
-
-    lego_ptr_ = std::make_shared<lego_manipulation::lego::Lego>();
-    lego_ptr_->setup(env_setup_fname, lego_lib_fname, plate_calibration_fname, assemble, task_json_, world_base_fname,
+        // initialize the lego library
+        lego_ptr_ = std::make_shared<lego_manipulation::lego::Lego>();
+        lego_ptr_->setup(env_setup_fname, lego_lib_fname, plate_calibration_fname, assemble, task_json_, world_base_fname,
                     r1_DH_fname, r1_DH_tool_fname, r1_DH_tool_disassemble_fname, r1_DH_tool_assemble_fname, 
                     r1_DH_tool_alt_fname, r1_DH_tool_alt_assemble_fname, 
                     r1_DH_tool_handover_assemble_fname, r1_robot_base_fname, 
@@ -66,7 +92,10 @@ void LegoSkillGraph::init_task_seq(const Json::Value &root_config) {
                     r2_DH_tool_handover_assemble_fname, r2_robot_base_fname,
                     set_state_client_);
     
-    task_seq_ = std::make_shared<skillgraph::LegoAssemblySeq>(lego_ptr_, task_fname);
+        // initialize the task sequence
+        task_seq_ = std::make_shared<skillgraph::LegoAssemblySeq>(lego_ptr_, task_fname);
+    }
+
 }
 
 std::set<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)

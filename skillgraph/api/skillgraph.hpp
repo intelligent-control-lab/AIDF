@@ -48,6 +48,7 @@ namespace skillgraph
 
             Json::Value root_config_; // user-provided Json config of this skill graph
             std::vector<RobotPtr> robots; // list of robots and capabilities
+            std::map<std::string, std::vector<std::string>> robot_capabilities; // map of robot name, and its capabilities in string
             std::vector<Skill::Type> atmoic_skills; // list of atomic skills
             std::map<Skill::Type, std::vector<Skill::Type>> meta_skills; // map of all meta stkills
             std::map<Skill::Type, std::shared_ptr<Skill>> skill_map_;  // map of all skills by name
@@ -58,16 +59,23 @@ namespace skillgraph
             State target_state_;
             std::shared_ptr<AssemblySeq> task_seq_;
 
-
             // environemnt
             int num_robots_;
             std::shared_ptr<Environment> env_;
 
-            virtual void init_task_seq(const Json::Value &root_config) {throw std::runtime_error("Init Task Seq Not implemented");}
+            // root config filename
+            std::string config_fname;
+
+            virtual void parse_skills(const Json::Value &root);
+            virtual void parse_robots(const Json::Value &root);
+            virtual void parse_env(const Json::Value &root);
+            virtual void parse_tasks(const Json::Value &root);
 
         public:
             SkillGraph(const std::string &config_file);
             virtual ~SkillGraph() {};
+
+            virtual void initialize();
             
             void print_skillgraph();
 

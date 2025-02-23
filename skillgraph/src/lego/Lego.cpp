@@ -53,8 +53,11 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
     set_DH_tool_alt_assemble(r1_DH_tool_alt_assemble_fname, r2_DH_tool_alt_assemble_fname);
     set_DH_tool_handover_assemble(r1_DH_tool_handover_assemble_fname, r2_DH_tool_handover_assemble_fname);
     print_manipulation_property();
+    std::cout << "loading env setup from: " << env_setup_fname << std::endl;
     config_file >> config_;
+    std::cout << "loading lego library from: " << lego_lib_fname << std::endl;
     lego_lib_file >> lego_library_;
+    std::cout << "loading plate calibration from: " << plate_calib_fname << std::endl;
     Json::Value plate_calib;
     plate_calib_file >> plate_calib;
 

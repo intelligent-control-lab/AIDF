@@ -8,32 +8,44 @@
 
 namespace skillgraph
 { 
-    struct Constraint {
+    class Constraint {
         /*
         * Constraint Class containing the constraint type and parameters
         */
+    public:
+        Constraint() = default;
+
         std::string type;
         std::string param;
     };
 
-    struct TaskParam {
+    class TaskParam {
         /*
         * Task Parameters (for pre_conditions/post_condition of tasks, and inputs/outputs of algorithms)
         */
-        skillgraph::RobotState target_state; // target state for the robot
-        skillgraph::EnvState env_state;
-        skillgraph::Algorithm generator;
-        skillgraph::ConstraintEvaluator condition_check;
+    public:
+        TaskParam() = default;
+
+        std::vector<Constraint> constraints;
+        RobotState target_state; // target state for the robot
+        EnvState env_state;
+        std::shared_ptr<Algorithm> generator;
+        std::shared_ptr<ConstraintEvaluator> condition_check;
     };
 
-    struct Task {
+    class Task {
         /*
         * Task Class containing the name of the task as well as required parameters
         */
+    public:
+        Task() = default;
+
         std::string name;
+        std::string description;
         TaskParam pre_condition;
         TaskParam post_condition;
     };
+    typedef std::shared_ptr<Task> TaskPtr;
 
     class AssemblySeq {
     /*
@@ -42,16 +54,16 @@ namespace skillgraph
     public:
         AssemblySeq() = default;
         virtual ~AssemblySeq() {};
-        virtual std::vector<Task> get_sequence() {return task_seq_;}
+        virtual std::vector<TaskPtr> get_sequence() {return task_seq_;}
 
-        virtual Task get_task_at(int i);
+        virtual TaskPtr get_task_at(int i);
 
         virtual void print();
         int num_tasks() {return num_tasks_;}
     
     protected:
         int num_tasks_;
-        std::vector<Task> task_seq_;
+        std::vector<TaskPtr> task_seq_;
     };
 
 

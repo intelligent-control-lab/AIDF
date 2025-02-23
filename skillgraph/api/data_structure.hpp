@@ -7,6 +7,9 @@ namespace skillgraph {
         /*
         * RobotState Class containing the robot state, name, and joint values
         */
+
+        RobotState() = default;
+
         int robot_id;
         std::string robot_name; // same as group name in moveit
         std::vector<double> joint_values;
@@ -25,6 +28,7 @@ namespace skillgraph {
     };
 
     struct EnvState {
+        EnvState() = default;
         std::vector<skillgraph::Object> objects;
     };
 
@@ -32,6 +36,7 @@ namespace skillgraph {
         /*
         * State Class containing the robot state and environment state
         */
+        State() = default;
         RobotState robot_state;
         EnvState env_state;
     };
@@ -41,6 +46,7 @@ namespace skillgraph {
         /*
         * RobotTrajectory Class containing the robot trajectory, times, action ids, and cost
         */ 
+        RobotTrajectory() = default;
         int robot_id;
         std::vector<RobotState> trajectory;
         std::vector<double> times;
