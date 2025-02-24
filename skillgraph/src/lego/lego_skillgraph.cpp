@@ -1,6 +1,8 @@
 #include "lego/lego_skillgraph.hpp"
 #include "Utils/Logger.hpp"
 #include "moveit_backend.hpp"
+#include <boost/process.hpp>
+#include <boost/asio.hpp>
 
 namespace skillgraph {
 
@@ -18,14 +20,76 @@ void LegoSkillGraph::parse_env(const Json::Value &root_config) {
     ros::init(argc, argv, "lego_skillgraph");
     nh_ = std::make_shared<ros::NodeHandle>();
 
-    // TODO: setup the moveit backend
     const Json::Value& env_config = root_config["environment"];
-    std::string moveitConfigPkg = env_config["moveitConfigPkg"].asString();
-    std::string backend = env_config["backend"].asString();
+    const Json::Value& backend_config = env_config["backend"];
+    std::string moveitConfigPkg = backend_config["moveitConfigPkg"].asString();
+    
+    std::string backend = backend_config["type"].asString();
     if (backend != "moveit") {
         throw std::runtime_error("Backend must be moveit for Lego assembly! " + backend);
     }
 
+    // **********   create the moveit backend **********
+    // launch the move_group node for the robot, based on the moveitConfigPkg, 
+    // i.e. roslaunch moveitConfigPkg move_group.launch
+    // launch it in the background (create a new process)
+    namespace bp = boost::process;
+    std::vector<std::string> args = {
+        moveitConfigPkg,
+        "demo.launch",
+        "use_rviz:=true"
+    };
+    boost::asio::io_context io;
+    bp::environment env = boost::this_process::environment();
+    env["LIBGL_ALWAYS_SOFTWARE"] = "1";
+    bp::child move_group_process("/opt/ros/noetic/bin/roslaunch", bp::args(args), env, io);
+    io.run();
+
+    // Wait a bit for the process to start
+    ros::Duration(5.0).sleep();  // Give MoveIt time to initialize
+
+    // Check if process is running
+    if (!move_group_process.running()) {
+        throw std::runtime_error("Failed to start MoveIt move_group process");
+    }
+
+    // load the robot model
+    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+    robot_model::RobotModelPtr robot_model = robot_model_loader.getModel();
+
+    // create move group interface
+    std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group = 
+        std::make_shared<moveit::planning_interface::MoveGroupInterface>(backend_config["moveit_group_name"].asString());
+
+    // create planning scene interface
+    std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_ = 
+        std::make_shared<moveit::planning_interface::PlanningSceneInterface>();
+
+    // create a copy of robot kinematic
+    robot_state::RobotStatePtr kinematic_state = std::make_shared<robot_state::RobotState>(robot_model);
+    kinematic_state->setToDefaultValues();
+    ros::Duration(0.3).sleep();
+    planning_scene::PlanningScenePtr planning_scene = std::make_shared<planning_scene::PlanningScene>(robot_model);
+
+    // create a planning scene diff client
+    ros::ServiceClient  planning_scene_diff_client = nh_->serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+    planning_scene_diff_client.waitForExistence();
+
+    // create the moveit instance backend
+    auto plan_instance_ = std::make_shared<MoveitInstance>(kinematic_state, move_group->getName(), planning_scene);
+    plan_instance_->setPlanningSceneDiffClient(planning_scene_diff_client);
+
+    // set the number of robots and their names
+    plan_instance_->setNumberOfRobots(num_robots_);
+    std::vector<std::string> robot_names;
+    for (int i = 0; i < num_robots_; i++) {
+        plan_instance_->setRobotDOF(i, robots[i]->getDOF());
+    }
+    plan_instance_->setRobotNames(get_robot_names());
+    plan_instance_->setVmax(backend_config["l1_vmax"].asDouble());
+    
+    
+    env_->setBackend(plan_instance_);
 }
 
 void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {

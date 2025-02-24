@@ -1,6 +1,18 @@
 #pragma once
+#include "skillgraph.hpp"
 
-struct SmoothnessMetrics {
-    double normalized_jerk_score;
-    double directional_consistency;
+namespace planner {
+
+class AssemblyPlanner {
+public:
+    AssemblyPlanner(std::shared_ptr<skillgraph::SkillGraph> skillgraph);
+    
+    ~AssemblyPlanner();
+    
+    void plan();
+
+private:
+    std::shared_ptr<skillgraph::SkillGraph> skillgraph_;
 };
+
+}

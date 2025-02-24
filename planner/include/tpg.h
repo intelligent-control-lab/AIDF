@@ -3,6 +3,7 @@
 #include "tasks.hpp"
 #include "backend.hpp"
 #include "planner.h"
+#include "metrics.hpp"
 #include "task_graph.h"
 
 typedef actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> TrajectoryClient;
@@ -308,7 +309,7 @@ namespace tpg {
         double flowtime_improv_ = 0.0;
         double path_length_ = 0.0;
         double wait_time_ = 0.0;
-        SmoothnessMetrics smoothness_;
+        skillgraph::SmoothnessMetrics smoothness_;
         std::string r1_in_hand_obj_name_ = "None";
         std::string r2_in_hand_obj_name_ = "None";
         Eigen::MatrixXd r1_in_hand_goal_q_ = Eigen::MatrixXd::Zero(6, 1);

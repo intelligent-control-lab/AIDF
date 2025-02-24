@@ -115,8 +115,7 @@ void SkillGraph::parse_env(const Json::Value &root) {
         const Json::Value& env_config = root["environment"];
         std::string env_name = env_config["name"].asString();
         std::string env_type = env_config["type"].asString();
-        std::string moveitConfigPkg = env_config["moveitConfigPkg"].asString();
-        std::string backend = env_config["backend"].asString();
+        std::string backend = env_config["backend"]["type"].asString();
         Environment::Type type = env_type == "Lego" ? Environment::Type::Lego : Environment::Type::NIST;
         env_ = std::make_shared<Environment>(env_name, env_type, env_config);
     }
@@ -183,6 +182,12 @@ void SkillGraph::print_skillgraph() {
     std::cout << "\n=== End of Skill Graph ===\n";
 }
 
-
+std::vector<std::string> SkillGraph::get_robot_names() const {
+    std::vector<std::string> robot_names;
+    for (const auto& robot : robots) {
+        robot_names.push_back(robot->robot_name);
+    }
+    return robot_names;
+}
 
 }

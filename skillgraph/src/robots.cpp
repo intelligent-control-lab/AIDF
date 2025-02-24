@@ -33,4 +33,9 @@ Robot::Robot(const std::string &type, const std::string &gripperType, const std:
 
 }
 
+int Robot::getDOF() const
+{
+    return robot_dof + hand_dof;
+}
+
 }

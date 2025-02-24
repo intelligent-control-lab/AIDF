@@ -21,6 +21,8 @@ namespace skillgraph {
         Robot(const std::string &type, const std::string &gripperType, const std::string &sensorType,
             const std::string &name, const std::vector<std::string> &capabilities);
         
+        int getDOF() const;
+
         enum Type {
             GP4 = 0,
             Kinova = 1,

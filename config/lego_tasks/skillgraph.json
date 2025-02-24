@@ -11,9 +11,13 @@
         "name": "mfi_testbed",
         "type": "Lego",
         "rootPwd": "/home/philip/catkin_ws/src/AIDF/",
-        "moveitConfigPkg": "dual_gp4_moveit_config",
         "stateForm": "LegoEnvState",
-        "backend": "moveit",
+        "backend": {
+            "type": "moveit",
+            "moveitConfigPkg": "dual_gp4_moveit_config",
+            "moveit_group_name": "dual_gp4",
+            "l1_vmax": 1.0
+        },
         "calibration": {
             "world": "config/lego_tasks/robot_properties/world_base.txt",
             "plate": "config/lego_tasks/plate_calibration.json",

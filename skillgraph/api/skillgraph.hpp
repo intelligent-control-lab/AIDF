@@ -86,6 +86,8 @@ namespace skillgraph
             std::vector<Skill::Type> get_meta_skills();
             std::map<Skill::Type, std::vector<Skill::Type>> get_atomic_skills();
             std::vector<Skill::Type> get_robot_capabilities();
+
+            std::vector<std::string> get_robot_names() const;
             
             virtual std::set<GroundedSkill> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
 
