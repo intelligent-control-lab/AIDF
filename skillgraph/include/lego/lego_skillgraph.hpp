@@ -2,6 +2,7 @@
 #include "skillgraph.hpp"
 #include "lego/Lego.hpp"
 #include "lego_tasks.hpp"
+#include "lego_objects.hpp"
 
 namespace skillgraph {
     class LegoSkillGraph : public SkillGraph {
@@ -19,6 +20,15 @@ namespace skillgraph {
             virtual void parse_env(const Json::Value &root_config) override;
             virtual void parse_tasks(const Json::Value &root_config) override;
         
+            //read the location and size of lego block at start and return as a rectangular object
+            LegoBrick getLegoStart(const std::string &brick_name);
+            
+            //read the location and size of lego block at target and return as a rectangular object
+            LegoBrick getLegoTarget(int task_idx);
+
+            // calculate the location of lego block when the robot is handing ovet the block at a certain task index
+            LegoBrick getLegoHandover(int task_idx, const RobotState &start_pose);
+
         public:
             LegoSkillGraph(const std::string &config_file);
             virtual ~LegoSkillGraph() {};

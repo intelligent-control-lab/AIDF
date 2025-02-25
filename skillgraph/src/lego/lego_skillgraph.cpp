@@ -22,11 +22,6 @@ void LegoSkillGraph::parse_env(const Json::Value &root_config) {
         throw std::runtime_error("Backend must be moveit for Lego assembly! " + backend);
     }
 
-    // **********   create the moveit backend **********
-    // launch the move_group node for the robot, based on the moveitConfigPkg, 
-    // i.e. roslaunch moveitConfigPkg move_group.launch
-    // launch it in the background (create a new process)
-    
     // create the moveit instance backend
     auto plan_instance_ = std::make_shared<MoveitInstance>(backend_config["moveit_group_name"].asString(), 
                             moveitConfigPkg);
@@ -39,7 +34,6 @@ void LegoSkillGraph::parse_env(const Json::Value &root_config) {
     }
     plan_instance_->setRobotNames(get_robot_names());
     plan_instance_->setVmax(backend_config["l1_vmax"].asDouble());
-    
     
     env_->setBackend(plan_instance_);
 }
@@ -111,13 +105,177 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
     
         // initialize the task sequence
         task_seq_ = std::make_shared<skillgraph::LegoAssemblySeq>(lego_ptr_, task_fname);
+
+        // add the existing lego objects to the initial state of the environment
+        EnvState init_state;
+
+        std::vector<std::string> brick_names = lego_ptr_->get_brick_names();
+        for (const auto & name : brick_names) {
+            if (name.find("station") != std::string::npos) {
+                continue;
+            }
+            ObjPtr lego_brick = std::make_shared<LegoBrick>(getLegoStart(name));
+            env_->backend_->addMoveableObject(*lego_brick);
+            env_->backend_->updateScene();
+            init_state.objects.push_back(lego_brick);
+        }
+        
+        // add the table to the initial state
+        ObjPtr table = std::make_shared<Object>();
+        table->name = "table";
+        table->state = Object::State::Static;
+        table->parent_link = "world";
+        table->shape = Object::Shape::Box;
+        
+        lego_ptr_->get_table_size(table->length, table->width, table->height);
+        geometry_msgs::Pose box_pose = lego_ptr_->get_table_pose();
+        table->x = box_pose.position.x;
+        table->y = box_pose.position.y;
+        table->z = box_pose.position.z - table->height/2;
+        table->qx = box_pose.orientation.x;
+        table->qy = box_pose.orientation.y;
+        table->qz = box_pose.orientation.z;
+        table->qw = box_pose.orientation.w;
+
+        env_->backend_->addMoveableObject(*table);
+        env_->backend_->updateScene();
+        std::dynamic_pointer_cast<MoveitInstance>(env_->backend_)->setObjectColor("table", 0.0, 0.0, 1.0, 0.0);
+        init_state.objects.push_back(table);
+
+        // set the initial state to environment
+        env_->setInitialState(init_state);
+        
     }
 
+}
+
+LegoBrick LegoSkillGraph::getLegoStart(const std::string &brick_name) {
+    LegoBrick obj;
+    
+    // define the object
+    obj.name = brick_name;
+    obj.state = Object::State::Static;
+    obj.parent_link = "world";
+    obj.shape = Object::Shape::Box;
+
+    // get the starting pose and size
+    geometry_msgs::Pose box_pose;
+    lego_ptr_->get_brick_sizes(brick_name, obj.length, obj.width, obj.height);
+    box_pose = lego_ptr_->get_init_brick_pose(brick_name);
+    
+    obj.brick_id = lego_ptr_->get_brick_type(brick_name);
+    obj.x = box_pose.position.x;
+    obj.y = box_pose.position.y;
+    obj.z = box_pose.position.z - obj.height/2;
+    obj.qx = box_pose.orientation.x;
+    obj.qy = box_pose.orientation.y;
+    obj.qz = box_pose.orientation.z;
+    obj.qw = box_pose.orientation.w; 
+
+    return obj;
+}
+
+
+LegoBrick LegoSkillGraph::getLegoTarget(int task_idx) {
+    auto cur_graph_node =  task_json_[std::to_string(task_idx)];
+    std::string brick_name = lego_ptr_->get_brick_name_by_id(cur_graph_node["brick_id"].asInt(), cur_graph_node["brick_seq"].asString());
+
+    Eigen::Matrix4d brick_pose_mtx;
+    lego_ptr_->calc_bric_asssemble_pose(brick_name, cur_graph_node["x"].asInt(), cur_graph_node["y"].asInt(),
+             cur_graph_node["z"].asInt(), cur_graph_node["ori"].asInt(), brick_pose_mtx);
+    
+    LegoBrick obj;
+    // define the object
+    obj.name = brick_name;
+    obj.state = Object::State::Static;
+    obj.parent_link = "world";
+    obj.shape = Object::Shape::Box;
+    obj.brick_id = cur_graph_node["brick_id"].asInt();
+    lego_ptr_->get_brick_sizes(brick_name, obj.length, obj.width, obj.height);
+
+    obj.x = brick_pose_mtx(0, 3);
+    obj.y = brick_pose_mtx(1, 3);
+    obj.z = brick_pose_mtx(2, 3) - obj.height/2;
+    Eigen::Quaterniond quat(brick_pose_mtx.block<3, 3>(0, 0));
+    obj.qx = quat.x();
+    obj.qy = quat.y();
+    obj.qz = quat.z();
+    obj.qw = quat.w();
+
+    return obj;
+}
+
+LegoBrick LegoSkillGraph::getLegoHandover(int task_idx, const RobotState &start_pose) {
+    auto cur_graph = task_json_[std::to_string(task_idx)];
+    std::string brick_name = lego_ptr_->get_brick_name_by_id(cur_graph["brick_id"].asInt(), cur_graph["brick_seq"].asString());
+    int sup_robot = cur_graph["sup_robot_id"].asInt() - 1;
+    assert (sup_robot == start_pose.robot_id);
+    int brick_id = cur_graph["brick_id"].asInt();
+    int press_side = cur_graph["press_side"].asInt();
+    int press_offset = cur_graph["press_offset"].asInt();
+
+
+    LegoBrick obj;
+    // define the object
+    obj.name = brick_name;
+    obj.state = Object::State::Handover;
+    obj.parent_link = robots[sup_robot]->end_effector_link;
+    obj.shape = Object::Shape::Box;
+    obj.brick_id = brick_id;
+
+    // define the object
+    Eigen::Matrix4d brick_loc;
+    lego_manipulation::math::VectorJd press_joints = Eigen::MatrixXd::Zero(6, 1);
+    press_joints << start_pose.joint_values[0], start_pose.joint_values[1], start_pose.joint_values[2], 
+                    start_pose.joint_values[3], start_pose.joint_values[4], start_pose.joint_values[5];
+    press_joints = press_joints * M_PI / 180.0;
+    lego_ptr_->lego_pose_from_press_pose(press_joints, sup_robot, brick_id, 
+        press_side, press_offset, brick_loc);
+    
+    obj.x = brick_loc(0, 3);
+    obj.y = brick_loc(1, 3);
+    obj.z = brick_loc(2, 3) - obj.height/2;
+    Eigen::Quaterniond quat(brick_loc.block<3, 3>(0, 0));
+    obj.qx = quat.x();
+    obj.qy = quat.y();
+    obj.qz = quat.z();
+    obj.qw = quat.w();
+     
+    lego_ptr_->get_brick_sizes(brick_name, obj.length, obj.width, obj.height);
+    return obj;
 }
 
 std::set<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
     std::set<GroundedSkill> feasible_set;
+    
+    // identify what has been
+    const auto &objects = state.env_state.objects;
+
+    // get the next task
+    int assembled_steps = state.assembled_steps;
+    if (assembled_steps >= task_seq_->num_tasks()) {
+        log("All tasks have been completed", LogLevel::INFO);
+        return feasible_set;
+    }
+    TaskPtr task = task_seq_->get_task_at(assembled_steps);
+
+    // get the task constraints
+    const std::vector<Skill::Type> &allowed_skills = task->post_condition->allowed_skill_type;
+    const Json::Value &constraints = task->post_condition->constraints_json;
+    for (const auto &skill_type : allowed_skills) {
+        if (skill_type == Skill::Type::PickAndPlace) {
+            // find all the bricks that can be picked with the correct type
+            for (auto obj : objects) {
+            }
+        }
+        else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
+
+        }
+        else if (skill_type == Skill::Type::PickHandoverAndPlace) {
+
+        }
+    }
     
     return feasible_set;
 }

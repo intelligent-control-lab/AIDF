@@ -19,12 +19,15 @@ namespace skillgraph {
         Environment(const std::string &name, const std::string &type, const Json::Value &spec);
 
         void setBackend(std::shared_ptr<PlanInstance> backend);
+        std::shared_ptr<PlanInstance> getBackend() const { return backend_; }
+
+        void setInitialState(const EnvState &state);
 
         std::string name;
         Type type;
 
         Json::Value spec_; // environment specification
-        std::vector<ObjPtr> objects_;
+        EnvState env_state;
         std::shared_ptr<PlanInstance> backend_;
     };
 

@@ -45,6 +45,7 @@ namespace skillgraph {
         int robot_dof; // degree of freedom of the robot links
         int hand_dof; // degree of freefom of end-effector
         std::vector<std::string> capabilities; // list of capabilities
+        std::string end_effector_link; // end effector link
     };
 
     // define a pointer to the robot

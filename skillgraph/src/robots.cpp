@@ -1,4 +1,5 @@
 #include "robots.hpp"
+#include "Utils/Logger.hpp"
 
 namespace skillgraph {
 
@@ -10,6 +11,15 @@ Robot::Robot(const std::string &type, const std::string &gripperType, const std:
     if (type == "gp4") {
         this->type = Robot::Type::GP4;
         this->robot_dof = 6;
+        if (robot_name == "left_arm") {
+            end_effector_link = "left_arm_link_tool";
+        }
+        else if (robot_name == "right_arm") {
+            end_effector_link = "right_arm_link_tool";
+        }
+        else {
+            log("Robot end-effector link name not set", LogLevel::WARN);
+        }
     }
     else {
         // not supported raise error

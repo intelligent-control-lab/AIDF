@@ -170,7 +170,7 @@ void SkillGraph::print_skillgraph() {
         std::cout << "\nEnvironment:\n";
         std::cout << "  Name: " << env_->name << "\n";
         std::cout << "  Type: " << static_cast<int>(env_->type) << "\n";
-        std::cout << "  Objects: " << env_->objects_.size() << "\n";
+        std::cout << "  Objects: " << env_->env_state.to_string() << "\n";
     }
 
     // Print Task Information

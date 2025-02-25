@@ -209,6 +209,7 @@ class Lego
         void get_init_brick_xyzo(const std::string& brick_name, int& x, int& y, int& z, int &ori);
         geometry_msgs::Pose get_init_brick_pose(const std::string& brick_name);
         geometry_msgs::Pose get_curr_brick_pose(const std::string& brick_name);
+        int get_brick_type(const std::string& brick_name);
         geometry_msgs::Pose get_table_pose();
         void get_brick_sizes(const std::string& brick_name, double& x, double& y, double& z);
         void get_table_size(double& x, double& y, double& z);

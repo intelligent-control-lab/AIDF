@@ -15,6 +15,10 @@ MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
 
 MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name)
 {
+    // launch the move_group node for the robot, based on the moveitConfigPkg, 
+    // i.e. roslaunch moveitConfigPkg move_group.launch
+    // launch it in the background (create a new process)
+    
     namespace bp = boost::process;
     std::vector<std::string> args = {
         moveit_pkg_name,

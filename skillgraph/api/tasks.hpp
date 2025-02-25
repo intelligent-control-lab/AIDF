@@ -5,20 +5,10 @@
 #include "Utils/FileIO.hpp"
 #include "environment.hpp"
 #include "metrics.hpp"
+#include "skills.hpp"
 
 namespace skillgraph
-{ 
-    class Constraint {
-        /*
-        * Constraint Class containing the constraint type and parameters
-        */
-    public:
-        Constraint() = default;
-
-        std::string type;
-        std::string param;
-    };
-
+{
     class TaskParam {
         /*
         * Task Parameters (for pre_conditions/post_condition of tasks, and inputs/outputs of algorithms)
@@ -26,12 +16,15 @@ namespace skillgraph
     public:
         TaskParam() = default;
 
-        std::vector<Constraint> constraints;
+        Json::Value constraints_json;
+        std::vector<Skill::Type> allowed_skill_type;
+
         RobotState target_state; // target state for the robot
         EnvState env_state;
         std::shared_ptr<Algorithm> generator;
         std::shared_ptr<ConstraintEvaluator> condition_check;
     };
+    typedef std::shared_ptr<TaskParam> TaskParamPtr;
 
     class Task {
         /*
@@ -42,8 +35,8 @@ namespace skillgraph
 
         std::string name;
         std::string description;
-        TaskParam pre_condition;
-        TaskParam post_condition;
+        TaskParamPtr pre_condition;
+        TaskParamPtr post_condition;
     };
     typedef std::shared_ptr<Task> TaskPtr;
 

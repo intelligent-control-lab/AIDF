@@ -19,7 +19,7 @@ void signal_handler(int signal) {
             segfault_occurred = true; // Set the segfault flag
             std::cerr << "\nCaught SIGSEGV (Segmentation fault).  Attempting graceful shutdown...\n";
              // Attempt a graceful shutdown using pkill -TERM
-            std::system("pkill -TERM -f roslaunch");
+            int ret = std::system("pkill -TERM -f ros");
             // DO NOT call exit() or std::system("pkill -KILL ...") here.
 
             // Re-raise the signal to terminate the program with a core dump.
@@ -27,17 +27,17 @@ void signal_handler(int signal) {
             std::raise(SIGSEGV);          // Re-raise the signal
         } else if (signal == SIGINT) {
             std::cout << "\nCaught SIGINT (Ctrl+C).  Killing ROS processes..." << std::endl;
-            int term_result = std::system("pkill -TERM -f roslaunch");
+            int term_result = std::system("pkill -TERM -f ros");
             if (term_result != 0) {
                 std::cerr << "pkill -TERM -f roslaunch failed.  Attempting pkill -KILL..." << std::endl;
-                std::system("pkill -KILL -f roslaunch"); // Safe in SIGINT handler
+                int ret = std::system("pkill -KILL -f ros"); // Safe in SIGINT handler
             }
         } else { //For other signals
              std::cout << "\nSignal " << signal << " received. Killing ROS processes..." << std::endl;
-            int term_result = std::system("pkill -TERM -f roslaunch");
+            int term_result = std::system("pkill -TERM -f ros");
             if (term_result != 0) {
                 std::cerr << "pkill -TERM -f roslaunch failed.  Attempting pkill -KILL..." << std::endl;
-                std::system("pkill -KILL -f roslaunch"); // Safe in SIGINT handler
+                int ret = std::system("pkill -KILL -f ros"); // Safe in SIGINT handler
             }
         }
 

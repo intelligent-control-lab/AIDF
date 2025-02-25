@@ -29,7 +29,15 @@ namespace skillgraph {
 
     struct EnvState {
         EnvState() = default;
-        std::vector<skillgraph::Object> objects;
+        std::vector<ObjPtr> objects;
+    
+        std::string to_string() const {
+            std::string str = "EnvState: ";
+            for (const auto& obj : objects) {
+                str += obj->to_string() + "\n";
+            }
+            return str;
+        }
     };
 
     struct State {
@@ -39,6 +47,7 @@ namespace skillgraph {
         State() = default;
         RobotState robot_state;
         EnvState env_state;
+        int assembled_steps;
     };
 
 

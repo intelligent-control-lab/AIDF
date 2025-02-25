@@ -38,6 +38,17 @@ namespace skillgraph {
         virtual bool sameType(const Object &other) const {
             return type == other.type;
         }
+
+        std::string to_string() const {
+            std::string str = "Object: ";
+            str += "Name: " + name + " ";
+            str += "Type: " + std::to_string(type) + " ";
+            str += "State: " + std::to_string(state) + " ";
+            str += "Parent Link: " + parent_link + " \n";
+            str += "Position: " + std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(z) + " \n";
+            str += "Orientation: " + std::to_string(qx) + " " + std::to_string(qy) + " " + std::to_string(qz) + " " + std::to_string(qw) + " \n";
+            return str;
+        }
         
         std::string name;
         Type type;
