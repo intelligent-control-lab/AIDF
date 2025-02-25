@@ -14,6 +14,11 @@
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
 
+#include <boost/process.hpp>
+#include <boost/asio.hpp>
+#include <sys/prctl.h>
+#include <signal.h>
+
 #include <ros/ros.h>
 
 #include "backend.hpp"
@@ -27,6 +32,8 @@ public:
     MoveitInstance(robot_state::RobotStatePtr kinematic_state,
                    const std::string &joint_group_name,
                    planning_scene::PlanningScenePtr planning_scene);
+    MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name);
+    ~MoveitInstance();
     virtual bool checkCollision(const std::vector<skillgraph::RobotState> &poses, bool self, bool debug=false) override;
     virtual double computeDistance(const skillgraph::RobotState& a, const skillgraph::RobotState &b) const override;
     virtual double computeDistance(const skillgraph::RobotState& a, const skillgraph::RobotState &b, int dof) const override;
@@ -57,7 +64,14 @@ public:
     virtual void printKnownObjects() const override;
 
 private:
+    // ros 
+    std::shared_ptr<ros::NodeHandle> nh_;
+
     // moveit move_group and planning_scene_interface pointers
+    boost::process::child move_group_process_;
+
+    std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
+    robot_model::RobotModelPtr robot_model_;
     std::string joint_group_name_;
     robot_state::RobotStatePtr kinematic_state_;
     planning_scene::PlanningScenePtr planning_scene_;

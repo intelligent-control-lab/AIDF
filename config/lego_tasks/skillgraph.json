@@ -15,7 +15,7 @@
         "backend": {
             "type": "moveit",
             "moveitConfigPkg": "dual_gp4_moveit_config",
-            "moveit_group_name": "dual_gp4",
+            "moveit_group_name": "dual_arms",
             "l1_vmax": 1.0
         },
         "calibration": {

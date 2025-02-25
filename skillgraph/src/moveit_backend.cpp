@@ -13,6 +13,66 @@ MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
 }
 
 
+MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name)
+{
+    namespace bp = boost::process;
+    std::vector<std::string> args = {
+        moveit_pkg_name,
+        "demo.launch",
+        "use_rviz:=true"
+    };
+    boost::asio::io_context io;
+    bp::environment env = boost::this_process::environment();
+    env["LIBGL_ALWAYS_SOFTWARE"] = "1";
+    move_group_process_ = bp::child("/opt/ros/noetic/bin/roslaunch", 
+            bp::args(args), 
+            env,
+            io
+        );
+    io.run();
+
+    // Wait a bit for the process to start
+    sleep(10);
+
+    // Check if process is running
+    if (!move_group_process_.running()) {
+        throw std::runtime_error("Failed to start MoveIt move_group process");
+    }
+
+    // create moveit and ROS backend
+    int argc = 0;
+    char **argv = NULL;
+    ros::init(argc, argv, "lego_skillgraph");
+    nh_ = std::make_shared<ros::NodeHandle>();
+
+    // load the robot model
+    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+    robot_model_ = robot_model_loader.getModel();
+
+    // create move group interface
+    move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
+
+    // create planning scene interface
+    //std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_ = 
+    //    std::make_shared<moveit::planning_interface::PlanningSceneInterface>();
+
+    // create a copy of robot kinematic
+    kinematic_state_ = std::make_shared<robot_state::RobotState>(robot_model_);
+    kinematic_state_->setToDefaultValues();
+    ros::Duration(0.3).sleep();
+    // create planning scene
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
+
+    // create a planning scene diff client
+    planning_scene_diff_client_ = nh_->serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+    planning_scene_diff_client_.waitForExistence();
+
+    planning_scene_->getPlanningSceneMsg(original_scene_);
+}
+
+MoveitInstance::~MoveitInstance() {
+}
+
 void MoveitInstance::setPadding(double padding) {
     planning_scene_->getCollisionEnvNonConst()->setPadding(padding);
     planning_scene_->propogateRobotPadding();
