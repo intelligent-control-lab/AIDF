@@ -25,7 +25,7 @@ void Environment::setBackend(std::shared_ptr<PlanInstance> backend)
     backend_ = backend;
 }
 
-void Environment::setInitialState(const EnvState &state)
+void Environment::setState(const EnvState &state)
 {
     env_state = state;
 }

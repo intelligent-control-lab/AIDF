@@ -18,6 +18,7 @@ namespace skillgraph {
             Type type;
             std::string name;
     };
+    typedef std::shared_ptr<Algorithm> AlgorithmPtr;
 
     class SkillPerformingAlgorithm : public Algorithm {
         /*

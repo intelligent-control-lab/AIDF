@@ -56,6 +56,11 @@ int main() {
         log("Lego Skill Graph Initialized", LogLevel::INFO);
         sg->print_skillgraph();
 
+        auto feasible_u = sg->feasible_u(sg->get_initial_state());
+        std::cout << "feasible u size: " << feasible_u.size() << std::endl;
+        for (const auto &gs : feasible_u) {
+            std::cout << "Feasible Skill: " << gs.type << " " << gs.robot->robot_name << " " << gs.object->name << std::endl;
+        }
 
         // Shutdown Logic (for natural exit)
         if (program_running) { // Only set program_running = false if no signal.

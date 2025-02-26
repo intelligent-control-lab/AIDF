@@ -21,7 +21,7 @@ namespace skillgraph {
         void setBackend(std::shared_ptr<PlanInstance> backend);
         std::shared_ptr<PlanInstance> getBackend() const { return backend_; }
 
-        void setInitialState(const EnvState &state);
+        void setState(const EnvState &state);
 
         std::string name;
         Type type;

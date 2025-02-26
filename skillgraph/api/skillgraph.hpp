@@ -26,10 +26,15 @@ namespace skillgraph
         Grounded Skill Class, containing detailed parameters for a symbolic skill
         */
 
-        TaskParam task_param;
-        Object object;
-        Robot robot;
-        Algorithm algorithm;
+        //constructor
+        GroundedSkill() = default;
+        GroundedSkill(Skill::Type type, TaskParamPtr task_param, ObjPtr object, RobotPtr robot) :
+            task_param(task_param), object(object), robot(robot)
+            {this->type =type; }
+
+        TaskParamPtr task_param;
+        ObjPtr object;
+        RobotPtr robot;
     };
 
 
@@ -89,7 +94,9 @@ namespace skillgraph
 
             std::vector<std::string> get_robot_names() const;
             
-            virtual std::set<GroundedSkill> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
+            virtual std::vector<GroundedSkill> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
+
+            State get_initial_state() const { return initial_state_; }
 
             // std::tuple<std::vector<std::string>, std::function<bool(const std::map<std::string, std::any>&)>> 
             //     feasible_target_states(const std::string& skill, const Object& obj, const env::State& state);

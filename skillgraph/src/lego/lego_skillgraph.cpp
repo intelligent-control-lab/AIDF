@@ -114,7 +114,8 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
             if (name.find("station") != std::string::npos) {
                 continue;
             }
-            ObjPtr lego_brick = std::make_shared<LegoBrick>(getLegoStart(name));
+            auto lego_brick = std::make_shared<LegoBrick>(getLegoStart(name));
+            lego_brick->in_storage = true; // Explicitly set in_storage flag to true
             env_->backend_->addMoveableObject(*lego_brick);
             env_->backend_->updateScene();
             init_state.objects.push_back(lego_brick);
@@ -143,8 +144,8 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
         init_state.objects.push_back(table);
 
         // set the initial state to environment
-        env_->setInitialState(init_state);
-        
+        env_->setState(init_state);
+        initial_state_.env_state = init_state;
     }
 
 }
@@ -245,9 +246,9 @@ LegoBrick LegoSkillGraph::getLegoHandover(int task_idx, const RobotState &start_
     return obj;
 }
 
-std::set<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
+std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
-    std::set<GroundedSkill> feasible_set;
+    std::vector<GroundedSkill> feasible_set;
     
     // identify what has been
     const auto &objects = state.env_state.objects;
@@ -263,17 +264,54 @@ std::set<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &stat
     // get the task constraints
     const std::vector<Skill::Type> &allowed_skills = task->post_condition->allowed_skill_type;
     const Json::Value &constraints = task->post_condition->constraints_json;
+    int required_brick_id = constraints["brick_id"].asInt();
+    
+    //std::cout << "Looking for bricks with ID: " << required_brick_id << std::endl;
+
+    // find all the bricks that can be picked with the correct type
+    std::vector<LegoBrickPtr> usable_bricks;
+    //std::cout << "Number of objects" << objects.size() << std::endl;
+    for (auto obj : objects) {
+        // check if this object is a Lego Brick
+        if (auto lego_brick = std::dynamic_pointer_cast<LegoBrick>(obj)) {
+            int brick_id = lego_brick->brick_id;
+            bool in_storage = lego_brick->in_storage;
+            std::cout << "Found brick: " << lego_brick->name << " with ID: " << brick_id << ", in_storage: " << (in_storage ? "true" : "false") << std::endl;
+            if (in_storage && brick_id == required_brick_id) {
+                usable_bricks.push_back(lego_brick);
+                std::cout << "Added usable brick: " << lego_brick->name << std::endl;
+            }
+        }
+    }
+
     for (const auto &skill_type : allowed_skills) {
+        //std::cout << "Skill Type: " << skill_type << std::endl;
         if (skill_type == Skill::Type::PickAndPlace) {
-            // find all the bricks that can be picked with the correct type
-            for (auto obj : objects) {
+            for (auto obj : usable_bricks) {
+                // this block is symbolically feasible
+                for (auto robot : robots) {
+                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                    feasible_set.push_back(gs);
+                }
             }
         }
         else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
-
+            for (auto obj : usable_bricks) {
+                for (auto robot : robots) {
+                    // check if the robot has the capability to support
+                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                    feasible_set.push_back(gs);
+                }
+            }
         }
         else if (skill_type == Skill::Type::PickHandoverAndPlace) {
-
+            for (auto obj : usable_bricks) {
+                for (auto robot : robots) {
+                    // check if the robot has the capability to handover
+                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                    feasible_set.push_back(gs);
+                }
+            }
         }
     }
     

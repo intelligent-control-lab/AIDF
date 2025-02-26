@@ -34,6 +34,6 @@ namespace skillgraph {
             virtual ~LegoSkillGraph() {};
 
 
-            virtual std::set<GroundedSkill> feasible_u(const skillgraph::State &state);
+            virtual std::vector<GroundedSkill> feasible_u(const skillgraph::State &state);
     };
 }

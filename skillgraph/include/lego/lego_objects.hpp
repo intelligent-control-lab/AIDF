@@ -12,7 +12,9 @@ struct LegoBrick : public Object {
     }
 
     int brick_id;
+    bool in_storage = true;
     lego_manipulation::lego::lego_brick brick;
 };
+typedef std::shared_ptr<LegoBrick> LegoBrickPtr;
 
 }
