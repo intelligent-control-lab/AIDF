@@ -23,6 +23,20 @@ namespace skillgraph {
                 hand_values == other.hand_values;
         }
 
+        std::string to_string() const {
+            std::string str = "RobotState: ";
+            str += "Robot Name: " + robot_name + " ";
+            str += "Joint Values: ";
+            for (const auto& val : joint_values) {
+                str += std::to_string(val) + " ";
+            }
+            str += "Hand Values: ";
+            for (const auto& val : hand_values) {
+                str += std::to_string(val) + " ";
+            }
+            return str;
+        }
+
         
         std::unordered_map<std::string, std::any> attributes;
     };
@@ -38,6 +52,18 @@ namespace skillgraph {
             }
             return str;
         }
+
+        bool operator==(const EnvState &other) const {
+            if (objects.size() != other.objects.size()) {
+                return false;
+            }
+            for (int i = 0; i < objects.size(); i++) {
+                if (!(*objects[i] == *other.objects[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
     };
 
     struct State {
@@ -48,6 +74,27 @@ namespace skillgraph {
         std::vector<RobotState> robot_states;
         EnvState env_state;
         int assembled_steps;
+
+        bool operator==(const State &other) const {
+            if (robot_states.size() != other.robot_states.size()) {
+                return false;
+            }
+            for (int i = 0; i < robot_states.size(); i++) {
+                if (!(robot_states[i] == other.robot_states[i])) {
+                    return false;
+                }
+            }
+            return env_state == other.env_state && assembled_steps == other.assembled_steps;
+        }
+
+        std::string to_string() const {
+            std::string str = "State: ";
+            for (const auto& rs : robot_states) {
+                str += rs.to_string();
+            }
+            str += env_state.to_string();
+            return str;
+        }
     };
 
 
@@ -65,4 +112,61 @@ namespace skillgraph {
 
     typedef std::vector<RobotTrajectory> MRTrajectory;
 
+}
+
+// Hash specializations should be placed in the global namespace, after your type definitions
+namespace std {
+    
+    template <>
+    struct hash<skillgraph::RobotState> {
+        std::size_t operator()(const skillgraph::RobotState& rs) const {
+            std::size_t seed = 0;
+            std_hash_combine(seed, rs.robot_id);
+            std_hash_combine(seed, rs.robot_name);
+            
+            for (const auto& val : rs.joint_values) {
+                std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(val)); 
+            }
+            for (const auto& val : rs.hand_values) {
+                std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(val));
+            }
+            
+            return seed;
+        }
+    };
+
+    template <>
+    struct hash<skillgraph::EnvState> {
+        std::size_t operator()(const skillgraph::EnvState& env) const {
+            std::size_t seed = 0;
+            
+            // Hash each object by content rather than pointer
+            for (const auto& obj_ptr : env.objects) {
+                if (obj_ptr) {  // Check for null pointers
+                    std_hash_combine(seed, std::hash<skillgraph::Object>{}(*obj_ptr));
+                } else {
+                    // Handle null pointers consistently
+                    std_hash_combine(seed, std::size_t(0));
+                }
+            }
+            
+            return seed;
+        }
+    };
+
+    template <>
+    struct hash<skillgraph::State> {
+        std::size_t operator()(const skillgraph::State& state) const {
+            std::size_t seed = 0;
+            
+            for (const auto& rs : state.robot_states) {
+                std_hash_combine(seed, rs);  // Uses the hash<RobotState> specialization
+            }
+            
+            std_hash_combine(seed, state.env_state);  // Uses the hash<EnvState> specialization
+            std_hash_combine(seed, state.assembled_steps);
+            
+            return seed;
+        }
+    };
 }

@@ -2,6 +2,7 @@
 
 #include "tpg.h"
 #include "algorithms.hpp"
+#include "moveit_backend.hpp"
 
 namespace tpg {
     

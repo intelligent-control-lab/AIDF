@@ -1,5 +1,5 @@
 #include "task_graph.h"
-
+#include "Utils/Logger.hpp"
 
 namespace skillgraph
 {

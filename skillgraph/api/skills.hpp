@@ -34,6 +34,10 @@ namespace skillgraph {
         std::string name; // name
         std::shared_ptr<SkillExecutor> executor; // skill executor
         Json::Value param; // parameters
+        
+        virtual std::string to_string() const {
+            return "Skill: " + name;
+        }
     };
 
     struct AtomicSkill : public Skill {

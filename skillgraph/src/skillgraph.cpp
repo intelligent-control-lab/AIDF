@@ -98,7 +98,7 @@ void SkillGraph::parse_robots(const Json::Value &root) {
             std::string robot_type = robots_config["type"][i].asString();
             std::string gripper_type = robots_config["gripperTypes"][i].asString();
             std::string sensor_type = robots_config["sensorTypes"][i].asString();
-            std::string robot_name = robots_config["robotNames"][i].asString();
+            std::string robot_name = robots_config["names"][i].asString();
             std::vector<std::string> capabilities = robot_capabilities[robot_type];
             auto robot = std::make_shared<Robot>(robot_type, gripper_type, sensor_type, robot_name, capabilities);
              

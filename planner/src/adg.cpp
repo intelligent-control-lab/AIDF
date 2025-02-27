@@ -1,8 +1,9 @@
 #include "adg.h"
-#include "logger.h"
-#include "policy.h"
+#include "Utils/Logger.hpp"
 
 namespace tpg {
+
+using namespace skillgraph;
 
 ShortcutSamplerADG::ShortcutSamplerADG(const TPGConfig &config, std::shared_ptr<ActivityGraph> act_graph,
                     const std::vector<std::vector<NodePtr>> &intermediate_nodes)
@@ -942,9 +943,9 @@ Eigen::MatrixXd ADG::get_r2_inhand_goal_q()
 void ADG::update_joint_states(const std::vector<double> &joint_states, int robot_id)
 {
     TPG::update_joint_states(joint_states, robot_id);
-    if (policy_ != nullptr) {
-        policy_->update_joint_states(joint_states, robot_id);
-    }
+    // if (policy_ != nullptr) {
+    //     policy_->update_joint_states(joint_states, robot_id);
+    // }
     
     if (num_robots_ > executed_acts_.size()) {
         return;
@@ -1148,7 +1149,7 @@ void ADG::checkShortcuts(std::shared_ptr<PlanInstance> instance, Shortcut &short
     
     instance->resetScene(false);
     // add all static objects that needs to be collision checked
-    std::vector<ObjPtr> indep_objs = act_graph_->find_indep_obj(cur_act);
+    std::vector<ObjNodePtr> indep_objs = act_graph_->find_indep_obj(cur_act);
     for (auto obj : indep_objs) {
         if (instance->hasObject(obj->obj.name)) {
             Object obj_copy = obj->obj;
@@ -1376,7 +1377,7 @@ bool ADG::executePolicy(const NodePtr &startNode, NodePtr &endNode) {
     if (type == Activity::Type::drop_down || type == Activity::Type::pick_down 
         || type == Activity::Type::handover_down || type == Activity::Type::place_up) {
         endNode = intermediate_nodes_[robot_id][act_id * 2 + 5];
-        success = policy_->execute(startNode, endNode, type);
+        //success = policy_->execute(startNode, endNode, type);
     }
     else if (type == Activity::Type::support || type == Activity::Type::press_down) {
         int last_sup_act_id = act_id;
@@ -1386,7 +1387,7 @@ bool ADG::executePolicy(const NodePtr &startNode, NodePtr &endNode) {
             next_type = act_graph_->get(robot_id, last_sup_act_id + 1)->type;
         }
         endNode = intermediate_nodes_[robot_id][last_sup_act_id * 2 + 1];
-        success = policy_->execute(startNode, endNode, type);
+        //success = policy_->execute(startNode, endNode, type);
     }
 
     executed_steps_[robot_id]->store(endNode->timeStep + 1);

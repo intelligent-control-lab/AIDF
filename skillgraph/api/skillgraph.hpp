@@ -35,6 +35,10 @@ namespace skillgraph
         TaskParamPtr task_param;
         ObjPtr object;
         RobotPtr robot;
+
+        std::string to_string() const override {
+            return "Grounded Skill: " + name + " robot " + robot->robot_name + " object " + object->name;
+        }
     };
 
 
@@ -94,7 +98,9 @@ namespace skillgraph
 
             std::vector<std::string> get_robot_names() const;
             
+            virtual bool at_target(const State& state) { throw std::runtime_error("At Target Not implemented");};
             virtual std::vector<GroundedSkill> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
+            virtual bool get_next_state(const State& state, const GroundedSkill& gs, State &next_state, double &cost) { throw std::runtime_error("get_next_state Not implemented");};
 
             State get_initial_state() const { return initial_state_; }
 

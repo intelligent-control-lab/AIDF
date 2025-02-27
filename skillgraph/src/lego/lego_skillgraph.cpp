@@ -192,6 +192,7 @@ LegoBrick LegoSkillGraph::getLegoTarget(int task_idx) {
     obj.parent_link = "world";
     obj.shape = Object::Shape::Box;
     obj.brick_id = cur_graph_node["brick_id"].asInt();
+    obj.in_storage = false;
     lego_ptr_->get_brick_sizes(brick_name, obj.length, obj.width, obj.height);
 
     obj.x = brick_pose_mtx(0, 3);
@@ -246,6 +247,11 @@ LegoBrick LegoSkillGraph::getLegoHandover(int task_idx, const RobotState &start_
     return obj;
 }
 
+bool LegoSkillGraph::at_target(const State &state) {
+    // check if the task sequence has been completed
+    return state.assembled_steps >= task_seq_->num_tasks();
+}
+
 std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
     std::vector<GroundedSkill> feasible_set;
@@ -276,10 +282,10 @@ std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &s
         if (auto lego_brick = std::dynamic_pointer_cast<LegoBrick>(obj)) {
             int brick_id = lego_brick->brick_id;
             bool in_storage = lego_brick->in_storage;
-            std::cout << "Found brick: " << lego_brick->name << " with ID: " << brick_id << ", in_storage: " << (in_storage ? "true" : "false") << std::endl;
+            //std::cout << "Found brick: " << lego_brick->name << " with ID: " << brick_id << ", in_storage: " << (in_storage ? "true" : "false") << std::endl;
             if (in_storage && brick_id == required_brick_id) {
                 usable_bricks.push_back(lego_brick);
-                std::cout << "Added usable brick: " << lego_brick->name << std::endl;
+                //std::cout << "Added usable brick: " << lego_brick->name << std::endl;
             }
         }
     }
@@ -316,6 +322,35 @@ std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &s
     }
     
     return feasible_set;
+}
+
+bool LegoSkillGraph::get_next_state(const State& state, const GroundedSkill& gs, State &next_state, double &cost) {
+    next_state = state;
+    // incrase the assembled step
+    next_state.assembled_steps = state.assembled_steps + 1;
+    // keep the robot state the same for now (at home pose)
+    next_state.robot_states = state.robot_states;
+
+    // update env state based on the grounded skill
+    if (gs.type == Skill::Type::PickAndPlace || gs.type == Skill::Type::PickAndPlaceWithSupport
+        || gs.type == Skill::Type::PickHandoverAndPlace) {
+        // get a new object at goal location
+        auto obj_moved = std::make_shared<LegoBrick>(getLegoTarget(state.assembled_steps));
+        obj_moved->name = gs.object->name;
+        
+        // update the pointer to the object moved to the new object
+        auto &existing_objs = next_state.env_state.objects;
+        for (int i = 0; i < existing_objs.size(); i++) {
+            if (existing_objs[i] == gs.object) {
+               existing_objs[i] = obj_moved;
+            }
+        }
+        
+    }
+
+    cost = 0;
+
+    return true;
 }
 
 }

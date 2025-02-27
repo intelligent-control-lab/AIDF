@@ -1,5 +1,6 @@
 #include "tpg.h"
-#include "logger.h"
+#include "Utils/Logger.hpp"
+#include "utils.h"
 
 using namespace skillgraph;
 
@@ -547,7 +548,7 @@ bool TPG::init(std::shared_ptr<PlanInstance> instance, const MRTrajectory &solut
     findFlowtimeMakespan(pre_shortcut_flowtime_, pre_shortcut_makespan_);
 
     computePathLength(instance);
-    smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+    //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
 
     double nowait_time = 0;
     for (int i = 0; i < num_robots_; i++) {
@@ -599,7 +600,7 @@ bool TPG::optimize(std::shared_ptr<PlanInstance> instance, const TPGConfig &conf
         // setSyncJointTrajectory(joint_traj, post_shortcut_flowtime_, post_shortcut_makespan_);
         findFlowtimeMakespan(post_shortcut_flowtime_, post_shortcut_makespan_);
         computePathLength(instance);
-        smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+        //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
 
         log ("TPG after finding shortcuts: " + std::to_string(getTotalNodes()) + " nodes and " + std::to_string(numtype2edges_post_) 
             + " type 2 edges, makespan " + std::to_string(post_shortcut_makespan_) + " s", LogLevel::HLINFO);
@@ -693,7 +694,7 @@ void TPG::findShortcuts(std::shared_ptr<PlanInstance> instance, double runtime_l
 
     if (runtime_limit > 0) {
         computePathLength(instance);
-        smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+        //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
         logProgressStep(reached_end);
     }
 
@@ -766,7 +767,7 @@ void TPG::findShortcuts(std::shared_ptr<PlanInstance> instance, double runtime_l
         while (elapsed > log_limit) {
             t_shortcut_ = elapsed;
             computePathLength(instance);
-            smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+            //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
             logProgressStep(reached_end);
             log_limit += log_interval;
         }
@@ -837,7 +838,7 @@ void TPG::findShortcutsRandom(std::shared_ptr<PlanInstance> instance, double run
 
     if (runtime_limit > 0) {
         computePathLength(instance);
-        smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+        //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
         logProgressStep(reached_end);
     }
 
@@ -927,7 +928,7 @@ void TPG::findShortcutsRandom(std::shared_ptr<PlanInstance> instance, double run
         while (elapsed > log_limit) {
             t_shortcut_ = elapsed;
             computePathLength(instance);
-            smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
+            //smoothness_ = calculate_smoothness(getSyncJointTrajectory(instance), instance);
             logProgressStep(reached_end);
             log_limit += log_interval;
         }
@@ -2283,7 +2284,7 @@ MRTrajectory TPG::getSyncJointTrajectory(std::shared_ptr<PlanInstance> instance)
     joint_traj.joint_trajectory.joint_names.resize(total_dof);
     setSyncJointTrajectory(joint_traj.joint_trajectory, flowtime, makespan);
 
-    convertSolution(instance, joint_traj, traj, false);
+    planner::convertSolution(instance, joint_traj, traj, false);
     return traj;
 }
 

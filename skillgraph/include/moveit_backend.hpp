@@ -13,6 +13,9 @@
 #include <moveit_msgs/ApplyPlanningScene.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
+#include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_interface/planning_interface.h>
 
 #include <boost/process.hpp>
 #include <boost/asio.hpp>

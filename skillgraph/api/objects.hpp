@@ -32,14 +32,16 @@ namespace skillgraph {
             double x, double y, double z, double qx, double qy, double qz, double qw);
 
         virtual bool operator==(const Object& other) const {
-            return name == other.name;
+            return name == other.name && x == other.x && y == other.y && z == other.z &&
+                qx == other.qx && qy == other.qy && qz == other.qz && qw == other.qw &&
+                state == other.state && parent_link == other.parent_link;
         }
 
         virtual bool sameType(const Object &other) const {
             return type == other.type;
         }
 
-        std::string to_string() const {
+        virtual std::string to_string() const {
             std::string str = "Object: ";
             str += "Name: " + name + " ";
             str += "Type: " + std::to_string(type) + " ";
@@ -73,4 +75,68 @@ namespace skillgraph {
     };
     typedef std::shared_ptr<Object> ObjPtr;
 
+} // namespace skillgraph
+
+namespace std {
+    // Helper function to combine hash values - define this BEFORE using it
+    template <typename T>
+    inline void std_hash_combine(std::size_t& seed, const T& value) {
+        seed ^= std::hash<T>{}(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    
+// Alternative to bit_cast_alternative for pre-C++20
+template<typename To, typename From>
+inline To bit_cast_alternative(const From& from) {
+    static_assert(sizeof(To) == sizeof(From), "Types must be same size for bit_cast_alternative");
+    static_assert(std::is_trivially_copyable<From>::value, "From type must be trivially copyable");
+    static_assert(std::is_trivially_copyable<To>::value, "To type must be trivially copyable");
+    
+    To to;
+    std::memcpy(&to, &from, sizeof(To));
+    return to;
 }
+
+
+template <>
+struct hash<skillgraph::Object> {
+    std::size_t operator()(const skillgraph::Object& obj) const {
+        std::size_t seed = 0;
+        
+        // Hash string and enum members
+        std_hash_combine(seed, obj.name);
+        std_hash_combine(seed, static_cast<int>(obj.type));
+        std_hash_combine(seed, static_cast<int>(obj.state));
+        std_hash_combine(seed, obj.parent_link);
+        std_hash_combine(seed, obj.robot_id);
+        
+        // Hash position and orientation
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.x));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.y));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.z));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qx));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qy));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qz));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qw));
+        
+        // Hash attachment data
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.x_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.y_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.z_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qx_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qy_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qz_attach));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.qw_attach));
+        
+        // Hash shape data
+        std_hash_combine(seed, static_cast<int>(obj.shape));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.radius));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.length));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.width));
+        std_hash_combine(seed, bit_cast_alternative<std::uint64_t>(obj.height));
+        std_hash_combine(seed, obj.mesh_path);
+        
+        return seed;
+    }
+};
+
+} // namespace std
