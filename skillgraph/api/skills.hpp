@@ -6,7 +6,8 @@ namespace skillgraph {
     
     class SkillExecutor; // forward declaration
 
-    struct Skill {
+    class Skill {
+    public:
         /*
         Class definition of Skill and Type
         */
@@ -30,31 +31,86 @@ namespace skillgraph {
         static Type from_string(const std::string &type);
         void set_param(const Json::Value &param);
 
+        virtual std::string to_string() const {
+            return "Skill: " + name;
+        }
+
+        virtual ObjPtr get_object() {
+            return nullptr;
+        };
+
         Type type; // enum type
         std::string name; // name
         std::shared_ptr<SkillExecutor> executor; // skill executor
         Json::Value param; // parameters
         
-        virtual std::string to_string() const {
-            return "Skill: " + name;
-        }
     };
+    typedef std::shared_ptr<Skill> SkillPtr;
 
-    struct AtomicSkill : public Skill {
+    class AtomicSkill : public Skill {
+    public:
         /*
         Class definition of AtomicSkill
         */
         AtomicSkill(const std::string &name);
-    };
+        
+        virtual std::string to_string() const override {
+            std::string str = "Atomic Skill: " + name;
+            if (object) {
+                str += " object: " + object->name;
+            }
+            if (robot) {
+                str += " robot: " + robot->robot_name;
+            }
+            return str;
+        }
 
-    struct MetaSkill : public Skill {
+        virtual ObjPtr get_object() override {
+            return object;
+        }
+
+        ObjPtr object;
+        RobotPtr robot;
+    };
+    typedef std::shared_ptr<AtomicSkill> AtomicSkillPtr;
+
+    class MetaSkill : public Skill {
+    public:
         /*
         Class definition of MetaSkill, which contains a collection of atomic skills
         */
-        MetaSkill(const std::string &name);
-        
-        std::vector<Skill::Type> atomic_skills;
+        MetaSkill(const std::string &name, const std::vector<AtomicSkillPtr> &atomic_skills,
+                int num_robot, const std::vector<int> &robot_ids);
+
+        // Set the robot for all atomic skills according to the id of the primary robot
+        bool set_robot(const std::vector<RobotPtr> robots, int primary_robot_id);
+        // Set the object for all atomic skills
+        bool set_object(ObjPtr obj);
+
+        std::vector<Skill::Type> get_atomic_skill_types();
+
+        virtual std::string to_string() const override {
+            std::string str = "Meta Skill: " + name;
+            for (const auto &robot : robots) {
+                str += " robot: " + robot->robot_name;
+            }
+            for (const auto &obj : objects) {
+                str += " object: " + obj->name;
+            }
+            return str;
+        }
+
+        virtual ObjPtr get_object() override {
+            return (objects.size() > 0) ? objects[0] : nullptr;
+        }
+
+        int num_robot;
+        std::vector<int> robot_ids;
+        std::vector<AtomicSkillPtr> atomic_skills;
+        std::vector<RobotPtr> robots;
+        std::vector<ObjPtr> objects;
     };
+    typedef std::shared_ptr<MetaSkill> MetaSkillPtr;
 
     class SkillExecutor {
         /*
@@ -75,5 +131,6 @@ namespace skillgraph {
             // funnction implementation for executing this skill
             std::function<std::any(const std::vector<std::any>&)> perform();
     };
+    typedef std::shared_ptr<SkillExecutor> SkillExecutorPtr;
     
 }

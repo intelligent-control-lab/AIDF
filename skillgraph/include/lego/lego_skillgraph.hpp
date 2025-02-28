@@ -34,8 +34,8 @@ namespace skillgraph {
             virtual ~LegoSkillGraph() {};
 
             virtual bool at_target(const State& state) override;
-            virtual std::vector<GroundedSkill> feasible_u(const skillgraph::State &state) override;
-            virtual bool get_next_state(const State& state, const GroundedSkill& gs, State &next_state, double &cost) override;
+            virtual std::vector<SkillPtr> feasible_u(const skillgraph::State &state) override;
+            virtual bool get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) override;
 
     };
 }

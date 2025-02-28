@@ -21,27 +21,6 @@ namespace skillgraph
         MUJOCO = 2,
     };
 
-    struct GroundedSkill : public Skill {
-        /*
-        Grounded Skill Class, containing detailed parameters for a symbolic skill
-        */
-
-        //constructor
-        GroundedSkill() = default;
-        GroundedSkill(Skill::Type type, TaskParamPtr task_param, ObjPtr object, RobotPtr robot) :
-            task_param(task_param), object(object), robot(robot)
-            {this->type =type; }
-
-        TaskParamPtr task_param;
-        ObjPtr object;
-        RobotPtr robot;
-
-        std::string to_string() const override {
-            return "Grounded Skill: " + name + " robot " + robot->robot_name + " object " + object->name;
-        }
-    };
-
-
     class SkillGraph{
         /*
         * SkillGraph Class containing that maps all the objects, robots, envs, skills, executors, and algorithms
@@ -60,7 +39,7 @@ namespace skillgraph
             std::map<std::string, std::vector<std::string>> robot_capabilities; // map of robot name, and its capabilities in string
             std::vector<Skill::Type> atmoic_skills; // list of atomic skills
             std::map<Skill::Type, std::vector<Skill::Type>> meta_skills; // map of all meta stkills
-            std::map<Skill::Type, std::shared_ptr<Skill>> skill_map_;  // map of all skills by name
+            std::map<Skill::Type, SkillPtr> skill_map_;  // map of all skills by name
 
             // task defintion for feasible_u
             TaskType task_type_; // task type
@@ -99,8 +78,8 @@ namespace skillgraph
             std::vector<std::string> get_robot_names() const;
             
             virtual bool at_target(const State& state) { throw std::runtime_error("At Target Not implemented");};
-            virtual std::vector<GroundedSkill> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
-            virtual bool get_next_state(const State& state, const GroundedSkill& gs, State &next_state, double &cost) { throw std::runtime_error("get_next_state Not implemented");};
+            virtual std::vector<SkillPtr> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
+            virtual bool get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) { throw std::runtime_error("get_next_state Not implemented");};
 
             State get_initial_state() const { return initial_state_; }
 

@@ -20,6 +20,20 @@ struct LegoPolicyCfg {
     double sup_force_tol = 0.03;
 };
 
+class LegoGraspGenerator : public PlanningAlgorithm {
+public:
+    LegoGraspGenerator(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
+                    std::shared_ptr<skillgraph::PlanInstance> instance,
+                    const LegoPolicyCfg &config);
+
+    virtual bool generate(const skillgraph::TaskParam &task_param, Skill::Type type);
+
+private:
+    std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
+    std::shared_ptr<skillgraph::PlanInstance> instance_;
+    LegoPolicyCfg config_;
+};
+
 class LegoPlan : public PlanningAlgorithm {
 public:
     LegoPlan(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,

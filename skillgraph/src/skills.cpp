@@ -1,4 +1,5 @@
 #include "skills.hpp"
+#include "Utils/Logger.hpp"
 
 namespace skillgraph {
 
@@ -37,14 +38,58 @@ void Skill::set_param(const Json::Value &param) {
 AtomicSkill::AtomicSkill(const std::string &name) {
     this->name = name;
     this->type = from_string(name);
-    this->executor = std::make_shared<SkillExecutor>(this->type);
 }
 
-MetaSkill::MetaSkill(const std::string &name) {
+MetaSkill::MetaSkill(const std::string &name, const std::vector<AtomicSkillPtr> &atomic_skills,
+        int num_robot, const std::vector<int> &robot_ids) {
     this->name = name;
     this->type = from_string(name);
-    this->executor = std::make_shared<SkillExecutor>(this->type);
+    this->atomic_skills = atomic_skills;
+    this->num_robot = num_robot;
+    this->robot_ids = robot_ids;
 }
+ 
+
+bool MetaSkill::set_robot(const std::vector<RobotPtr> robots, int primary_robot_id) {
+    if (robots.size() != num_robot) {
+        log("Number of robots does not match", LogLevel::ERROR);
+        return false;
+    }
+
+    for (int i = 0; i < robot_ids.size(); i++) {
+        atomic_skills[i]->robot = robots[robot_ids[i]];
+    }
+    this->robots = robots;
+    return true;
+}
+
+
+bool MetaSkill::set_object(ObjPtr obj) {
+    
+    if (obj == nullptr) {
+        log("Object is null", LogLevel::ERROR);
+        return false;
+    }
+
+    for (int i = 0; i < atomic_skills.size(); i++) {
+        atomic_skills[i]->object = obj;
+    }
+    
+    // add the object to the list of objects if it is not already there
+    if (std::find(objects.begin(), objects.end(), obj) == objects.end()) {
+        objects.push_back(obj);
+    }
+    return true;
+}
+
+std::vector<Skill::Type> MetaSkill::get_atomic_skill_types() {
+    std::vector<Skill::Type> types;
+    for (const auto &skill : atomic_skills) {
+        types.push_back(skill->type);
+    }
+    return types;
+}
+
 
 SkillExecutor::SkillExecutor(Skill::Type type) {
     // To be implemented

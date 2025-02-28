@@ -22,14 +22,14 @@ public:
     void plan();
 
     bool get_path(skillgraph::State &state, std::vector<skillgraph::State> &path, 
-        std::vector<skillgraph::GroundedSkill> &gs_path);
+        std::vector<skillgraph::SkillPtr> &gs_path);
         
 
 private:
     std::shared_ptr<skillgraph::SkillGraph> skillgraph_;
     
     std::unordered_map<skillgraph::State, skillgraph::State> predecessor_;
-    std::unordered_map<skillgraph::State, skillgraph::GroundedSkill> predecessor_skill_;
+    std::unordered_map<skillgraph::State, skillgraph::SkillPtr> predecessor_skill_;
 };
 
 }

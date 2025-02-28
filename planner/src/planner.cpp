@@ -39,17 +39,17 @@ void AssemblyPlanner::plan() {
         if (skillgraph_->at_target(current_state)) {
             // print the path
             std::vector<State> path;
-            std::vector<GroundedSkill> skill_seq;
+            std::vector<SkillPtr> skill_seq;
             get_path(current_state, path, skill_seq);
             std::cout << "Found the target state!" << std::endl;
             for (const auto &s : skill_seq) {
-                std::cout << s.to_string() << std::endl;
+                std::cout << s->to_string() << std::endl;
             }
             return;
         }
 
         // get the feasible set
-        std::vector<GroundedSkill> feasible_set = skillgraph_->feasible_u(current_state);
+        std::vector<SkillPtr> feasible_set = skillgraph_->feasible_u(current_state);
 
         // for each feasible skill, get the next state
         for (const auto &gs : feasible_set) { 
@@ -69,7 +69,7 @@ void AssemblyPlanner::plan() {
 
 }
 
-bool AssemblyPlanner::get_path(State &state, std::vector<State> &path, std::vector<GroundedSkill> &gs_path) {
+bool AssemblyPlanner::get_path(State &state, std::vector<State> &path, std::vector<SkillPtr> &gs_path) {
     path.push_back(state);
     while (predecessor_.find(state) != predecessor_.end()) {
         if (predecessor_skill_.find(state) != predecessor_skill_.end()) {
@@ -82,6 +82,8 @@ bool AssemblyPlanner::get_path(State &state, std::vector<State> &path, std::vect
         state = predecessor_[state];
         path.push_back(state);
     }
+    std::reverse(path.begin(), path.end());
+    std::reverse(gs_path.begin(), gs_path.end());
     return true;
 }
 

@@ -252,9 +252,9 @@ bool LegoSkillGraph::at_target(const State &state) {
     return state.assembled_steps >= task_seq_->num_tasks();
 }
 
-std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &state)
+std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
-    std::vector<GroundedSkill> feasible_set;
+    std::vector<SkillPtr> feasible_set;
     
     // identify what has been
     const auto &objects = state.env_state.objects;
@@ -292,29 +292,46 @@ std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &s
 
     for (const auto &skill_type : allowed_skills) {
         //std::cout << "Skill Type: " << skill_type << std::endl;
+        auto base_skill = skill_map_[skill_type];
         if (skill_type == Skill::Type::PickAndPlace) {
             for (auto obj : usable_bricks) {
                 // this block is symbolically feasible
-                for (auto robot : robots) {
-                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                for (int ri = 0; ri < robots.size(); ri++) {
+                    //make a copy of skill_map_[skill_type];
+                    auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
+                    MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
+                    gs->set_robot({robots[ri]}, 0);
+                    gs->set_object(obj);
+                    auto executor = std::make_shared<SkillExecutor>(gs->type);
+                    gs->executor = executor;
                     feasible_set.push_back(gs);
                 }
             }
         }
         else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
             for (auto obj : usable_bricks) {
-                for (auto robot : robots) {
+                for (int ri = 0; ri < robots.size(); ri++) {
                     // check if the robot has the capability to support
-                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                    auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
+                    MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
+                    gs->set_robot(robots, ri);
+                    gs->set_object(obj);
+                    auto executor = std::make_shared<SkillExecutor>(gs->type);
+                    gs->executor = executor;
                     feasible_set.push_back(gs);
                 }
             }
         }
         else if (skill_type == Skill::Type::PickHandoverAndPlace) {
             for (auto obj : usable_bricks) {
-                for (auto robot : robots) {
+                for (int ri = 0; ri < robots.size(); ri++) {
                     // check if the robot has the capability to handover
-                    GroundedSkill gs(skill_type, task->post_condition, obj, robot);
+                    auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
+                    MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
+                    gs->set_robot(robots, ri);
+                    gs->set_object(obj);
+                    auto executor = std::make_shared<SkillExecutor>(gs->type);
+                    gs->executor = executor;
                     feasible_set.push_back(gs);
                 }
             }
@@ -324,7 +341,7 @@ std::vector<GroundedSkill> LegoSkillGraph::feasible_u(const skillgraph::State &s
     return feasible_set;
 }
 
-bool LegoSkillGraph::get_next_state(const State& state, const GroundedSkill& gs, State &next_state, double &cost) {
+bool LegoSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) {
     next_state = state;
     // incrase the assembled step
     next_state.assembled_steps = state.assembled_steps + 1;
@@ -332,16 +349,22 @@ bool LegoSkillGraph::get_next_state(const State& state, const GroundedSkill& gs,
     next_state.robot_states = state.robot_states;
 
     // update env state based on the grounded skill
-    if (gs.type == Skill::Type::PickAndPlace || gs.type == Skill::Type::PickAndPlaceWithSupport
-        || gs.type == Skill::Type::PickHandoverAndPlace) {
+    auto obj_to_move = gs->get_object();
+    if (obj_to_move == nullptr) {
+        log("Object is null", LogLevel::ERROR);
+        return false;
+    }
+
+    if (gs->type == Skill::Type::PickAndPlace || gs->type == Skill::Type::PickAndPlaceWithSupport
+        || gs->type == Skill::Type::PickHandoverAndPlace) {
         // get a new object at goal location
         auto obj_moved = std::make_shared<LegoBrick>(getLegoTarget(state.assembled_steps));
-        obj_moved->name = gs.object->name;
+        obj_moved->name = obj_to_move->name;
         
         // update the pointer to the object moved to the new object
         auto &existing_objs = next_state.env_state.objects;
         for (int i = 0; i < existing_objs.size(); i++) {
-            if (existing_objs[i] == gs.object) {
+            if (existing_objs[i] == obj_to_move) {
                existing_objs[i] = obj_moved;
             }
         }

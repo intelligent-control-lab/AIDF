@@ -45,18 +45,28 @@ void SkillGraph::parse_skills(const Json::Value &root) {
             for (const auto& meta_skill_name : robot_meta_skills.getMemberNames()) {
                 const Json::Value& meta_skill_config = robot_meta_skills[meta_skill_name];
                 
-                auto meta_skill = std::make_shared<MetaSkill>(meta_skill_name);
+                std::vector<AtomicSkillPtr> atomic_skills;
+                std::vector<int> robot_ids;
                 
                 // Get atomic skills that make up this meta skill
-                const Json::Value& atomic_skills = meta_skill_config["atomicSkills"];
-                for (const auto& atomic_skill : atomic_skills) {
+                for (const auto& atomic_skill : meta_skill_config["atomicSkills"]) {
                     Skill::Type type = Skill::from_string(atomic_skill.asString());
-
-                    meta_skill->atomic_skills.push_back(type);
+                    AtomicSkillPtr a_skill = dynamic_pointer_cast<AtomicSkill>(skill_map_[type]);
+                    if (!a_skill) {
+                        throw std::runtime_error(atomic_skill.asString() + " skill is not atomic");
+                    }
+                    atomic_skills.push_back(a_skill);
                 }
+                int num_robot = meta_skill_config["numRobot"].asInt();
+                // Get the robot id 
+                for (const auto &id : meta_skill_config["robotId"]) {
+                    robot_ids.push_back(id.asInt());
+                }
+                auto meta_skill = std::make_shared<MetaSkill>(meta_skill_name, atomic_skills, num_robot, robot_ids);
+
                 
                 skill_map_[meta_skill->type] = meta_skill;
-                meta_skills[meta_skill->type] = meta_skill->atomic_skills;
+                meta_skills[meta_skill->type] = meta_skill->get_atomic_skill_types();
                 capabilities_of_robot.push_back(meta_skill_name);
             }
         
