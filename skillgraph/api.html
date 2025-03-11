@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillGraph Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+
+        #controls {
+            width: 40%;
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #request {
+            width: 60%;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 { margin-bottom: 15px; }
+        button, select, input {
+            display: block;
+            margin-bottom: 15px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .json-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            height: 150px;
+            font-family: monospace;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LEFT SIDE: Controls -->
+    <div id="controls">
+        <h2>Simulation Controls</h2>
+        
+        <label for="simulator">Choose Simulator:</label>
+        <select id="simulator">
+            <option value="Moveit">Moveit</option>
+            <option value="Gazebo">Gazebo</option>
+            <option value="Issac Sim">Issac Sim</option>
+        </select>
+
+        <label for="robot">Choose Robot:</label>
+        <select id="robot">
+            <option value="robot1">Robot 1</option>
+            <option value="robot2">Robot 2</option>
+        </select>
+
+        <label for="object">Choose Object:</label>
+        <select id="object">
+            <option value="object1">Object 1</option>
+            <option value="object2">Object 2</option>
+        </select>
+
+        <label for="skill">Choose Skill:</label>
+        <select id="skill">
+            <option value="pick">Pick</option>
+            <option value="placeTop">Place</option>
+            <option value="PlaceBottom">Place</option>
+            <option value="SupportBottom">Pick</option>
+            <option value="SupportTop">Place</option>
+            <option value="Handover">Place</option>
+            <option value="Transit">Pick</option>
+            <option value="Align">Place</option>
+            <option value="PlaceWithSupport">Place</option>
+            <option value="PickAndPlace">Pick</option>
+            <option value="PickAndPlaceWithSupport">Place</option>
+            <option value="PickHandoverAndPlace">Place</option>
+        </select>
+
+        <label for="target">Target Location:</label>
+        <input type="text" id="target" placeholder="Enter target coordinates">
+
+        <button onclick="runSimulation()">Run Simulation</button>
+
+        <!-- Stop Simulation Button -->
+        <button onclick="stopSimulation()">Stop Simulation</button>
+    </div>
+
+    <!-- RIGHT SIDE: Request Sent and Response Received -->
+    <div id="request">
+        <h2>Request and Response</h2>
+
+        <div class="section-title">✅ Request Sent to Server:</div>
+        <div class="json-box">
+            <pre id="request-output">[Request will appear here]</pre>
+        </div>
+
+        <br>
+
+        <div class="section-title">✅ Response Received from Server:</div>
+        <div class="json-box">
+            <pre id="response-output">[Response will appear here]</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPid = null;
+
+    function runSimulation() {
+        const simulator = document.getElementById('simulator').value;
+        const robot = document.getElementById('robot').value;
+        const object = document.getElementById('object').value;
+        const skill = document.getElementById('skill').value;
+        const target = document.getElementById('target').value;
+        
+        const command = { simulator, robot, object, skill, target };
+        console.log("Sending request to run simulation:", command);
+        
+        // Show the request data in JSON format in the request-output section
+        document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
+        
+        // Send the POST request to Flask API
+        fetch('http://127.0.0.1:5000/run_simulation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(command)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Request succeeded, simulation started.");
+            
+            // Show the response from the server in JSON format
+            document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+            
+            // Save the PID to stop the simulation later
+            if (data.pid) {
+                currentPid = data.pid;
+            }
+        })
+        .catch(error => {
+            console.error('Error running simulation:', error);
+            document.getElementById('response-output').innerText = 
+                JSON.stringify({ "error": "Failed to reach server" }, null, 4);
+        });
+    }
+
+    function stopSimulation() {
+        if (!currentPid) {
+            alert("No running simulation found. Please start a simulation first.");
+            return;
+        }
+
+        const command = { pid: currentPid };
+        console.log("Sending request to stop simulation:", command);
+
+        fetch('http://127.0.0.1:5000/stop_simulation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(command)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Request succeeded, simulation stopped.");
+            
+            // Show the response from the server in JSON format
+            document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+        })
+        .catch(error => {
+            console.error('Error stopping simulation:', error);
+            document.getElementById('response-output').innerText = 
+                JSON.stringify({ "error": "Failed to reach server" }, null, 4);
+        });
+    }
+</script>
+
+</body>
+</html>
