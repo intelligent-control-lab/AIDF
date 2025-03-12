@@ -19,17 +19,15 @@ logging.basicConfig(
 # Variable to keep track of the current simulation process
 simulation_process = None
 
-@app.route('/run_simulation', methods=['POST'])
-def run_simulation():
+@app.route('/start_simulator', methods=['POST'])
+def start_simulator():
     global simulation_process
 
-    logging.info("Running simulation...")
+    logging.info("Starting Simulation...")
     data = request.json
     simulator = data.get("simulator")
     robot = data.get("robot")
-    obj = data.get("object")
-    skill = data.get("skill")
-    target = data.get("target")
+    task = data.get("task")
 
     # Modify these with your actual ROS package and launch file names
     ros_package = "your_ros_package"
@@ -37,16 +35,12 @@ def run_simulation():
 
     # Prepare the command to run the simulation
     command = f'exec bash -i -c "conda deactivate && exec roslaunch {ros_package} {launch_file} \
-        simulator:={simulator} robot:={robot} object:={obj} skill:={skill} target:={target}"'
+        simulator:={simulator} robot:={robot} task:={task}"'
     command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
-    # command1 = f'bash -i -c "conda deactivate"'
-    # command2 = f'"roslaunch robot_digital_twin dual_gp4.launch"'
-    # command = f'{command1} && {command2}'
     logging.info(f"Executing command: {command}")
     
     try:
         # Start the simulation in a subprocess
-        # pre_process = subprocess.run(command1, shell=True)
         simulation_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         
         logging.info(f"Simulation started with PID {simulation_process.pid}")
@@ -60,6 +54,45 @@ def run_simulation():
     except Exception as e:
         logging.error(f"Exception occurred: {str(e)}")
         return jsonify({"error": str(e), "status": -1}), 500
+
+@app.route('/run_target_task', methods=['POST'])
+def run_target_task():
+    global simulation_process
+
+    logging.info("Starting Simulation...")
+    data = request.json
+    simulator = data.get("simulator")
+    robot = data.get("robot")
+    obj = data.get("object")
+    skill = data.get("skill")
+    target = data.get("target")
+
+    # Modify these with your actual ROS package and launch file names
+    ros_package = "your_ros_package"
+
+    # Prepare the command to run the simulation
+    command = f'exec bash -i -c "echo {ros_package} \
+        simulator={simulator} robot={robot} object={obj} skill={skill} target={target}"'
+    # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
+    logging.info(f"Executing command: {command}")
+    
+    try:
+        # Start the simulation in a subprocess
+        # pre_process = subprocess.run(command1, shell=True)
+        simulation_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        
+        logging.info(f"Runing task with simulation {simulation_process.pid}")
+        
+        # Return success response with pid
+        return jsonify({
+            "status": 0,
+            "output": "Task Executed successfully",
+            "pid": simulation_process.pid
+        }), 200
+    except Exception as e:
+        logging.error(f"Exception occurred: {str(e)}")
+        return jsonify({"error": str(e), "status": -1}), 500
+
 
 @app.route('/stop_simulation', methods=['POST'])
 def stop_simulation():

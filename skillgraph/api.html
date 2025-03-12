@@ -9,20 +9,21 @@
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { display: flex; gap: 20px; }
 
-        #controls {
-            width: 40%;
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 50%;
+        }
+
+        .right-panel {
+            width: 50%;
+        }
+
+        #simulator-controls, #task-controls {
             background-color: #f4f4f4;
             padding: 20px;
             border-radius: 5px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        #request {
-            width: 60%;
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
         }
 
@@ -47,70 +48,81 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
-
     </style>
 </head>
 <body>
 
 <div class="container">
     <!-- LEFT SIDE: Controls -->
-    <div id="controls">
-        <h2>Simulation Controls</h2>
-        
-        <label for="simulator">Choose Simulator:</label>
-        <select id="simulator">
-            <option value="Moveit">Moveit</option>
-            <option value="Gazebo">Gazebo</option>
-            <option value="Issac Sim">Issac Sim</option>
-        </select>
+    <div class="left-panel">
+        <!-- SIMULATOR CONTROLS -->
+        <div id="simulator-controls">
+            <h2>Simulator Controls</h2>
+            
+            <label for="simulator">Choose Simulator:</label>
+            <select id="simulator">
+                <option value="Moveit">Moveit</option>
+                <option value="Gazebo">Gazebo</option>
+                <option value="Issac Sim">Issac Sim</option>
+            </select>
 
-        <label for="robot">Choose Robot:</label>
-        <select id="robot">
-            <option value="robot1">Robot 1</option>
-            <option value="robot2">Robot 2</option>
-        </select>
+            <label for="robot">Choose Robot Type:</label>
+            <select id="robot">
+                <option value="robot1">Robot 1</option>
+                <option value="robot2">Robot 2</option>
+            </select>
 
-        <label for="object">Choose Object:</label>
-        <select id="object">
-            <option value="object1">Object 1</option>
-            <option value="object2">Object 2</option>
-        </select>
+            <label for="task">Choose Task:</label>
+            <select id="task">
+                <option value="fish">Fish</option>
+                <option value="stairs">Stairs</option>
+                <option value="bridge">Bridge</option>
+                <option value="chair">Chair</option>
+                <option value="faucet">Faucet</option>
+                <option value="tower">Tower</option>
+                <option value="gate">Gate</option>
+            </select>
 
-        <label for="skill">Choose Skill:</label>
-        <select id="skill">
-            <option value="pick">Pick</option>
-            <option value="placeTop">Place</option>
-            <option value="PlaceBottom">Place</option>
-            <option value="SupportBottom">Pick</option>
-            <option value="SupportTop">Place</option>
-            <option value="Handover">Place</option>
-            <option value="Transit">Pick</option>
-            <option value="Align">Place</option>
-            <option value="PlaceWithSupport">Place</option>
-            <option value="PickAndPlace">Pick</option>
-            <option value="PickAndPlaceWithSupport">Place</option>
-            <option value="PickHandoverAndPlace">Place</option>
-        </select>
+            <button onclick="startSimulator()">Start Simulator</button>
+        </div>
 
-        <label for="target">Target Location:</label>
-        <input type="text" id="target" placeholder="Enter target coordinates">
+        <!-- TASK CONTROLS -->
+        <div id="task-controls">
+            <h2>Task Controls</h2>
 
-        <button onclick="runSimulation()">Run Simulation</button>
+            <label for="skill">Choose Skill:</label>
+            <select id="skill">
+                <option value="pick">Pick</option>
+                <option value="place">Place</option>
+                <option value="handover">Handover</option>
+            </select>
 
-        <!-- Stop Simulation Button -->
-        <button onclick="stopSimulation()">Stop Simulation</button>
+            <label for="object">Choose Object:</label>
+            <select id="object">
+                <option value="object1">Object 1</option>
+                <option value="object2">Object 2</option>
+            </select>
+
+            <label for="robot-id">Robot ID:</label>
+            <select id="robot-id">
+                <option value="robot1">Object 1</option>
+                <option value="robot2">Object 2</option>
+            </select>
+
+            <label for="target">Target Location:</label>
+            <input type="text" id="target" placeholder="Enter target coordinates">
+
+            <button onclick="runTargetTask()">Run Target Task</button>
+        </div>
     </div>
 
-    <!-- RIGHT SIDE: Request Sent and Response Received -->
-    <div id="request">
+    <!-- RIGHT SIDE: Request/Response Log -->
+    <div class="right-panel">
         <h2>Request and Response</h2>
-
         <div class="section-title">✅ Request Sent to Server:</div>
         <div class="json-box">
             <pre id="request-output">[Request will appear here]</pre>
         </div>
-
-        <br>
 
         <div class="section-title">✅ Response Received from Server:</div>
         <div class="json-box">
@@ -122,73 +134,54 @@
 <script>
     let currentPid = null;
 
-    function runSimulation() {
+    function startSimulator() {
         const simulator = document.getElementById('simulator').value;
         const robot = document.getElementById('robot').value;
-        const object = document.getElementById('object').value;
-        const skill = document.getElementById('skill').value;
-        const target = document.getElementById('target').value;
         
-        const command = { simulator, robot, object, skill, target };
-        console.log("Sending request to run simulation:", command);
-        
-        // Show the request data in JSON format in the request-output section
+        const command = { simulator, robot };
         document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
-        
-        // Send the POST request to Flask API
-        fetch('http://127.0.0.1:5000/run_simulation', {
+
+        fetch('http://127.0.0.1:5000/start_simulator', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(command)
         })
         .then(response => response.json())
         .then(data => {
-            console.log("Request succeeded, simulation started.");
-            
-            // Show the response from the server in JSON format
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
-            
-            // Save the PID to stop the simulation later
-            if (data.pid) {
-                currentPid = data.pid;
-            }
+            currentPid = data.pid;
+            document.getElementById('task-controls').style.display = 'block';
         })
         .catch(error => {
-            console.error('Error running simulation:', error);
-            document.getElementById('response-output').innerText = 
-                JSON.stringify({ "error": "Failed to reach server" }, null, 4);
+            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to start simulator' }, null, 4);
         });
     }
 
-    function stopSimulation() {
+    function runTargetTask() {
         if (!currentPid) {
-            alert("No running simulation found. Please start a simulation first.");
+            alert('Please start the simulator first.');
             return;
         }
 
-        const command = { pid: currentPid };
-        console.log("Sending request to stop simulation:", command);
+        const skill = document.getElementById('skill').value;
+        const object = document.getElementById('object').value;
+        const robotId = document.getElementById('robot-id').value;
+        const target = document.getElementById('target').value;
 
-        fetch('http://127.0.0.1:5000/stop_simulation', {
+        const command = { skill, object, robotId, target, pid: currentPid };
+        document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
+
+        fetch('http://127.0.0.1:5000/run_target_task', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(command)
         })
         .then(response => response.json())
         .then(data => {
-            console.log("Request succeeded, simulation stopped.");
-            
-            // Show the response from the server in JSON format
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
         })
         .catch(error => {
-            console.error('Error stopping simulation:', error);
-            document.getElementById('response-output').innerText = 
-                JSON.stringify({ "error": "Failed to reach server" }, null, 4);
+            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to run task' }, null, 4);
         });
     }
 </script>
