@@ -5,8 +5,9 @@ namespace skillgraph {
 
 
 Robot::Robot(const std::string &type, const std::string &gripperType, const std::string &sensorType,
-        const std::string &name, const std::vector<std::string> &capabilities)
+        int robot_id, const std::string &name, const std::vector<std::string> &capabilities)
 {
+    this->robot_id = robot_id;
     this->robot_name = name;
     if (type == "gp4") {
         this->type = Robot::Type::GP4;
@@ -41,6 +42,50 @@ Robot::Robot(const std::string &type, const std::string &gripperType, const std:
 
     this->capabilities = capabilities;
 
+}
+
+std::string Robot::type_string() const {
+    if (type == Type::GP4) {
+        return "GP4";
+    }
+    else if (type == Type::Kinova) {
+        return "Kinova";
+    }
+    else if (type == Type::Panda) {
+        return "Panda";
+    }
+    else {
+        return "Unknown";
+    }
+}
+
+std::string Robot::tool_string() const {
+    if (tool == Tool::LegoTool) {
+        return "LegoTool";
+    }
+    else if (tool == Tool::TwoFingerGripper) {
+        return "TwoFingerGripper";
+    }
+    else if (tool == Tool::ThreeFingerGripper) {
+        return "ThreeFingerGripper";
+    }
+    else if (tool == Tool::SuctionCup) {
+        return "SuctionCup";
+    }
+    else {
+        return "Unknown";
+    }
+}
+
+std::string Robot::to_string() const {
+    std::string str = "Robot: " + robot_name + "\n";
+    str += "  Type: " + type_string() + "\n";
+    str += "  Tool: " + tool_string() + "\n";
+    str += "  Capabilities:\n";
+    for (const auto& cap : capabilities) {
+        str += "    - " + cap + "\n";
+    }
+    return str;
 }
 
 int Robot::getDOF() const

@@ -55,6 +55,7 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
 
     // create move group interface
     move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
+    joint_group_name_ = move_group_->getName();
 
     // create planning scene interface
     //std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_ = 
@@ -731,6 +732,93 @@ void MoveitInstance::resetScene(bool reset_sim) {
         planning_scene_diff_client_.call(srv);
     }
     objects_.clear();
+}
+
+void MoveitInstance::setState(const State &state) {
+    auto & robot_states = state.robot_states;
+    auto & env_states = state.env_state;
+
+    // move the robot state
+
+    moveit_msgs::PlanningScene planning_scene;
+
+    // set the robot state
+    for (int i = 0; i < robot_states.size(); i++) {
+        auto &pose = robot_states[i];
+        auto joint_names = planning_scene_->getRobotModel()->getJointModelGroup(robot_names_[pose.robot_id])->getActiveJointModelNames();
+        for (int i = 0; i < pose.joint_values.size(); i++) {
+            planning_scene.robot_state.joint_state.name.push_back(joint_names[i]);
+            planning_scene.robot_state.joint_state.position.push_back(pose.joint_values[i]);
+        }
+        if (pose.hand_values.size() > 0 && hand_names_.size() > pose.robot_id) {
+            auto handjoint_names = planning_scene_->getRobotModel()->getJointModelGroup(hand_names_[pose.robot_id])->getActiveJointModelNames();
+            for (int i = 0; i < pose.hand_values.size(); i++) {
+                planning_scene.robot_state.joint_state.name.push_back(handjoint_names[i]);
+                planning_scene.robot_state.joint_state.position.push_back(pose.hand_values[i]);
+            }
+        }
+    }
+
+    // update the object state
+    for (int i = 0; i < env_states.objects.size(); i++) {
+        ObjPtr obj = env_states.objects[i];
+        auto fid = objects_.find(obj->name);
+        
+        if (obj->state == Object::State::Attached) {
+            // attach the object
+            moveit_msgs::AttachedCollisionObject co;
+            co.link_name = obj->parent_link;
+            co.object.header.frame_id = obj->parent_link;
+            co.object.header.stamp = ros::Time::now();
+            co.object.id = obj->name;
+            co.object.operation = co.object.ADD;
+            planning_scene.robot_state.attached_collision_objects.push_back(co);
+        }
+        else {
+            // add a new object
+            moveit_msgs::CollisionObject co;
+            co.header.frame_id = obj->parent_link;
+            co.header.stamp = ros::Time::now();
+            co.id = obj->name;
+
+            shape_msgs::SolidPrimitive primitive;
+            if (obj->shape == Object::Shape::Box) {
+                primitive.type = primitive.BOX;
+                primitive.dimensions.resize(3);
+                primitive.dimensions[primitive.BOX_X] = obj->length;
+                primitive.dimensions[primitive.BOX_Y] = obj->width;
+                primitive.dimensions[primitive.BOX_Z] = obj->height;
+            }
+            else if (obj->shape == Object::Shape::Cylinder) {
+                primitive.type = primitive.CYLINDER;
+                primitive.dimensions.resize(2);
+                primitive.dimensions[primitive.CYLINDER_HEIGHT] = obj->length;
+                primitive.dimensions[primitive.CYLINDER_RADIUS] = obj->radius;
+            }
+            geometry_msgs::Pose world_pose;
+            world_pose.position.x = obj->x;
+            world_pose.position.y = obj->y;
+            world_pose.position.z = obj->z ;
+            world_pose.orientation.x = obj->qx;
+            world_pose.orientation.y = obj->qy;
+            world_pose.orientation.z = obj->qz;
+            world_pose.orientation.w = obj->qw;
+                
+            co.primitives.push_back(primitive);
+            co.primitive_poses.push_back(world_pose);
+            co.operation = co.ADD;
+            planning_scene.world.collision_objects.push_back(co);
+        }
+        // copy the object information to the scene
+        objects_[obj->name] = *obj;
+    }
+
+    //planning_scene.world.collision_objects.push_back(co);
+    planning_scene.is_diff = false;
+    planning_scene.robot_state.is_diff = false; 
+
+    planning_scene_->usePlanningSceneMsg(planning_scene);
+    planning_scene_diff_ = planning_scene;
 }
 
 void MoveitInstance::printKnownObjects() const {

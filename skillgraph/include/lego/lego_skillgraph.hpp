@@ -3,6 +3,7 @@
 #include "lego/Lego.hpp"
 #include "lego_tasks.hpp"
 #include "lego_objects.hpp"
+#include "lego_algorithms.hpp"
 
 namespace skillgraph {
     class LegoSkillGraph : public SkillGraph {
@@ -15,6 +16,7 @@ namespace skillgraph {
             std::shared_ptr<ros::NodeHandle> nh_;
             ros::ServiceClient set_state_client_;
             std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
+            LegoPolicyCfg lego_config_;
             Json::Value task_json_;
         
             virtual void parse_env(const Json::Value &root_config) override;

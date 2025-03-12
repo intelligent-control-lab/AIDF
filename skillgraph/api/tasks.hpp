@@ -22,9 +22,9 @@ namespace skillgraph
         RobotState target_state; // target state for the robot
         EnvState env_state;
         std::shared_ptr<Algorithm> generator;
-        std::shared_ptr<ConstraintEvaluator> condition_check;
+        std::shared_ptr<ConditionEvaluator> condition_check;
+        std::shared_ptr<ConstraintEvaluator> constraint_check;
     };
-    typedef std::shared_ptr<TaskParam> TaskParamPtr;
 
     class Task {
         /*

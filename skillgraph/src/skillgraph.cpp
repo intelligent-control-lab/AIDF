@@ -110,7 +110,16 @@ void SkillGraph::parse_robots(const Json::Value &root) {
             std::string sensor_type = robots_config["sensorTypes"][i].asString();
             std::string robot_name = robots_config["names"][i].asString();
             std::vector<std::string> capabilities = robot_capabilities[robot_type];
-            auto robot = std::make_shared<Robot>(robot_type, gripper_type, sensor_type, robot_name, capabilities);
+            auto robot = std::make_shared<Robot>(robot_type, gripper_type, sensor_type, i, robot_name, capabilities);
+
+            // parse the robot home pose
+            // Parse joint values
+            const Json::Value& home_pose = robots_config["homePoses"][i];
+            std::vector<double> home_state;
+            for (int j = 0; j < home_pose.size(); j++) {
+                home_state.push_back(home_pose[j].asDouble() / 180.0 * M_PI);
+            }
+            robot->set_home_state(home_state);
              
             robots.push_back(robot);
         }
@@ -147,13 +156,7 @@ void SkillGraph::print_skillgraph() {
     std::cout << "\n=== Skill Graph Information ===\n";
     std::cout << "\nRobots (" << num_robots_ << "):\n";
     for (const auto& robot : robots) {
-        std::cout << "  Robot: " << robot->robot_name << "\n";
-        std::cout << "    Type: " << robot->robot_name << "\n";
-        std::cout << "    Tool: " << static_cast<int>(robot->tool) << "\n";
-        std::cout << "    Capabilities:\n";
-        for (const auto& cap : robot->capabilities) {
-            std::cout << "      - " << cap << "\n";
-        }
+        std::cout << robot->to_string();
     }
 
     // Print Atomic Skills
@@ -169,9 +172,12 @@ void SkillGraph::print_skillgraph() {
         auto meta_skill = skill_map_[meta_type];
         std::cout << "  " << meta_skill->name << ":\n";
         std::cout << "    Atomic Skills:\n";
-        for (const auto& atomic_type : atomic_skills) {
+        const std::vector<int> & robot_ids = std::dynamic_pointer_cast<MetaSkill>(meta_skill)->robot_ids;
+        for (int i = 0; i < atomic_skills.size(); i++) {
+            auto atomic_type = atomic_skills[i];
             auto atomic_skill = skill_map_[atomic_type];
-            std::cout << "      - " << atomic_skill->name << "\n";
+            int robot_id = robot_ids[i];
+            std::cout << "      - " << atomic_skill->name << " (Robot: " << robots[robot_id]->robot_id << ")\n";
         }
     }
 

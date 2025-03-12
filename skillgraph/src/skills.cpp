@@ -1,4 +1,5 @@
 #include "skills.hpp"
+#include "tasks.hpp"
 #include "Utils/Logger.hpp"
 
 namespace skillgraph {
@@ -45,10 +46,24 @@ MetaSkill::MetaSkill(const std::string &name, const std::vector<AtomicSkillPtr> 
     this->name = name;
     this->type = from_string(name);
     this->atomic_skills = atomic_skills;
+    for (int i = 0; i < atomic_skills.size(); i++) {
+        this->atomic_skills[i]->seq_within_meta = i;
+    }
     this->num_robot = num_robot;
     this->robot_ids = robot_ids;
 }
- 
+
+MetaSkill::MetaSkill(const MetaSkill &meta_skill) {
+    this->name = meta_skill.name;
+    this->type = meta_skill.type;
+    this->atomic_skills.clear();
+    // copy the individual skills too
+    for (auto &skill : meta_skill.atomic_skills) {
+        this->atomic_skills.push_back(std::make_shared<AtomicSkill>(*skill));
+    }
+    this->num_robot = meta_skill.num_robot;
+    this->robot_ids = meta_skill.robot_ids;
+}
 
 bool MetaSkill::set_robot(const std::vector<RobotPtr> robots, int primary_robot_id) {
     if (robots.size() != num_robot) {
@@ -90,9 +105,49 @@ std::vector<Skill::Type> MetaSkill::get_atomic_skill_types() {
     return types;
 }
 
+bool MetaSkill::set_executor(std::shared_ptr<MetaSkillExecutor> executor) {
+    this->executor = executor;
+    return true;
+}
+
 
 SkillExecutor::SkillExecutor(Skill::Type type) {
     // To be implemented
+}
+
+MetaSkillExecutor::MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills){
+    // To be implemented
+    for (auto atomic_skill : atomic_skills) {
+        auto atomic_executor = std::make_shared<SkillExecutor>(atomic_skill->type);
+        atomic_skill->executor = atomic_executor;
+        atomic_executors.push_back(atomic_skill->executor);
+    }
+}
+
+void MetaSkillExecutor::set_pre_condition(TaskParamPtr pre_condition) {
+    if (pre_condition == nullptr) {
+        log("Pre condition is null", LogLevel::ERROR);
+        return;
+    }
+    // make a copy of the pre condition for the meta skill executor
+    this->pre_condition = std::make_shared<TaskParam>(*pre_condition);
+    // set the pre condition for all atomic executors too with a copy
+    for (auto atomic_executor : atomic_executors) {
+        atomic_executor->pre_condition = std::make_shared<TaskParam>(*pre_condition);
+    }
+}
+
+void MetaSkillExecutor::set_post_condition(TaskParamPtr post_condition) {
+    if (post_condition == nullptr) {
+        log("Post condition is null", LogLevel::ERROR);
+        return;
+    }
+    // make a copy of the post condition for the meta skill executor
+    this->post_condition = std::make_shared<TaskParam>(*post_condition);
+    // set the post condition for all atomic executors too with a copy
+    for (auto atomic_executor : atomic_executors) {
+        atomic_executor->post_condition = std::make_shared<TaskParam>(*post_condition);
+    }
 }
 
 }

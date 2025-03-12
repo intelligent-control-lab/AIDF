@@ -65,6 +65,7 @@ public:
 
     virtual bool setCollision(const std::string& obj_name, const std::string& link_name, bool allow) override;
     virtual void printKnownObjects() const override;
+    virtual void setState(const State &state) override;
 
 private:
     // ros 

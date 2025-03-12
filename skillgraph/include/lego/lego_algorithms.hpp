@@ -9,29 +9,41 @@
 namespace skillgraph {
 
 struct LegoPolicyCfg {
-    double twist_rad = 0.244346;
-    double twist_rad_handover = 0.314159;
+    double twist_rad = 0.244346; // degree for twisting the brick
+    double twist_rad_handover = 0.314159; // degree for twisting the brick during handover
     double z_force_threshold = -15; // for pick and drop
     double z_force_thresh_w_sup = -5; // for drop with support
     double x_force_threshold = 15; // for place up
     double handover_force_threshold = -10; // for handover
-    double dt = 0.1;
-    double velocity = 1.0;
-    double sup_force_tol = 0.03;
+    double dt = 0.1; // discretization threshold for trajectory
+    double velocity = 1.0; // maximum L1 velocity for one robot arm's trajectory
+    double sup_force_tol = 0.03; // force tolerance for touching the object to support
 };
 
 class LegoGraspGenerator : public PlanningAlgorithm {
 public:
     LegoGraspGenerator(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
                     std::shared_ptr<skillgraph::PlanInstance> instance,
-                    const LegoPolicyCfg &config);
+                    const LegoPolicyCfg &config,
+                    RobotPtr robot, 
+                    ObjPtr object);
 
-    virtual bool generate(const skillgraph::TaskParam &task_param, Skill::Type type);
+    virtual bool generate(const Json::Value &constraint, Skill::Type type, int skill_seq, RobotState &goal_state);
 
 private:
+    void calculateIKforLego(const Eigen::MatrixXd& T, const Eigen::MatrixXd & home_q,
+        int robot_id, int fk_type, bool check_collision, lego_manipulation::math::VectorJd &joint_q, 
+        RobotState &robot_state, bool &reachable);
+
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
     std::shared_ptr<skillgraph::PlanInstance> instance_;
     LegoPolicyCfg config_;
+
+    RobotPtr robot_;
+    ObjPtr object_;
+    
+    // misc for grasp generation
+    bool IK_status_;
 };
 
 class LegoPlan : public PlanningAlgorithm {

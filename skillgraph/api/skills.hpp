@@ -5,6 +5,7 @@
 namespace skillgraph {
     
     class SkillExecutor; // forward declaration
+    class MetaSkillExecutor; // forward declaration
 
     class Skill {
     public:
@@ -71,6 +72,7 @@ namespace skillgraph {
 
         ObjPtr object;
         RobotPtr robot;
+        int seq_within_meta = -1;
     };
     typedef std::shared_ptr<AtomicSkill> AtomicSkillPtr;
 
@@ -82,10 +84,16 @@ namespace skillgraph {
         MetaSkill(const std::string &name, const std::vector<AtomicSkillPtr> &atomic_skills,
                 int num_robot, const std::vector<int> &robot_ids);
 
+        // copy constructor
+        MetaSkill(const MetaSkill &meta_skill);
+
         // Set the robot for all atomic skills according to the id of the primary robot
         bool set_robot(const std::vector<RobotPtr> robots, int primary_robot_id);
         // Set the object for all atomic skills
         bool set_object(ObjPtr obj);
+        // Set executor;
+        bool set_executor(std::shared_ptr<MetaSkillExecutor> executor);
+        
 
         std::vector<Skill::Type> get_atomic_skill_types();
 
@@ -112,6 +120,11 @@ namespace skillgraph {
     };
     typedef std::shared_ptr<MetaSkill> MetaSkillPtr;
 
+    // forward declaration
+    class TaskParam;
+    typedef std::shared_ptr<TaskParam> TaskParamPtr;
+   
+   
     class SkillExecutor {
         /*
         Class definition of SkillExecutor
@@ -124,13 +137,31 @@ namespace skillgraph {
             std::vector<skillgraph::Algorithm> implementation;
 
             // properties
-            std::shared_ptr<skillgraph::ConditionEvaluator> pre_condition;
-            std::shared_ptr<skillgraph::ConditionEvaluator> post_condition;
+            TaskParamPtr pre_condition;
+            TaskParamPtr post_condition;
             Skill::Type skill_type; // corresponding skill
 
             // funnction implementation for executing this skill
             std::function<std::any(const std::vector<std::any>&)> perform();
     };
     typedef std::shared_ptr<SkillExecutor> SkillExecutorPtr;
+
+    class MetaSkillExecutor : public SkillExecutor {
+        /*
+        Class definition of MetaSkillExecutor, made of a sequence of atomic executors
+        */
+        public:
+            MetaSkillExecutor() = default;
+            MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills);
+            
+            // set the same pre conditions for meta skill and all atomic skills
+            void set_pre_condition(TaskParamPtr pre_condition);
+
+            // set the same post conditions for meta skill and all atomic skills
+            void set_post_condition(TaskParamPtr post_condition);
+
+            std::vector<SkillExecutorPtr> atomic_executors;
+    };
+    typedef std::shared_ptr<MetaSkillExecutor> MetaSkillExecutorPtr;
     
 }

@@ -19,9 +19,18 @@ namespace skillgraph {
         * @param name: name of the robot
         */
         Robot(const std::string &type, const std::string &gripperType, const std::string &sensorType,
-            const std::string &name, const std::vector<std::string> &capabilities);
+            int robot_id, const std::string &name, const std::vector<std::string> &capabilities);
         
         int getDOF() const;
+        void set_home_state(const std::vector<double> &home_state) {
+            this->home_state = home_state;
+        }
+
+        std::string type_string() const;
+
+        std::string tool_string() const;
+
+        std::string to_string() const;
 
         enum Type {
             GP4 = 0,
@@ -41,11 +50,13 @@ namespace skillgraph {
 
         Tool tool;
         Type type;
+        int robot_id;
         std::string robot_name;
         int robot_dof; // degree of freedom of the robot links
         int hand_dof; // degree of freefom of end-effector
         std::vector<std::string> capabilities; // list of capabilities
         std::string end_effector_link; // end effector link
+        std::vector<double> home_state; // home state of the robot
     };
 
     // define a pointer to the robot
