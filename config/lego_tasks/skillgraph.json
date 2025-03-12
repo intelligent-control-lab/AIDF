@@ -5,7 +5,11 @@
         "type": ["gp4", "gp4"],
         "gripperTypes": ["lego", "lego"],
         "sensorTypes": ["fts", "fts"],
-        "stateForm": "RobotArmState"
+        "stateForm": "RobotArmState",
+        "homePoses":[
+            [0.0, -15.456, -40.357, 0, -65.099, 0],
+            [0.0, -15.456, -40.357, 0, -65.099, 0]
+        ]
     },
     "environment": {
         "name": "mfi_testbed",

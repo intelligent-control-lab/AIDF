@@ -37,6 +37,6 @@ def change_file(task, dx, dy, dz):
     print(f"Updated {task}.json file")
 
 if __name__ == "__main__":
-    task = 'faucet'
-    dx, dy, dz = 0, 30, 0
+    task = 'bridge'
+    dx, dy, dz = 0, 4, 0
     change_file(task, dx, dy, dz)
