@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillGraph Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 50%;
+        }
+
+        .right-panel {
+            width: 50%;
+        }
+
+        #simulator-controls, #task-controls {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 { margin-bottom: 15px; }
+        button, select, input {
+            display: block;
+            margin-bottom: 15px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .json-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            height: 150px;
+            font-family: monospace;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LEFT SIDE: Controls -->
+    <div class="left-panel">
+        <!-- SIMULATOR CONTROLS -->
+        <div id="simulator-controls">
+            <h2>Simulator Controls</h2>
+            
+            <label for="simulator">Choose Simulator:</label>
+            <select id="simulator">
+                <option value="Moveit">Moveit</option>
+                <option value="Gazebo">Gazebo</option>
+                <option value="Issac Sim">Issac Sim</option>
+            </select>
+
+            <label for="robot">Choose Robot Type:</label>
+            <select id="robot">
+                <option value="robot1">Robot 1</option>
+                <option value="robot2">Robot 2</option>
+            </select>
+
+            <label for="task">Choose Task:</label>
+            <select id="task">
+                <option value="fish">Fish</option>
+                <option value="stairs">Stairs</option>
+                <option value="bridge">Bridge</option>
+                <option value="chair">Chair</option>
+                <option value="faucet">Faucet</option>
+                <option value="tower">Tower</option>
+                <option value="gate">Gate</option>
+            </select>
+
+            <button onclick="startSimulator()">Start Simulator</button>
+        </div>
+
+        <!-- TASK CONTROLS -->
+        <div id="task-controls">
+            <h2>Task Controls</h2>
+
+            <label for="skill">Choose Skill:</label>
+            <select id="skill">
+                <option value="pick">Pick</option>
+                <option value="place">Place</option>
+                <option value="handover">Handover</option>
+            </select>
+
+            <label for="object">Choose Object:</label>
+            <select id="object">
+                <option value="object1">Object 1</option>
+                <option value="object2">Object 2</option>
+            </select>
+
+            <label for="robot-id">Robot ID:</label>
+            <select id="robot-id">
+                <option value="robot1">Object 1</option>
+                <option value="robot2">Object 2</option>
+            </select>
+
+            <label for="target">Target Location:</label>
+            <input type="text" id="target" placeholder="Enter target coordinates">
+
+            <button onclick="runTargetTask()">Run Target Task</button>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: Request/Response Log -->
+    <div class="right-panel">
+        <h2>Request and Response</h2>
+        <div class="section-title">✅ Request Sent to Server:</div>
+        <div class="json-box">
+            <pre id="request-output">[Request will appear here]</pre>
+        </div>
+
+        <div class="section-title">✅ Response Received from Server:</div>
+        <div class="json-box">
+            <pre id="response-output">[Response will appear here]</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPid = null;
+
+    function startSimulator() {
+        const simulator = document.getElementById('simulator').value;
+        const robot = document.getElementById('robot').value;
+        
+        const command = { simulator, robot };
+        document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
+
+        fetch('http://127.0.0.1:5000/start_simulator', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(command)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+            currentPid = data.pid;
+            document.getElementById('task-controls').style.display = 'block';
+        })
+        .catch(error => {
+            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to start simulator' }, null, 4);
+        });
+    }
+
+    function runTargetTask() {
+        if (!currentPid) {
+            alert('Please start the simulator first.');
+            return;
+        }
+
+        const skill = document.getElementById('skill').value;
+        const object = document.getElementById('object').value;
+        const robotId = document.getElementById('robot-id').value;
+        const target = document.getElementById('target').value;
+
+        const command = { skill, object, robotId, target, pid: currentPid };
+        document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
+
+        fetch('http://127.0.0.1:5000/run_target_task', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(command)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+        })
+        .catch(error => {
+            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to run task' }, null, 4);
+        });
+    }
+</script>
+
+</body>
+</html>
