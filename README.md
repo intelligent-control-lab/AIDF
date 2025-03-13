@@ -7,10 +7,10 @@ Download and build the codebase using standard ROS1 ```catkin_tools```
 
 ## 🚀 Webpage On The Way!
 ### What's its function?
-The webpage [webpage](api.html) interacts with the simulators through communication with the [server](server.py).
+The webpage [api.html](api.html) interacts with the simulators through communication with the [server](server.py).
 
 ### How to run the webpage?
-Start a terminal, run ```python server.py```, and start another terminal, run ```python -m http.server```, then go to http://127.0.0.1:8000/api.html, and you would see the webpage! 
+Under the AIDF repo, start a terminal, run ```python server.py```, and start another terminal, run ```python -m http.server```, then go to http://127.0.0.1:8000/api.html, and you would see the webpage! 
 
 ### How to interact with the simulator?
 After you opened up the webpage and the server, choose your preferred simulator, robot type, and task under *"Simulator Controls"*, and then click on **[Start Simulator]**. If the *"Response Received from Server"* shows the message is correctly delivered, you should see you simulator start to run( make sure you have your simulator correctly installed and the environment approriately activated!). <br>
