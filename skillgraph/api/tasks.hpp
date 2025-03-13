@@ -19,8 +19,7 @@ namespace skillgraph
         Json::Value constraints_json;
         std::vector<Skill::Type> allowed_skill_type;
 
-        RobotState target_state; // target state for the robot
-        EnvState env_state;
+        State target_state; // target state
         std::shared_ptr<Algorithm> generator;
         std::shared_ptr<ConditionEvaluator> condition_check;
         std::shared_ptr<ConstraintEvaluator> constraint_check;

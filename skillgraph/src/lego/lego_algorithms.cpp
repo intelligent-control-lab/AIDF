@@ -14,9 +14,11 @@ LegoGraspGenerator::LegoGraspGenerator(std::shared_ptr<lego_manipulation::lego::
 }
 
 bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
-         RobotState &goal_state) {
+         State &goal_state) {
     
-    goal_state = instance_->initRobotState(robot_->robot_id);
+    RobotState &robot_goal_state = goal_state.robot_states[robot_->robot_id];
+    EnvState &env_state = goal_state.env_state;
+    robot_goal_state = instance_->initRobotState(robot_->robot_id);
     
     // mandatory fields
     int brick_id = constraint["brick_id"].asInt();
@@ -89,8 +91,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             offset_T.col(3) << pick_offset(3), pick_offset(4), pick_offset(5) - abs(pick_offset(5)), 1;
             offset_T = cart_T * offset_T;
 
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, true, goal_q, goal_state, reachable);
-            
+            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, true, goal_q, robot_goal_state, reachable);
         }
         if (skill_seq == 2 && !sup_req) {
             // goto place_pre_pose
@@ -100,16 +101,25 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             offset_T.col(3) << pick_offset(0), pick_offset(1) * attack_dir, pick_offset(2) - abs(pick_offset(2)), 1;
             offset_T = cart_T * offset_T;
 
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, true, goal_q, goal_state, reachable);
+            calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, true, goal_q, robot_goal_state, reachable);
+            
         }
         if (skill_seq == 4 && !sup_req) {
             // go to home pose
-            goal_state.joint_values = robot_->home_state;
+            robot_goal_state.joint_values = robot_->home_state;
+            // find the env state objects with the same name as current object
+            for (auto &obj : env_state.objects) {
+                // update the state of the object
+                if (obj->name == brick_name) {
+                    obj->state = Object::State::Attached;
+                    break;
+                }
+            }
         }
     }
     else if (type == Skill::Type::Pick) {
         lego_ptr_->brick_pose_in_stock(brick_name, press_side, press_offset, cart_T);
-        calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, false, goal_q, goal_state, reachable);
+        calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, false, goal_q, robot_goal_state, reachable);
         if (!reachable) {
             return false;
         }
@@ -126,7 +136,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         }
         cart_T = cart_T * twist_T;
         seed_q = goal_q;
-        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 2, false, goal_q, goal_state, reachable);
+        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 2, false, goal_q, robot_goal_state, reachable);
 
         if (!reachable) {
             return false;
@@ -141,12 +151,12 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         }
         cart_T(2, 3) = cart_T(2, 3) + 0.015;
         seed_q = goal_q;
-        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 1, true, goal_q, goal_state, reachable);
+        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 1, true, goal_q, robot_goal_state, reachable);
 
     }
     else if (type == Skill::Type::PlaceTop) {
         lego_ptr_->assemble_pose_from_top(press_x, press_y, press_z, press_ori, press_side, cart_T);
-        calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, false, goal_q, goal_state, reachable);
+        calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, false, goal_q, robot_goal_state, reachable);
         if (!reachable) {
             return false;
         }
@@ -163,7 +173,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         cart_T = cart_T * twist_T;
         cart_T(2, 3) = cart_T(2, 3) + 0.015;
         seed_q = goal_q;
-        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 1, true, goal_q, goal_state, reachable);
+        calculateIKforLego(cart_T, seed_q, robot_->robot_id, 1, true, goal_q, robot_goal_state, reachable);
     }
     else if (type == Skill::Type::PlaceBottom) {
 

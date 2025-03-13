@@ -140,3 +140,25 @@ target_link_libraries(plan_lego
 install(TARGETS plan_lego
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+add_executable(webplan_lego
+  exe/webplan_lego.cpp
+)
+
+target_link_libraries(webplan_lego
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+target_include_directories(webplan_lego PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  PRIVATE src)
+
+target_link_libraries(webplan_lego
+  ${catkin_LIBRARIES}
+)
+
+install(TARGETS webplan_lego
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

@@ -539,7 +539,7 @@ void MoveitInstance::attachObjectToRobot(const std::string &name, int robot_id, 
    if (objects_.find(name) == objects_.end()) {
        log("Object " + name + " not found in the scene", LogLevel::ERROR);
        return;
-   }
+    }
     Object &obj = objects_[name];
     if (obj.state == Object::State::Attached) {
         log("Object " + name + " is already attached to a robot " + robot_names_[obj.robot_id] 
@@ -887,6 +887,21 @@ bool MoveitInstance::setCollision(const std::string& obj_name, const std::string
     planning_scene_diff_ = planning_scene;
 
     return true;
+}
+
+MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move) 
+        : instance_(instance), fake_move_(fake_move) {
+    // initialize the moveit instance
+
+}
+
+bool MoveitControl::move(TaskParamPtr post_condition) {
+    if (fake_move_) {
+        instance_->setState(post_condition->target_state);
+        instance_->updateScene();
+        return true;
+    }
+
 }
 
 }

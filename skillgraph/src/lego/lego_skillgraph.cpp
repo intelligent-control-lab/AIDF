@@ -321,6 +321,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
                         SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
                         TaskParamPtr task_param = atomic_executor->post_condition;
+                        task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;
@@ -355,6 +356,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
                         SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
                         TaskParamPtr task_param = atomic_executor->post_condition;
+                        task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;
@@ -389,6 +391,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
                         SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
                         TaskParamPtr task_param = atomic_executor->post_condition;
+                        task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;

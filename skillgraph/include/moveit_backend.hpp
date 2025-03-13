@@ -26,6 +26,8 @@
 
 #include "backend.hpp"
 #include "robots.hpp"
+#include "tasks.hpp"
+#include "algorithms.hpp"
 
 namespace skillgraph {
 
@@ -88,6 +90,17 @@ private:
     // random number generator
     std::mt19937 rng_;
 
+};
+
+class MoveitControl : public ControlAlgorithm {
+public: 
+    MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move);
+
+    bool move(TaskParamPtr post_condition);
+
+private:
+    std::shared_ptr<MoveitInstance> instance_;
+    bool fake_move_;
 };
 
 }
