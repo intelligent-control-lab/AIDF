@@ -13,7 +13,7 @@ The webpage [webpage](api.html) interacts with the simulators through communicat
 Start a terminal, run ```python server.py```, and start another terminal, run ```python -m http.server```, then go to http://127.0.0.1:8000/api.html, and you would see the webpage! 
 
 ### How to interact with the simulator?
-After you opened up the webpage and the server, choose your preferred simulator, robot type, and task under **[Simulator Controls]**, and then click on **[Start Simulator]**. If the **[Response Received from Server]** shows the message is correctly delivered, you should see you simulator start to run( make sure you have your simulator correctly installed and the environment approriately activated!). <br>
+After you opened up the webpage and the server, choose your preferred simulator, robot type, and task under *Simulator Controls*, and then click on **[Start Simulator]**. If the *Response Received from Server* shows the message is correctly delivered, you should see you simulator start to run( make sure you have your simulator correctly installed and the environment approriately activated!). <br>
 
 After the simulation has been started, choose skill, object, main robot, and target locations, and then click on **[Run Target Task]**. If your chosen set is feasible, you would see the robot moving as expected; otherwise, you would see an error pop out.
 
