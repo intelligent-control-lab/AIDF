@@ -1,6 +1,11 @@
 {
-    "skill": "pick",
-    "object": "b5_1",
-    "robot": 2,
-    "target_location": {}
+    "skill": "PlaceWithSupport",
+    "object": "b2_1",
+    "robot": "1",
+    "target_location": {
+        "x": "1",
+        "y": "2",
+        "z": "3",
+        "ori": "0"
+    }
 }

@@ -52,10 +52,6 @@
     </style>
 </head>
 <body>
-<!-- <div id="debug-output" style="background:#eee;padding:10px;margin:10px 0;">JavaScript is running...</div> -->
-<div class="json-box">
-    <pre id="debug-output">[Debug data will appear here]</pre>
-</div>
 <div class="container">
     <div class="left-panel">
         <div id="simulator-controls">
@@ -75,7 +71,7 @@
             </select>
 
             <label for="task">Choose Task:</label>
-            <select id="task">
+            <select id="task" placeholder="None">
                 <option value="none">None</option>
                 <option value="fish">Fish</option>
                 <option value="stairs">Stairs</option>
@@ -95,17 +91,17 @@
             <label for="skill">Choose Skill:</label>
             <select id="skill">
                 <option value="pick">Pick</option>
-                <option value="placeTop">Place</option>
-                <option value="PlaceBottom">Place</option>
-                <option value="SupportBottom">Pick</option>
-                <option value="SupportTop">Place</option>
-                <option value="Handover">Place</option>
-                <option value="Transit">Pick</option>
-                <option value="Align">Place</option>
-                <option value="PlaceWithSupport">Place</option>
-                <option value="PickAndPlace">Pick</option>
-                <option value="PickAndPlaceWithSupport">Place</option>
-                <option value="PickHandoverAndPlace">Place</option>
+                <option value="placeTop">PlaceTop</option>
+                <option value="PlaceBottom">PlaceBottom</option>
+                <option value="SupportBottom">SupportBottom</option>
+                <option value="SupportTop">SupportTop</option>
+                <option value="Handover">HandOver</option>
+                <option value="Transit">Transit</option>
+                <option value="Align">Align</option>
+                <option value="PlaceWithSupport">PlaceWithSupport</option>
+                <option value="PickAndPlace">PickAndPlace</option>
+                <option value="PickAndPlaceWithSupport">PickAndPlaceWithSupport</option>
+                <option value="PickHandoverAndPlace">PickHandoverAndPlace</option>
             </select>
 
             <label for="object">Choose Object:</label>
@@ -115,12 +111,30 @@
 
             <label for="robot-id">Robot ID:</label>
             <select id="robot-id">
-                <option value="robot1">Robot 1</option>
-                <option value="robot2">Robot 2</option>
+                <option value="1">Robot 1</option>
+                <option value="2">Robot 2</option>
             </select>
 
             <label for="target">Target Location:</label>
-            <input type="text" id="target" placeholder="Enter target coordinates">
+            <!-- <input type="text" id="target" placeholder="Enter target coordinates"> -->
+            <div style="display: flex; gap: 10px;">
+                <div>
+                    <label for="target-x">X:</label>
+                    <input type="text" id="target-x" placeholder="X">
+                </div>
+                <div>
+                    <label for="target-y">Y:</label>
+                    <input type="text" id="target-y" placeholder="Y">
+                </div>
+                <div>
+                    <label for="target-z">Z:</label>
+                    <input type="text" id="target-z" placeholder="Z">
+                </div>
+                <div>
+                    <label for="target-ori">Orientation:</label>
+                    <input type="text" id="target-ori" placeholder="Ori">
+                </div>
+            </div>
 
             <button onclick="runTargetTask()">Run Target Task</button>
         </div>
@@ -139,6 +153,9 @@
         </div>
     </div>
 </div>
+<div class="json-box">
+    <pre id="debug-output">[Debug data will appear here]</pre>
+</div>
 
 <script>
     let currentPid = null;
@@ -150,7 +167,7 @@
     function fetchEnvSetup(task) {
         document.getElementById('debug-output').innerText += "Fetching JSON for task: ${task}...";
 
-        fetch(`../config/lego_tasks/env_setup/env_setup_${task}.json`)
+        fetch(`./config/lego_tasks/env_setup/env_setup_${task}.json`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -169,7 +186,7 @@
     function updateObjectDropdown(data) {
         let objectDropdown = document.getElementById('object'); // Assuming 'object' is the ID of the dropdown
         objectDropdown.innerHTML = ""; // Clear existing options
-        
+
         let objectKeys = Object.keys(data);
         document.getElementById('debug-output').innerText += 
             "\nExtracted Objects:\n" + objectKeys.join(", ");
@@ -200,16 +217,25 @@
     }
 
     function runTargetTask() {
-        if (!currentPid) {
-            alert('Please start the simulator first.');
-            return;
+        // if (!currentPid) {
+        //     alert('Please start the simulator first.');
+        //     return;
+        // }
+        x = document.getElementById('target-x').value;
+        y = document.getElementById('target-y').value;
+        z = document.getElementById('target-z').value;
+        ori = document.getElementById('target-ori').value;
+        target = {
+            "x": x,
+            "y": y,
+            "z": z,
+            "ori": ori
         }
-
         const command = {
             skill: document.getElementById('skill').value,
             object: document.getElementById('object').value,
-            robotId: document.getElementById('robot-id').value,
-            target: document.getElementById('target').value,
+            robot_id: document.getElementById('robot-id').value,
+            target: target,
             pid: currentPid
         };
         

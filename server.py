@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import subprocess
 import logging
 from flask_cors import CORS
+import json
 import os
 import signal
 import time
@@ -27,16 +28,15 @@ def start_simulator():
     data = request.json
     simulator = data.get("simulator")
     robot = data.get("robot")
-    task = data.get("task")
+    task = data.get("task") # change skillgraph.json
 
     # Modify these with your actual ROS package and launch file names
-    ros_package = "your_ros_package"
-    launch_file = "your_launch_file.launch"
+    ros_package = "your_ros_package" # TODO: Update the real ROS package name
+    launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
     # Prepare the command to run the simulation
-    command = f'exec bash -i -c "conda deactivate && exec roslaunch {ros_package} {launch_file} \
-        simulator:={simulator} robot:={robot} task:={task}"'
-    command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
+    command = f'exec bash -i -c "conda deactivate && exec rosrun AIDF webplan_lego"' # TODO: Update the real execution commands
+    # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
     
     try:
@@ -61,37 +61,37 @@ def run_target_task():
 
     logging.info("Starting Simulation...")
     data = request.json
-    simulator = data.get("simulator")
-    robot = data.get("robot")
+    robot_id = data.get("robot_id")
     obj = data.get("object")
     skill = data.get("skill")
     target = data.get("target")
 
-    # Modify these with your actual ROS package and launch file names
-    ros_package = "your_ros_package"
-
-    # Prepare the command to run the simulation
-    command = f'exec bash -i -c "echo {ros_package} \
-        simulator={simulator} robot={robot} object={obj} skill={skill} target={target}"'
-    # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
-    logging.info(f"Executing command: {command}")
-    
+    # Update the web_message.json file with the extracted data
+    web_message_path = './config/web_message.json'
     try:
-        # Start the simulation in a subprocess
-        # pre_process = subprocess.run(command1, shell=True)
-        simulation_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        with open(web_message_path, 'r') as file:
+            web_message = json.load(file)
         
-        logging.info(f"Runing task with simulation {simulation_process.pid}")
+        web_message['skill'] = skill
+        web_message['object'] = obj
+        web_message['robot'] = robot_id
+        web_message['target_location'] = target
+
+        with open(web_message_path, 'w') as file:
+            json.dump(web_message, file, indent=4)
         
-        # Return success response with pid
+        logging.info(f"web_message.json updated successfully: {web_message}")
         return jsonify({
             "status": 0,
-            "output": "Task Executed successfully",
-            "pid": simulation_process.pid
+            "output": f"web_message.json updated successfully: {web_message}",
         }), 200
     except Exception as e:
-        logging.error(f"Exception occurred: {str(e)}")
-        return jsonify({"error": str(e), "status": -1}), 500
+        logging.error(f"Failed to update web_message.json: {str(e)}")
+        return jsonify({
+            "status": -1,
+            "error": str(e), 
+            "output": "Failed to update web_message.json"
+            }), 500
 
 
 @app.route('/stop_simulation', methods=['POST'])
