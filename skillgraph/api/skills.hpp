@@ -134,15 +134,20 @@ namespace skillgraph {
             SkillExecutor(Skill::Type type);
             
             // chooses one or many algorithms to implement the skill 
-            std::vector<skillgraph::Algorithm> implementation;
+            std::vector<AlgorithmPtr> implementation;
+
+            virtual bool execute(State &current_state) = 0;
+
+            // set the same pre conditions for meta skill and all atomic skills
+            void set_pre_condition(TaskParamPtr pre_condition);
+
+            // set the same post conditions for meta skill and all atomic skills
+            void set_post_condition(TaskParamPtr post_condition);
 
             // properties
             TaskParamPtr pre_condition;
             TaskParamPtr post_condition;
             Skill::Type skill_type; // corresponding skill
-
-            // funnction implementation for executing this skill
-            std::function<std::any(const std::vector<std::any>&)> perform();
     };
     typedef std::shared_ptr<SkillExecutor> SkillExecutorPtr;
 
@@ -154,11 +159,9 @@ namespace skillgraph {
             MetaSkillExecutor() = default;
             MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills);
             
-            // set the same pre conditions for meta skill and all atomic skills
-            void set_pre_condition(TaskParamPtr pre_condition);
+            virtual bool execute(State &current_state) override;
 
-            // set the same post conditions for meta skill and all atomic skills
-            void set_post_condition(TaskParamPtr post_condition);
+            void add_atomic_executor(std::shared_ptr<SkillExecutor> atomic_executor);
 
             std::vector<SkillExecutorPtr> atomic_executors;
     };

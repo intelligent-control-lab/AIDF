@@ -116,38 +116,40 @@ SkillExecutor::SkillExecutor(Skill::Type type) {
 }
 
 MetaSkillExecutor::MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills){
-    // To be implemented
-    for (auto atomic_skill : atomic_skills) {
-        auto atomic_executor = std::make_shared<SkillExecutor>(atomic_skill->type);
-        atomic_skill->executor = atomic_executor;
-        atomic_executors.push_back(atomic_skill->executor);
-    }
+
 }
 
-void MetaSkillExecutor::set_pre_condition(TaskParamPtr pre_condition) {
+void MetaSkillExecutor::add_atomic_executor(std::shared_ptr<SkillExecutor> atomic_executor) {
+    atomic_executors.push_back(atomic_executor);
+}
+
+bool MetaSkillExecutor::execute(State &current_state) {
+    for (const auto &atomic_executor : atomic_executors) {
+        if (!atomic_executor->execute(current_state)) {
+            log("Failed to execute atomic skill", LogLevel::ERROR);
+            return false;
+        }
+    }
+    return true;
+}
+
+
+void SkillExecutor::set_pre_condition(TaskParamPtr pre_condition) {
     if (pre_condition == nullptr) {
         log("Pre condition is null", LogLevel::ERROR);
         return;
     }
     // make a copy of the pre condition for the meta skill executor
     this->pre_condition = std::make_shared<TaskParam>(*pre_condition);
-    // set the pre condition for all atomic executors too with a copy
-    for (auto atomic_executor : atomic_executors) {
-        atomic_executor->pre_condition = std::make_shared<TaskParam>(*pre_condition);
-    }
 }
 
-void MetaSkillExecutor::set_post_condition(TaskParamPtr post_condition) {
+void SkillExecutor::set_post_condition(TaskParamPtr post_condition) {
     if (post_condition == nullptr) {
         log("Post condition is null", LogLevel::ERROR);
         return;
     }
     // make a copy of the post condition for the meta skill executor
     this->post_condition = std::make_shared<TaskParam>(*post_condition);
-    // set the post condition for all atomic executors too with a copy
-    for (auto atomic_executor : atomic_executors) {
-        atomic_executor->post_condition = std::make_shared<TaskParam>(*post_condition);
-    }
 }
 
 }

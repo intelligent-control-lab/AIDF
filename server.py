@@ -35,13 +35,14 @@ def start_simulator():
     launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
     # Prepare the command to run the simulation
-    command = f'exec bash -i -c "conda deactivate && exec rosrun AIDF webplan_lego"' # TODO: Update the real execution commands
+    command = f'exec bash -i -c "exec rosrun aidf webplan_lego"' # TODO: Update the real execution commands
     # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
     
     try:
         # Start the simulation in a subprocess
-        simulation_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        log_file = open("simulation.log", "w")
+        simulation_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
         
         logging.info(f"Simulation started with PID {simulation_process.pid}")
         

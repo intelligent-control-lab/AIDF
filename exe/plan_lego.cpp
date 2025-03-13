@@ -61,6 +61,15 @@ int main() {
         auto planner = std::make_shared<planner::AssemblyPlanner>(sg);
         planner->plan();
 
+        // get plan solution
+        skillgraph::State state = sg->get_initial_state();
+        for (auto &skill : planner->plan_skill_seq) {
+            if (!skill->executor->execute(state)) {
+                log("Failed to execute skill: " + skill->to_string(), LogLevel::ERROR);
+                break;
+            }
+        }
+
         // Shutdown Logic (for natural exit)
         if (program_running) { // Only set program_running = false if no signal.
           program_running = false;

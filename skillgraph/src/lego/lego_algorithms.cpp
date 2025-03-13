@@ -88,25 +88,10 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             lego_ptr_->brick_pose_in_stock(brick_name, press_side, press_offset, cart_T);
             
             Eigen::Matrix4d offset_T = Eigen::MatrixXd::Identity(4, 4);
-            offset_T.col(3) << pick_offset(3), pick_offset(4), pick_offset(5) - abs(pick_offset(5)), 1;
-            offset_T = cart_T * offset_T;
+            //offset_T.col(3) << pick_offset(3), pick_offset(4), pick_offset(5) - abs(pick_offset(5)), 1;
+            //offset_T = cart_T * offset_T;
 
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, true, goal_q, robot_goal_state, reachable);
-        }
-        if (skill_seq == 2 && !sup_req) {
-            // goto place_pre_pose
-            lego_ptr_->assemble_pose_from_top(press_x, press_y, press_z, press_ori, press_side, cart_T);
-
-            Eigen::Matrix4d offset_T = Eigen::MatrixXd::Identity(4, 4);
-            offset_T.col(3) << pick_offset(0), pick_offset(1) * attack_dir, pick_offset(2) - abs(pick_offset(2)), 1;
-            offset_T = cart_T * offset_T;
-
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, true, goal_q, robot_goal_state, reachable);
-            
-        }
-        if (skill_seq == 4 && !sup_req) {
-            // go to home pose
-            robot_goal_state.joint_values = robot_->home_state;
+            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, false, goal_q, robot_goal_state, reachable);
             // find the env state objects with the same name as current object
             for (auto &obj : env_state.objects) {
                 // update the state of the object
@@ -115,6 +100,27 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                     break;
                 }
             }
+        }
+        if (skill_seq == 2 && !sup_req) {
+            // goto place_pre_pose
+            lego_ptr_->assemble_pose_from_top(press_x, press_y, press_z, press_ori, press_side, cart_T);
+
+            Eigen::Matrix4d offset_T = Eigen::MatrixXd::Identity(4, 4);
+            //offset_T.col(3) << pick_offset(0), pick_offset(1) * attack_dir, pick_offset(2) - abs(pick_offset(2)), 1;
+            //offset_T = cart_T * offset_T;
+
+            calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, false, goal_q, robot_goal_state, reachable);
+            for (auto &obj : env_state.objects) {
+                // update the state of the object
+                if (obj->name == brick_name) {
+                    obj->state = Object::State::Static;
+                    break;
+                }
+            }
+        }
+        if (skill_seq == 4 && !sup_req) {
+            // go to home pose
+            robot_goal_state.joint_values = robot_->home_state;
         }
     }
     else if (type == Skill::Type::Pick) {

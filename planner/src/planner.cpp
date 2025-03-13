@@ -38,11 +38,11 @@ void AssemblyPlanner::plan() {
 
         if (skillgraph_->at_target(current_state)) {
             // print the path
-            std::vector<State> path;
-            std::vector<SkillPtr> skill_seq;
-            get_path(current_state, path, skill_seq);
+            plan_path.clear();
+            plan_skill_seq.clear();
+            get_path(current_state, plan_path, plan_skill_seq);
             std::cout << "Found the target state!" << std::endl;
-            for (const auto &s : skill_seq) {
+            for (const auto &s : plan_skill_seq) {
                 std::cout << s->to_string() << std::endl;
             }
             return;

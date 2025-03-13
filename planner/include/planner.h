@@ -23,7 +23,9 @@ public:
 
     bool get_path(skillgraph::State &state, std::vector<skillgraph::State> &path, 
         std::vector<skillgraph::SkillPtr> &gs_path);
-        
+
+    std::vector<skillgraph::State> plan_path;
+    std::vector<skillgraph::SkillPtr> plan_skill_seq;
 
 private:
     std::shared_ptr<skillgraph::SkillGraph> skillgraph_;

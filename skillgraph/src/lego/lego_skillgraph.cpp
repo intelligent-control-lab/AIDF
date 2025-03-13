@@ -1,3 +1,4 @@
+#include "lego/lego_skills.hpp"
 #include "lego/lego_skillgraph.hpp"
 #include "Utils/Logger.hpp"
 #include "moveit_backend.hpp"
@@ -146,6 +147,14 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
         // set the initial state to environment
         env_->setState(init_state);
         initial_state_.env_state = init_state;
+        initial_state_.robot_states.resize(num_robots_);
+        for (int i = 0; i < num_robots_; i++) {
+            initial_state_.robot_states[i] = env_->backend_->initRobotState(i);
+            auto home_state = robots[i]->home_state;
+            for (int k = 0; k < home_state.size(); k ++) {
+                initial_state_.robot_states[i].joint_values[k] = home_state[k];
+            }
+        }
     }
 
 }
@@ -308,18 +317,24 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
                     gs->set_robot({robots[ri]}, 0);
                     gs->set_object(obj);
-                    auto executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
-                    gs->set_executor(executor);
+                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+                    gs->set_executor(meta_executor);
 
                     // set the task parameters
-                    executor->set_post_condition(task->post_condition);
+                    meta_executor->set_post_condition(task->post_condition);
 
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
                     bool skill_feasible = true;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
-                        AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
-                        SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
+                        // create atomic skill executor
+                        auto atomic_skill = gs->atomic_skills[i];
+                        auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
+                        atomic_skill->executor = atomic_executor;
+                        atomic_executor->set_post_condition(task->post_condition);
+                        meta_executor->add_atomic_executor(atomic_executor);
+
+                        // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
                         task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
@@ -343,18 +358,24 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
                     gs->set_robot(robots, ri);
                     gs->set_object(obj);
-                    auto executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
-                    gs->set_executor(executor);
+                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+                    gs->set_executor(meta_executor);
 
                     // set the task parameters
-                    executor->set_post_condition(task->post_condition);
+                    meta_executor->set_post_condition(task->post_condition);
 
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
                     bool skill_feasible = true;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
-                        AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
-                        SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
+                         // create atomic skill executor
+                        auto atomic_skill = gs->atomic_skills[i];
+                        auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
+                        atomic_skill->executor = atomic_executor;
+                        atomic_executor->set_post_condition(task->post_condition);
+                        meta_executor->add_atomic_executor(atomic_executor);
+
+                        // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
                         task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
@@ -378,18 +399,24 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
                     gs->set_robot(robots, ri);
                     gs->set_object(obj);
-                    auto executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
-                    gs->set_executor(executor);
+                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+                    gs->set_executor(meta_executor);
 
                     // set the task parameters
-                    executor->set_post_condition(task->post_condition);
+                    meta_executor->set_post_condition(task->post_condition);
                     bool skill_feasible = true;
 
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
-                        AtomicSkillPtr atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs->atomic_skills[i]);
-                        SkillExecutorPtr atomic_executor = executor->atomic_executors[i];
+                         // create atomic skill executor
+                        auto atomic_skill = gs->atomic_skills[i];
+                        auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
+                        atomic_skill->executor = atomic_executor;
+                        atomic_executor->set_post_condition(task->post_condition);
+                        meta_executor->add_atomic_executor(atomic_executor);
+
+                        // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
                         task_param->target_state = state;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
