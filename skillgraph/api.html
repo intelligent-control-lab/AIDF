@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkillGraph Simulator</title>
@@ -51,11 +52,12 @@
     </style>
 </head>
 <body>
-
+<!-- <div id="debug-output" style="background:#eee;padding:10px;margin:10px 0;">JavaScript is running...</div> -->
+<div class="json-box">
+    <pre id="debug-output">[Debug data will appear here]</pre>
+</div>
 <div class="container">
-    <!-- LEFT SIDE: Controls -->
     <div class="left-panel">
-        <!-- SIMULATOR CONTROLS -->
         <div id="simulator-controls">
             <h2>Simulator Controls</h2>
             
@@ -68,12 +70,13 @@
 
             <label for="robot">Choose Robot Type:</label>
             <select id="robot">
-                <option value="robot1">Robot 1</option>
-                <option value="robot2">Robot 2</option>
+                <option value="Fanuc">Fanuc</option>
+                <option value="GP4">GP4</option>
             </select>
 
             <label for="task">Choose Task:</label>
             <select id="task">
+                <option value="none">None</option>
                 <option value="fish">Fish</option>
                 <option value="stairs">Stairs</option>
                 <option value="bridge">Bridge</option>
@@ -86,27 +89,34 @@
             <button onclick="startSimulator()">Start Simulator</button>
         </div>
 
-        <!-- TASK CONTROLS -->
         <div id="task-controls">
             <h2>Task Controls</h2>
 
             <label for="skill">Choose Skill:</label>
             <select id="skill">
                 <option value="pick">Pick</option>
-                <option value="place">Place</option>
-                <option value="handover">Handover</option>
+                <option value="placeTop">Place</option>
+                <option value="PlaceBottom">Place</option>
+                <option value="SupportBottom">Pick</option>
+                <option value="SupportTop">Place</option>
+                <option value="Handover">Place</option>
+                <option value="Transit">Pick</option>
+                <option value="Align">Place</option>
+                <option value="PlaceWithSupport">Place</option>
+                <option value="PickAndPlace">Pick</option>
+                <option value="PickAndPlaceWithSupport">Place</option>
+                <option value="PickHandoverAndPlace">Place</option>
             </select>
 
             <label for="object">Choose Object:</label>
             <select id="object">
-                <option value="object1">Object 1</option>
-                <option value="object2">Object 2</option>
+                <option value="none">None</option>
             </select>
 
             <label for="robot-id">Robot ID:</label>
             <select id="robot-id">
-                <option value="robot1">Object 1</option>
-                <option value="robot2">Object 2</option>
+                <option value="robot1">Robot 1</option>
+                <option value="robot2">Robot 2</option>
             </select>
 
             <label for="target">Target Location:</label>
@@ -116,7 +126,6 @@
         </div>
     </div>
 
-    <!-- RIGHT SIDE: Request/Response Log -->
     <div class="right-panel">
         <h2>Request and Response</h2>
         <div class="section-title">✅ Request Sent to Server:</div>
@@ -134,26 +143,59 @@
 <script>
     let currentPid = null;
 
-    function startSimulator() {
-        const simulator = document.getElementById('simulator').value;
-        const robot = document.getElementById('robot').value;
-        
-        const command = { simulator, robot };
-        document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
+    document.getElementById('task').addEventListener('change', function() {
+        fetchEnvSetup(this.value);
+    });
 
-        fetch('http://127.0.0.1:5000/start_simulator', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(command)
+    function fetchEnvSetup(task) {
+        document.getElementById('debug-output').innerText += "Fetching JSON for task: ${task}...";
+
+        fetch(`../config/lego_tasks/env_setup/env_setup_${task}.json`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
         })
-        .then(response => response.json())
         .then(data => {
-            document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
-            currentPid = data.pid;
-            document.getElementById('task-controls').style.display = 'block';
+            document.getElementById('debug-output').innerText += "JSON fetched successfully:\n";
+            updateObjectDropdown(data);
         })
         .catch(error => {
-            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to start simulator' }, null, 4);
+            document.getElementById('debug-output').innerText += `\n❌ Fetch error: ${error}`;
+        });
+    }
+
+    function updateObjectDropdown(data) {
+        let objectDropdown = document.getElementById('object'); // Assuming 'object' is the ID of the dropdown
+        objectDropdown.innerHTML = ""; // Clear existing options
+        
+        let objectKeys = Object.keys(data);
+        document.getElementById('debug-output').innerText += 
+            "\nExtracted Objects:\n" + objectKeys.join(", ");
+
+        if (objectKeys.length === 0) {
+            document.getElementById('debug-output').innerText += "\n❌ No Objects Available!";
+            return;
+        }
+
+        objectKeys.forEach(objName => {
+            const option = document.createElement('option');
+            option.value = objName;
+            option.textContent = objName;
+            object.appendChild(option);
+        });
+    }
+
+    function startSimulator() {
+        const command = {
+            simulator: document.getElementById('simulator').value,
+            robot: document.getElementById('robot').value
+        };
+        
+        sendRequest('/start_simulator', command, (data) => {
+            currentPid = data.pid;
+            document.getElementById('task-controls').style.display = 'block';
         });
     }
 
@@ -163,15 +205,21 @@
             return;
         }
 
-        const skill = document.getElementById('skill').value;
-        const object = document.getElementById('object').value;
-        const robotId = document.getElementById('robot-id').value;
-        const target = document.getElementById('target').value;
+        const command = {
+            skill: document.getElementById('skill').value,
+            object: document.getElementById('object').value,
+            robotId: document.getElementById('robot-id').value,
+            target: document.getElementById('target').value,
+            pid: currentPid
+        };
+        
+        sendRequest('/run_target_task', command);
+    }
 
-        const command = { skill, object, robotId, target, pid: currentPid };
+    function sendRequest(endpoint, command, callback) {
         document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
 
-        fetch('http://127.0.0.1:5000/run_target_task', {
+        fetch(`http://127.0.0.1:5000${endpoint}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(command)
@@ -179,9 +227,10 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+            if (callback) callback(data);
         })
-        .catch(error => {
-            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Failed to run task' }, null, 4);
+        .catch(() => {
+            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Request failed' }, null, 4);
         });
     }
 </script>
