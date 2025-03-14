@@ -80,8 +80,11 @@ namespace skillgraph
             virtual bool at_target(const State& state) { throw std::runtime_error("At Target Not implemented");};
             virtual std::vector<SkillPtr> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};
             virtual bool get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) { throw std::runtime_error("get_next_state Not implemented");};
+            virtual bool is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs)  { throw std::runtime_error("get_next_state Not implemented");};
 
             State get_initial_state() const { return initial_state_; }
+            SkillPtr get_skill(const std::string &skill_name) const;
+            RobotPtr get_robot(const std::string &robot_name) const;
 
             // std::tuple<std::vector<std::string>, std::function<bool(const std::map<std::string, std::any>&)>> 
             //     feasible_target_states(const std::string& skill, const Object& obj, const env::State& state);

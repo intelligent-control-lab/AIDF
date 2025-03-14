@@ -206,4 +206,22 @@ std::vector<std::string> SkillGraph::get_robot_names() const {
     return robot_names;
 }
 
+SkillPtr SkillGraph::get_skill(const std::string &skill_name) const {
+    Skill::Type type = Skill::from_string(skill_name);
+    if (skill_map_.find(type) == skill_map_.end()) {
+        throw std::runtime_error("Skill " + skill_name + " not found in skill graph");
+    }
+    return skill_map_.at(type);
+}
+
+RobotPtr SkillGraph::get_robot(const std::string &robot_name) const {
+    for (const auto& robot : robots) {
+        if (robot->robot_name == robot_name) {
+            return robot;
+        }
+    }
+    throw std::runtime_error("Robot " + robot_name + " not found in skill graph");
+}
+
+
 }

@@ -487,4 +487,124 @@ bool LegoSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next
     return true;
 }
 
+bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs_base) {
+    std::string skillname = skill_config["skill"].asString();
+    Skill::Type skill_type = Skill::from_string(skillname);
+
+    bool skill_feasible = false;
+    if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
+        || skill_type == Skill::Type::PickHandoverAndPlace) {
+        
+        // get the skill
+        auto base_skill = std::dynamic_pointer_cast<MetaSkill>(get_skill(skillname));
+        MetaSkillPtr gs = std::make_shared<MetaSkill>(*base_skill);
+        gs_base = gs;
+
+        // set robot
+        int rid = skill_config["robot"].asInt();
+        RobotPtr robot = robots[rid];
+        ObjPtr obj;
+        if (skill_type == Skill::Type::PickAndPlace) {
+            gs->set_robot({robot}, rid);
+        }
+        else {
+            // support and handover skills require two robots
+            gs->set_robot(robots, rid);
+        }
+
+        // set object
+        std::string object_name = skill_config["object"].asString();
+        for (auto &oi : state.env_state.objects) {
+            if (oi->name == object_name) {
+                gs->set_object(oi);
+                obj = oi;
+                break;
+            }
+        }
+
+        // set executor
+        auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+        gs->set_executor(meta_executor);
+
+
+        // set the task parameters
+        TaskParamPtr post_condition = std::make_shared<TaskParam>();
+        auto &config = post_condition->constraints_json;
+        config = skill_config["target_location"];
+        config["brick_id"] = std::dynamic_pointer_cast<LegoBrick>(obj)->brick_id;
+        config["attack_dir"] = -1;
+        if (skill_type == Skill::Type::PickAndPlace) {
+            config["press_side"] = 1;
+            config["press_offset"] = 0;
+            config["manip_type"] = 0;
+            int press_x, press_y, press_ori;
+            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+            config["press_x"] = press_x;
+            config["press_y"] = press_y;
+            config["press_z"] = config["z"].asInt() + 1;
+            config["press_ori"] = press_ori;
+            config["support_x"] = -1;
+        }
+        else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
+            config["press_side"] = 1;
+            config["press_offset"] = 0;
+            config["manip_type"] = 0;
+            int press_x, press_y, press_ori;
+            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+            config["press_x"] = press_x;
+            config["press_y"] = press_y;
+            config["press_z"] = config["z"].asInt() + 1;
+            config["support_x"] = press_x;
+            config["support_y"] = press_y;
+            config["support_z"] = config["press_z"].asInt() - 3;
+            config["support_ori"] = 1;
+        }
+        else if (skill_type == Skill::Type::PickHandoverAndPlace) {
+            config["press_side"] = 1;
+            config["press_offset"] = 0;
+            config["manip_type"] = 1;
+            int press_x, press_y, press_ori;
+            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+            config["press_x"] = press_x;
+            config["press_y"] = press_y;
+            config["press_z"] = config["z"].asInt() + 1;
+            config["support_x"] = press_x;
+            config["support_y"] = press_y;
+            config["support_z"] = config["press_z"].asInt() + 3;
+            config["support_ori"] = 1;
+        }
+        meta_executor->set_post_condition(post_condition);
+
+        // call grasp pose generator
+        auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robot, obj);
+
+        State end_state_i = state;
+        skill_feasible = true;
+        for (int i = 0; i < gs->atomic_skills.size(); i++) {
+            // create atomic skill executor
+            auto atomic_skill = gs->atomic_skills[i];
+            auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
+            atomic_skill->executor = atomic_executor;
+            atomic_executor->set_post_condition(post_condition);
+            meta_executor->add_atomic_executor(atomic_executor);
+
+            // generate the grasp pose
+            TaskParamPtr task_param = atomic_executor->post_condition;
+            task_param->target_state = end_state_i;
+            if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
+                log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
+                skill_feasible = false;
+                continue;
+            }
+            end_state_i = task_param->target_state;
+        }
+    }
+
+    return skill_feasible;
+}
+
+
 }
