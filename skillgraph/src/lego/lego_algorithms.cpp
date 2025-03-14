@@ -216,7 +216,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                 if (obj->name == brick_name) {
                     obj->parent_link = robot_->end_effector_link;
                     obj->state = Object::State::Attached;
-                    
+                    std::dynamic_pointer_cast<LegoBrick>(obj)->in_storage = false;
                     break;
                 }
             }
@@ -245,6 +245,13 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                     obj->x = brick_pose_mtx(0, 3);
                     obj->y = brick_pose_mtx(1, 3);
                     obj->z = brick_pose_mtx(2, 3) - obj->height/2;
+                    // update orientation
+                    Eigen::Quaterniond quat(brick_pose_mtx.block<3, 3>(0, 0));
+                    obj->qx = quat.x();
+                    obj->qy = quat.y();
+                    obj->qz = quat.z();
+                    obj->qw = quat.w();
+                    break;
                     break;
                 }
             }
@@ -282,6 +289,14 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             if (!reachable) {
                 return false;
             }
+            // find the env state objects with the same name as current object
+            for (auto &obj : env_state.objects) {
+                // update the state of the object
+                if (obj->name == brick_name) {
+                    obj->parent_link = robot_->end_effector_link;
+                    break;
+                }
+            }
         }
         if (meta_skill_type == "pickhandoverplace" && skill_seq == 8) {
             // go to support_top_pre pose
@@ -317,6 +332,26 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             calculateIKforLego(press_up_T, home_q, robot_->robot_id, 0, true, goal_q, robot_goal_state, reachable);
             if (!reachable) {
                 return false;
+            }
+
+            for (auto &obj : env_state.objects) {
+                // update the state of the object
+                if (obj->name == brick_name) {
+                    obj->state = Object::State::Static;
+                    obj->parent_link = "world";
+                    Eigen::Matrix4d brick_pose_mtx;
+                    lego_ptr_->calc_bric_asssemble_pose(brick_name, brick_x, brick_y, brick_z, ori, brick_pose_mtx);
+                    obj->x = brick_pose_mtx(0, 3);
+                    obj->y = brick_pose_mtx(1, 3);
+                    obj->z = brick_pose_mtx(2, 3) - obj->height/2;
+                    // update orientation
+                    Eigen::Quaterniond quat(brick_pose_mtx.block<3, 3>(0, 0));
+                    obj->qx = quat.x();
+                    obj->qy = quat.y();
+                    obj->qz = quat.z();
+                    obj->qw = quat.w();
+                    break;
+                }
             }
         }
 

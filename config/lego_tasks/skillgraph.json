@@ -47,7 +47,7 @@
             }
         },
         "lego_library": "config/lego_tasks/lego_library.json",
-        "object_library": "config/lego_tasks/env_setup/env_setup_test.json"
+        "object_library": "config/lego_tasks/env_setup/env_setup_tower.json"
     },
     "skills": {
         "gp4": {
@@ -118,8 +118,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "test",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/test.json",
+        "name": "tower",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/tower.json",
         "assemble": "true"
     }
 }

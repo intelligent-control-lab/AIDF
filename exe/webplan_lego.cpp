@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <functional>
 
+using namespace skillgraph;
+
 // Use an atomic flag to ensure signal handler and main thread don't race.
 std::atomic<bool> program_running(true);
 std::atomic<bool> segfault_occurred(false); // New flag for segfault
@@ -119,9 +121,11 @@ int main() {
         log("Lego Skill Graph Initialized", LogLevel::INFO);
         sg->print_skillgraph();
 
+        State state = sg->get_initial_state();
+
         // Define a callback function to process the file when it changes
         std::string web_msg_json_path = "/home/philip/catkin_ws/src/AIDF/config/web_message.json";
-        auto processJsonFile = [&sg, web_msg_json_path]() {
+        auto processJsonFile = [&sg, &state, web_msg_json_path]() {
             std::ifstream file(web_msg_json_path);
             if (!file.is_open()) {
                 std::cerr << "Failed to open data.json" << std::endl;
@@ -134,7 +138,32 @@ int main() {
             // Process the JSON data and use it with your skill graph
             // You might need a JSON library like nlohmann/json
             std::cout << "Processing new data from " << web_msg_json_path << std::endl;
-             
+            // web_json is something like 
+            // {
+            //     "skill": "PickAndPlace",
+            //     "object": "b2_1",
+            //     "robot": "1",
+            //     "target_location": {
+            //         "x": "1",
+            //         "y": "2",
+            //         "z": "3",
+            //         "ori": ""
+            //     },
+            //     "command_id": 1741971091512
+            // }
+            
+            skillgraph::SkillPtr skill;
+            bool success = sg->is_feasible(state, web_json, skill);
+            if (success) {
+                std::cout << "Skill is feasible: " << skill->to_string() << std::endl;
+                // Execute the skill
+                success = skill->executor->execute(state);
+                if (!success) {
+                    std::cerr << "error: execute skill failled, id: " << web_json["command_id"].asUInt64() << std::endl;
+                }
+            } else {
+                std::cerr << "error: not feasible, id: " << web_json["command_id"].asUInt64() << std::endl;
+            }
 
         };
 

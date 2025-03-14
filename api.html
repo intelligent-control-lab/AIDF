@@ -90,8 +90,8 @@
 
             <label for="skill">Choose Skill:</label>
             <select id="skill">
-                <option value="pick">Pick</option>
-                <option value="placeTop">PlaceTop</option>
+                <option value="Pick">Pick</option>
+                <option value="PlaceTop">PlaceTop</option>
                 <option value="PlaceBottom">PlaceBottom</option>
                 <option value="SupportBottom">SupportBottom</option>
                 <option value="SupportTop">SupportTop</option>
@@ -111,8 +111,8 @@
 
             <label for="robot-id">Robot ID:</label>
             <select id="robot-id">
-                <option value="1">Robot 1</option>
-                <option value="2">Robot 2</option>
+                <option value="0">Robot 1</option>
+                <option value="1">Robot 2</option>
             </select>
 
             <label for="target">Target Location:</label>
@@ -220,23 +220,27 @@
         // if (!currentPid) {
         //     alert('Please start the simulator first.');
         //     return;
-        // }
-        x = document.getElementById('target-x').value;
-        y = document.getElementById('target-y').value;
-        z = document.getElementById('target-z').value;
-        ori = document.getElementById('target-ori').value;
-        target = {
+        // }        
+        // Parse values as integers using parseInt() or Number()
+        const x = document.getElementById('target-x').value ? parseInt(document.getElementById('target-x').value, 10) : 0;
+        const y = document.getElementById('target-y').value ? parseInt(document.getElementById('target-y').value, 10) : 0;
+        const z = document.getElementById('target-z').value ? parseInt(document.getElementById('target-z').value, 10) : 0;
+        const ori = document.getElementById('target-ori').value ? parseInt(document.getElementById('target-ori').value, 10) : 0;
+        const robot_id = parseInt(document.getElementById('robot-id').value, 10);
+        
+        const target = {
             "x": x,
             "y": y,
             "z": z,
             "ori": ori
-        }
+        };
+        
         const command = {
             command_id: Date.now(),
             skill: document.getElementById('skill').value,
             object: document.getElementById('object').value,
-            robot_id: document.getElementById('robot-id').value,
-            target: target,
+            robot_id: robot_id, // Now this will be a number, not a string
+            target: target, // Using target_location instead of target to match your JSON example
             pid: currentPid
         };
         

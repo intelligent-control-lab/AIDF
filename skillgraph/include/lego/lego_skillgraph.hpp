@@ -38,6 +38,7 @@ namespace skillgraph {
             virtual bool at_target(const State& state) override;
             virtual std::vector<SkillPtr> feasible_u(const skillgraph::State &state) override;
             virtual bool get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) override;
+            virtual bool is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs) override;
 
     };
 }

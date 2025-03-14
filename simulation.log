@@ -1,12 +1,12 @@
 Parsing Skills
 Parsing Robots
 Parsing Environment
-... logging to /home/philip/.ros/log/93134b84-004c-11f0-8da1-91cac88881d3/roslaunch-thinkpad-p-680784.log
+... logging to /home/philip/.ros/log/0e396da8-010a-11f0-8da1-91cac88881d3/roslaunch-thinkpad-p-1022296.log
 Checking log directory for disk usage. This may take a while.
 Press Ctrl-C to interrupt
 Done checking log file disk usage. Usage is <1GB.
 ]2;/home/philip/catkin_ws/src/moveit_configs/dual_gp4_moveit_config/launch/demo.launch
-[1mstarted roslaunch server http://thinkpad-p:42539/[0m
+[1mstarted roslaunch server http://thinkpad-p:33951/[0m
 
 SUMMARY
 ========
@@ -289,70 +289,70 @@ NODES
     joint_state_publisher (joint_state_publisher/joint_state_publisher)
     move_group (moveit_ros_move_group/move_group)
     robot_state_publisher (robot_state_publisher/robot_state_publisher)
-    rviz_thinkpad_p_680784_4821499937292926934 (rviz/rviz)
-[33m[ WARN] [1741898934.265813861]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
-[0m[ INFO] [1741898934.192381785]: Loading robot model 'dual_gp4'...[0m
-[0m[ INFO] [1741898934.193159527]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
-[0m[ INFO] [1741898934.330885384]: Publishing maintained planning scene on 'monitored_planning_scene'[0m
-[0m[ INFO] [1741898934.333176303]: Listening to 'joint_states' for joint states[0m
-[0m[ INFO] [1741898934.336947508]: Listening to '/attached_collision_object' for attached collision objects[0m
-[0m[ INFO] [1741898934.336994054]: Starting planning scene monitor[0m
-[0m[ INFO] [1741898934.338524099]: Listening to '/planning_scene'[0m
-[0m[ INFO] [1741898934.338578070]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.[0m
-[0m[ INFO] [1741898934.340423564]: Listening to '/collision_object'[0m
-[0m[ INFO] [1741898934.342137978]: Listening to '/planning_scene_world' for planning scene world geometry[0m
-[0m[ INFO] [1741898934.352452298]: Loading planning pipeline 'chomp'[0m
-[0m[ INFO] [1741898934.390304542]: Using planning interface 'CHOMP'[0m
-[0m[ INFO] [1741898934.392584507]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
-[0m[ INFO] [1741898934.392839964]: Param 'start_state_max_bounds_error' was set to 0.1[0m
-[0m[ INFO] [1741898934.393059163]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
-[0m[ INFO] [1741898934.393327273]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
-[0m[ INFO] [1741898934.393699027]: Param 'jiggle_fraction' was set to 0.05[0m
-[0m[ INFO] [1741898934.394007162]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
-[0m[ INFO] [1741898934.394053900]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
-[0m[ INFO] [1741898934.394080619]: Using planning request adapter 'Add Time Parameterization'[0m
-[0m[ INFO] [1741898934.394089205]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
-[0m[ INFO] [1741898934.394111207]: Using planning request adapter 'Fix Workspace Bounds'[0m
-[0m[ INFO] [1741898934.394120885]: Using planning request adapter 'Fix Start State Bounds'[0m
-[0m[ INFO] [1741898934.394124712]: Using planning request adapter 'Fix Start State In Collision'[0m
-[0m[ INFO] [1741898934.394145270]: Using planning request adapter 'Fix Start State Path Constraints'[0m
-[0m[ INFO] [1741898934.394946826]: Loading planning pipeline 'ompl'[0m
-[0m[ INFO] [1741898934.443239379]: Using planning interface 'OMPL'[0m
-[0m[ INFO] [1741898934.444350172]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
-[0m[ INFO] [1741898934.444664989]: Param 'start_state_max_bounds_error' was set to 0.1[0m
-[0m[ INFO] [1741898934.444916539]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
-[0m[ INFO] [1741898934.445166165]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
-[0m[ INFO] [1741898934.445425008]: Param 'jiggle_fraction' was set to 0.05[0m
-[0m[ INFO] [1741898934.445665968]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
-[0m[ INFO] [1741898934.445702436]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
-[0m[ INFO] [1741898934.445709198]: Using planning request adapter 'Add Time Parameterization'[0m
-[0m[ INFO] [1741898934.445713466]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
-[0m[ INFO] [1741898934.445717093]: Using planning request adapter 'Fix Workspace Bounds'[0m
-[0m[ INFO] [1741898934.445720800]: Using planning request adapter 'Fix Start State Bounds'[0m
-[0m[ INFO] [1741898934.445724056]: Using planning request adapter 'Fix Start State In Collision'[0m
-[0m[ INFO] [1741898934.445729697]: Using planning request adapter 'Fix Start State Path Constraints'[0m
-[0m[ INFO] [1741898934.445791131]: Loading planning pipeline 'pilz_industrial_motion_planner'[0m
-[0m[ INFO] [1741898934.447649560]: Reading limits from namespace /robot_description_planning[0m
-[0m[ INFO] [1741898934.477159734]: [33m[ WARN] [1741898934.534902368]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
+    rviz_thinkpad_p_1022296_5291279215586295834 (rviz/rviz)
+[33m[ WARN] [1741980315.736874766]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
+[0m[ INFO] [1741980315.605158416]: Loading robot model 'dual_gp4'...[0m
+[0m[ INFO] [1741980315.605648530]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[0m[ INFO] [1741980315.961246655]: Publishing maintained planning scene on 'monitored_planning_scene'[0m
+[0m[ INFO] [1741980315.963787737]: Listening to 'joint_states' for joint states[0m
+[0m[ INFO] [1741980315.967128645]: Listening to '/attached_collision_object' for attached collision objects[0m
+[0m[ INFO] [1741980315.967165944]: Starting planning scene monitor[0m
+[0m[ INFO] [1741980315.968408202]: Listening to '/planning_scene'[0m
+[0m[ INFO] [1741980315.968448257]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.[0m
+[0m[ INFO] [1741980315.969542879]: Listening to '/collision_object'[0m
+[0m[ INFO] [1741980315.970878186]: Listening to '/planning_scene_world' for planning scene world geometry[0m
+[0m[ INFO] [1741980316.223461997]: Loading planning pipeline 'chomp'[0m
+[0m[ INFO] [1741980316.253167596]: Using planning interface 'CHOMP'[0m
+[0m[ INFO] [1741980316.256279042]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
+[0m[ INFO] [1741980316.256603431]: Param 'start_state_max_bounds_error' was set to 0.1[0m
+[0m[ INFO] [1741980316.256894044]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1741980316.257190217]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1741980316.257470106]: Param 'jiggle_fraction' was set to 0.05[0m
+[0m[ INFO] [1741980316.257786209]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
+[0m[ INFO] [1741980316.257851531]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
+[0m[ INFO] [1741980316.257892607]: Using planning request adapter 'Add Time Parameterization'[0m
+[0m[ INFO] [1741980316.257917394]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
+[0m[ INFO] [1741980316.257924818]: Using planning request adapter 'Fix Workspace Bounds'[0m
+[0m[ INFO] [1741980316.257929086]: Using planning request adapter 'Fix Start State Bounds'[0m
+[0m[ INFO] [1741980316.257932863]: Using planning request adapter 'Fix Start State In Collision'[0m
+[0m[ INFO] [1741980316.257936379]: Using planning request adapter 'Fix Start State Path Constraints'[0m
+[0m[ INFO] [1741980316.258861522]: Loading planning pipeline 'ompl'[0m
+[0m[ INFO] [1741980316.308207471]: Using planning interface 'OMPL'[0m
+[0m[ INFO] [1741980316.309771490]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
+[0m[ INFO] [1741980316.310084735]: Param 'start_state_max_bounds_error' was set to 0.1[0m
+[0m[ INFO] [1741980316.310352434]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1741980316.310653546]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1741980316.310936004]: Param 'jiggle_fraction' was set to 0.05[0m
+[0m[ INFO] [1741980316.311177184]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
+[0m[ INFO] [1741980316.311227518]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
+[0m[ INFO] [1741980316.311261521]: Using planning request adapter 'Add Time Parameterization'[0m
+[0m[ INFO] [1741980316.311273333]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
+[0m[ INFO] [1741980316.311279274]: Using planning request adapter 'Fix Workspace Bounds'[0m
+[0m[ INFO] [1741980316.311308799]: Using planning request adapter 'Fix Start State Bounds'[0m
+[0m[ INFO] [1741980316.311317876]: Using planning request adapter 'Fix Start State In Collision'[0m
+[0m[ INFO] [1741980316.311323116]: Using planning request adapter 'Fix Start State Path Constraints'[0m
+[0m[ INFO] [1741980316.311388608]: Loading planning pipeline 'pilz_industrial_motion_planner'[0m
+[0m[ INFO] [1741980316.313922606]: Reading limits from namespace /robot_description_planning[0m
+[0m[ INFO] [1741980316.338504885]: [33m[ WARN] [1741980316.466048392]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
 Available plugins: pilz_industrial_motion_planner::PlanningContextLoaderCIRC pilz_industrial_motion_planner::PlanningContextLoaderLIN pilz_industrial_motion_planner::PlanningContextLoaderPTP [0m
-[0m[ INFO] [1741898934.477351411]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderCIRC[0m
-[0m[ INFO] [1741898934.478967437]: Registered Algorithm [CIRC][0m
-[0m[ INFO] [1741898934.478998024]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderLIN[0m
-[0m[ INFO] [1741898934.479912090]: Registered Algorithm [LIN][0m
-[0m[ INFO] [1741898934.479939501]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderPTP[0m
-[0m[ INFO] [1741898934.480812932]: Registered Algorithm [PTP][0m
-[0m[ INFO] [1741898934.480845973]: Using planning interface 'Pilz Industrial Motion Planner'[0m
-[0m[ INFO] [1741898934.487847060]: Loading robot model 'dual_gp4'...[0m
-[0m[ INFO] [1741898934.487890801]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
-[0m[ INFO] [1741898934.535119383]: Set joints of group 'left_arm' to pose 'ready_pose'.[0m
-[0m[ INFO] [1741898934.535166591]: Set joints of group 'right_arm' to pose 'ready_pose'.[0m
-[0m[ INFO] [1741898934.535198140]: Set joints of group 'dual_arms' to pose 'ready_pose'.[0m
-[0m[ INFO] [1741898934.535533135]: Fake controller 'fake_left_arm_controller' with joints [ left_arm_joint_1 left_arm_joint_2 left_arm_joint_3 left_arm_joint_4 left_arm_joint_5 left_arm_joint_6 left_arm_fts_tool ][0m
-[0m[ INFO] [1741898934.535969455]: Fake controller 'fake_right_arm_controller' with joints [ right_arm_joint_1 right_arm_joint_2 right_arm_joint_3 right_arm_joint_4 right_arm_joint_5 right_arm_joint_6 right_arm_fts_tool ][0m
-[0m[ INFO] [1741898934.536241102]: Fake controller 'fake_dual_arms_controller' with joints [ left_arm_joint_1 left_arm_joint_2 left_arm_joint_3 left_arm_joint_4 left_arm_joint_5 left_arm_joint_6 left_arm_fts_tool right_arm_joint_1 right_arm_joint_2 right_arm_joint_3 right_arm_joint_4 right_arm_joint_5 right_arm_joint_6 right_arm_fts_tool ][0m
-[0m[ INFO] [1741898934.536504497]: Returned 3 controllers in list[0m
-[0m[ INFO] [1741898934.543354382]: Trajectory execution is managing controllers[0m
-[0m[ INFO] [1741898934.543399907]: MoveGroup debug mode is ON[0m
+[0m[ INFO] [1741980316.338653191]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderCIRC[0m
+[0m[ INFO] [1741980316.340518873]: Registered Algorithm [CIRC][0m
+[0m[ INFO] [1741980316.340552506]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderLIN[0m
+[0m[ INFO] [1741980316.341889411]: Registered Algorithm [LIN][0m
+[0m[ INFO] [1741980316.341925498]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderPTP[0m
+[0m[ INFO] [1741980316.343119527]: Registered Algorithm [PTP][0m
+[0m[ INFO] [1741980316.343160143]: Using planning interface 'Pilz Industrial Motion Planner'[0m
+[0m[ INFO] [1741980316.351208509]: Loading robot model 'dual_gp4'...[0m
+[0m[ INFO] [1741980316.351250026]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[0m[ INFO] [1741980316.466319618]: Set joints of group 'left_arm' to pose 'ready_pose'.[0m
+[0m[ INFO] [1741980316.466373839]: Set joints of group 'right_arm' to pose 'ready_pose'.[0m
+[0m[ INFO] [1741980316.466388657]: Set joints of group 'dual_arms' to pose 'ready_pose'.[0m
+[0m[ INFO] [1741980316.467030013]: Fake controller 'fake_left_arm_controller' with joints [ left_arm_joint_1 left_arm_joint_2 left_arm_joint_3 left_arm_joint_4 left_arm_joint_5 left_arm_joint_6 left_arm_fts_tool ][0m
+[0m[ INFO] [1741980316.467516616]: Fake controller 'fake_right_arm_controller' with joints [ right_arm_joint_1 right_arm_joint_2 right_arm_joint_3 right_arm_joint_4 right_arm_joint_5 right_arm_joint_6 right_arm_fts_tool ][0m
+[0m[ INFO] [1741980316.467817307]: Fake controller 'fake_dual_arms_controller' with joints [ left_arm_joint_1 left_arm_joint_2 left_arm_joint_3 left_arm_joint_4 left_arm_joint_5 left_arm_joint_6 left_arm_fts_tool right_arm_joint_1 right_arm_joint_2 right_arm_joint_3 right_arm_joint_4 right_arm_joint_5 right_arm_joint_6 right_arm_fts_tool ][0m
+[0m[ INFO] [1741980316.468160086]: Returned 3 controllers in list[0m
+[0m[ INFO] [1741980316.475007670]: Trajectory execution is managing controllers[0m
+[0m[ INFO] [1741980316.475058084]: MoveGroup debug mode is ON[0m
 [96mLoading 'move_group/ApplyPlanningSceneService'...
 [0m[96mLoading 'move_group/ClearOctomapService'...
 [0m[96mLoading 'move_group/MoveGroupCartesianPathService'...
@@ -365,11 +365,11 @@ Available plugins: pilz_industrial_motion_planner::PlanningContextLoaderCIRC pil
 [0m[96mLoading 'move_group/MoveGroupQueryPlannersService'...
 [0m[96mLoading 'move_group/MoveGroupStateValidationService'...
 [0m[96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceAction'...
-[0m[0m[ INFO] [1741898934.591658747]: initialize move group sequence action[0m
-[0m[ INFO] [1741898934.596343975]: Reading limits from namespace /robot_description_planning[0m
+[0m[0m[ INFO] [1741980316.519397040]: initialize move group sequence action[0m
+[0m[ INFO] [1741980316.524549574]: Reading limits from namespace /robot_description_planning[0m
 [96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceService'...
-[0m[0m[ INFO] [1741898934.621183849]: Reading limits from namespace /robot_description_planning[0m
-[0m[ INFO] [1741898934.646922174]: 
+[0m[0m[ INFO] [1741980316.549327291]: Reading limits from namespace /robot_description_planning[0m
+[0m[ INFO] [1741980316.575568876]: 
 
 ********************************************************
 * MoveGroup using: 
@@ -388,63 +388,63 @@ Available plugins: pilz_industrial_motion_planner::PlanningContextLoaderCIRC pil
 *     - SequenceService
 ********************************************************
 [0m
-[0m[ INFO] [1741898934.647549505]: MoveGroup context using planning plugin ompl_interface/OMPLPlanner[0m
-[0m[ INFO] [1741898934.647598296]: MoveGroup context initialization complete[0m
+[0m[ INFO] [1741980316.576103819]: MoveGroup context using planning plugin ompl_interface/OMPLPlanner[0m
+[0m[ INFO] [1741980316.576141970]: MoveGroup context initialization complete[0m
 [92m
 You can start planning now!
 
-[0m[33m[ WARN] [1741898937.610756969]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
-[33m[ WARN] [1741898943.237439797]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
-[33m[ WARN] [1741898943.293738363]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
-[0m[ INFO] [1741898943.165027331]: Loading robot model 'dual_gp4'...[0m
-[0m[ INFO] [1741898943.165736835]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
-[0m[ INFO] [1741898943.245513893]: Loading robot model 'dual_gp4'...[0m
-[0m[ INFO] [1741898943.245569797]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
-[0m[ INFO] [1741898944.360435668]: Ready to take commands for planning group dual_arms.[0m
+[0m[33m[ WARN] [1741980319.125884281]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
+[33m[ WARN] [1741980324.829691160]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
+[33m[ WARN] [1741980324.958011659]: No kinematics plugins defined. Fill and load kinematics.yaml![0m
+[0m[ INFO] [1741980324.688172525]: Loading robot model 'dual_gp4'...[0m
+[0m[ INFO] [1741980324.689858882]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[0m[ INFO] [1741980324.840705646]: Loading robot model 'dual_gp4'...[0m
+[0m[ INFO] [1741980324.840750249]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[0m[ INFO] [1741980326.031471006]: Ready to take commands for planning group dual_arms.[0m
 Parsing Tasks
 Parsing Lego Task
 Parsing Lego Task
-[0m[ INFO] [1741898944.716883063]: Load World Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/world_base.txt[0m
+[0m[ INFO] [1741980326.559525955]: Load World Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/world_base.txt[0m
 Loaded mat of shape [4, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/world_base.txt]
-[0m[ INFO] [1741898944.718018823]: Load Robot 1 Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r1_base.txt[0m
+[0m[ INFO] [1741980326.561375617]: Load Robot 1 Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r1_base.txt[0m
 Loaded mat of shape [4, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r1_base.txt]
-[0m[ INFO] [1741898944.718279870]: Load Robot 2 Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r2_base.txt[0m
+[0m[ INFO] [1741980326.561748002]: Load Robot 2 Base from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r2_base.txt[0m
 Loaded mat of shape [4, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/r2_base.txt]
-[0m[ INFO] [1741898944.718418960]: Load Robot 1 DH from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt[0m
+[0m[ INFO] [1741980326.561954537]: Load Robot 1 DH from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt]
-[0m[ INFO] [1741898944.718634983]: Load Robot 2 DH from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt[0m
+[0m[ INFO] [1741980326.562245741]: Load Robot 2 DH from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_DH.txt]
-[0m[ INFO] [1741898944.718780174]: Load r1 DH tool from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt[0m
+[0m[ INFO] [1741980326.562428331]: Load r1 DH tool from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt]
-[0m[ INFO] [1741898944.718994604]: Load r2 DH tool from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt[0m
+[0m[ INFO] [1741980326.562580195]: Load r2 DH tool from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_DH.txt]
-[0m[ INFO] [1741898944.719158771]: Load r1 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.562755171]: Load r1 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt]
-[0m[ INFO] [1741898944.719304573]: Load r2 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.563057155]: Load r2 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt]
-[0m[ INFO] [1741898944.719449453]: Load r1 DH tool for disassemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt[0m
+[0m[ INFO] [1741980326.563252309]: Load r1 DH tool for disassemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt]
-[0m[ INFO] [1741898944.719601086]: Load r2 DH tool for disassemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt[0m
+[0m[ INFO] [1741980326.563397119]: Load r2 DH tool for disassemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt]
-[0m[ INFO] [1741898944.719750795]: Load r1 DH tool alt from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt[0m
+[0m[ INFO] [1741980326.563532482]: Load r1 DH tool alt from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt]
-[0m[ INFO] [1741898944.719894694]: Load r2 DH tool alt from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt[0m
+[0m[ INFO] [1741980326.563802035]: Load r2 DH tool alt from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt]
-[0m[ INFO] [1741898944.720039043]: Load r1 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.563950733]: Load r1 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt]
-[0m[ INFO] [1741898944.720194033]: Load r2 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.564054516]: Load r2 DH tool for assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt]
-[0m[ INFO] [1741898944.720451583]: Load r1 DH tool for handover assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.564336743]: Load r1 DH tool for handover assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt]
-[0m[ INFO] [1741898944.720636178]: Load r2 DH tool for handover assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt[0m
+[0m[ INFO] [1741980326.564547827]: Load r2 DH tool for handover assemble from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt[0m
 Loaded mat of shape [6, 4] from [/home/philip/catkin_ws/src/AIDF/config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt]
-[0m[ INFO] [1741898944.720858503]: 
+[0m[ INFO] [1741980326.564782615]: 
 Robot 1 Base: 
      1      0      0      0
      0      1      0      0
      0      0      1 1.2546
      0      0      0      1[0m
-[0m[ INFO] [1741898944.720919466]: 
+[0m[ INFO] [1741980326.564873284]: 
 Robot 1 DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -452,7 +452,7 @@ Robot 1 DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0  -0.072       0 3.14159[0m
-[0m[ INFO] [1741898944.720975691]: 
+[0m[ INFO] [1741980326.564959696]: 
 Robot 1 Tool DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -460,7 +460,7 @@ Robot 1 Tool DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0 -0.2124   0.005 3.14159[0m
-[0m[ INFO] [1741898944.721032137]: 
+[0m[ INFO] [1741980326.565043843]: 
 Robot 1 Tool Disassemble DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -468,7 +468,7 @@ Robot 1 Tool Disassemble DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0 -0.2205   0.005 3.14159[0m
-[0m[ INFO] [1741898944.721104101]: 
+[0m[ INFO] [1741980326.565119003]: 
 Robot 1 Tool Assemble DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -476,13 +476,13 @@ Robot 1 Tool Assemble DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0 -0.2124  0.0128 3.14159[0m
-[0m[ INFO] [1741898944.721157641]: 
+[0m[ INFO] [1741980326.565190146]: 
 Robot 2 Base: 
   -0.999988 -0.00497638           0    0.880729
  0.00497638   -0.999988           0  -0.0129606
           0           0           1      1.2546
           0           0           0           1[0m
-[0m[ INFO] [1741898944.721212604]: 
+[0m[ INFO] [1741980326.565262891]: 
 Robot 2 DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -490,7 +490,7 @@ Robot 2 DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0  -0.072       0 3.14159[0m
-[0m[ INFO] [1741898944.721267837]: 
+[0m[ INFO] [1741980326.565333403]: 
 Robot 2 Tool DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -498,7 +498,7 @@ Robot 2 Tool DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0 -0.2124   0.005 3.14159[0m
-[0m[ INFO] [1741898944.721302111]: 
+[0m[ INFO] [1741980326.565393495]: 
 Robot 2 Tool Disassemble DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -506,7 +506,7 @@ Robot 2 Tool Disassemble DH:
       0   -0.29       0  1.5708
       0       0       0 -1.5708
       0 -0.2205   0.005 3.14159[0m
-[0m[ INFO] [1741898944.721372262]: 
+[0m[ INFO] [1741980326.565450612]: 
 Robot 2 Tool Assemble DH: 
       0       0       0 -1.5708
 -1.5708       0    0.26 3.14159
@@ -516,13 +516,21 @@ Robot 2 Tool Assemble DH:
       0 -0.2124  0.0128 3.14159[0m
 
 
-loading env setup from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/env_setup/env_setup_test.json
+loading env setup from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/env_setup/env_setup_tower.json
 loading lego library from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/lego_library.json
 loading plate calibration from: /home/philip/catkin_ws/src/AIDF/config/lego_tasks/plate_calibration.json
-[0m[ INFO] [1741898944.724924280]: 
-Update brick connection time: 4.2e-05 s[0m
-b9_1 9
-b9_2 9
+[0m[ INFO] [1741980326.570882519]: 
+Update brick connection time: 0.000156 s[0m
+b2_1 2 2
+b2_10 2 2
+b2_2 2 2
+b2_3 2 2
+b2_4 2 2
+b2_5 2 2
+b2_6 2 2
+b2_7 2 2
+b2_8 2 2
+b2_9 2 2
 Lego Skill Graph Initialized
 
 === Skill Graph Information ===
@@ -610,60 +618,94 @@ Meta Skills:
 Environment:
   Name: mfi_testbed
   Type: 1
-  Objects: EnvState: LegoBrick: Brick ID: 9 In Storage: 1 Object: Name: b9_1 Type: -1063498890 State: 0 Parent Link: world 
-Position: 0.595265 0.049876 1.116750 
-Orientation: 0.000000 0.000000 0.008516 0.999964 
+  Objects: EnvState: 
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_1 State: 0 Parent Link: world 
+Position: 0.226995 -0.133460 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
 
-LegoBrick: Brick ID: 9 In Storage: 1 Object: Name: b9_2 Type: -1063498890 State: 0 Parent Link: world 
-Position: 0.219320 0.043472 1.116750 
-Orientation: 0.000000 0.000000 0.008516 0.999964 
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_10 State: 0 Parent Link: world 
+Position: 0.592169 0.063862 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
 
-Object: Name: table Type: 0 State: 0 Parent Link: world 
-Position: 0.440364 0.000000 1.101950 
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_2 State: 0 Parent Link: world 
+Position: 0.226298 -0.085465 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_3 State: 0 Parent Link: world 
+Position: 0.225601 -0.037470 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_4 State: 0 Parent Link: world 
+Position: 0.224904 0.010525 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_5 State: 0 Parent Link: world 
+Position: 0.224208 0.058520 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_6 State: 0 Parent Link: world 
+Position: 0.594956 -0.128118 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_7 State: 0 Parent Link: world 
+Position: 0.594259 -0.080123 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_8 State: 0 Parent Link: world 
+Position: 0.593563 -0.032128 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+LegoBrick: Brick ID: 2 In Storage: 1 Object: Name: b2_9 State: 0 Parent Link: world 
+Position: 0.592866 0.015867 1.119300 
+Orientation: 0.000000 0.000000 0.007259 0.999974 
+
+Object: Name: table State: 0 Parent Link: world 
+Position: 0.440364 0.000000 1.104500 
 Orientation: 0.000000 0.000000 0.000000 1.000000 
 
 
 
 Tasks:
 Assembly Sequence: 
-t1 Pick and place brick 9 to 24 23 0
-t2 Pick and place brick 9 to 24 23 1
+t1 Pick and place brick 2 to 24 24 0
+t2 Pick and place brick 2 to 24 24 1
+t3 Pick and place brick 2 to 24 24 2
+t4 Pick and place brick 2 to 24 24 3
+t5 Pick and place brick 2 to 24 24 4
 
 
 === End of Skill Graph ===
 Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
-[0m[ INFO] [1741898934.193271421]: rviz version 1.14.25[0m
-[0m[ INFO] [1741898934.193314170]: compiled against Qt version 5.12.8[0m
-[0m[ INFO] [1741898934.193320021]: compiled against OGRE version 1.9.0 (Ghadamon)[0m
-[0m[ INFO] [1741898934.206729648]: Forcing OpenGl version 0.[0m
-[0m[ INFO] [1741898934.349810749]: Stereo is NOT SUPPORTED[0m
-[0m[ INFO] [1741898934.349899034]: OpenGL device: llvmpipe (LLVM 12.0.0, 256 bits)[0m
-[0m[ INFO] [1741898934.349935362]: OpenGl version: 3.1 (GLSL 1.4).[0m
-[0m[ INFO] [1741898937.558295678]: Loading robot model 'dual_gp4'...[0m
-[0m[ INFO] [1741898937.558350340]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
-[0m[ INFO] [1741898937.682205698]: Starting planning scene monitor[0m
-[0m[ INFO] [1741898937.683844973]: Listening to '/move_group/monitored_planning_scene'[0m
-[0m[ INFO] [1741898937.720558835]: No active joints or end effectors found for group 'dual_arms'. Make sure that kinematics.yaml is loaded in this node's namespace.[0m
-[0m[ INFO] [1741898937.724805876]: Constructing new MoveGroup connection for group 'dual_arms' in namespace ''[0m
-[0m[ INFO] [1741898938.747064203]: Ready to take commands for planning group dual_arms.[0m
-
-auto-starting new master
-[1mprocess[master]: started with pid [680831][0m
-[1mROS_MASTER_URI=http://localhost:11311[0m
-]2;/home/philip/catkin_ws/src/moveit_configs/dual_gp4_moveit_config/launch/demo.launch http://localhost:11311
-[1msetting /run_id to 93134b84-004c-11f0-8da1-91cac88881d3[0m
-[1mprocess[rosout-1]: started with pid [680864][0m
-started core service [/rosout]
-[1mprocess[joint_state_publisher-2]: started with pid [680871][0m
-[1mprocess[robot_state_publisher-3]: started with pid [680872][0m
-[1mprocess[move_group-4]: started with pid [680873][0m
-[1mprocess[rviz_thinkpad_p_680784_4821499937292926934-5]: started with pid [680874][0m
-[rviz_thinkpad_p_680784_4821499937292926934-5] killing on exit
-[robot_state_publisher-3] killing on exit
-[joint_state_publisher-2] killing on exit
-[move_group-4] killing on exit
-[rosout-1] killing on exit
-[master] killing on exit
-shutting down processing monitor...
-... shutting down processing monitor complete
-[1mdone[0m
+Skill is feasible: Meta Skill: PickAndPlace robot: left_arm object: b2_1
+Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+Skill is feasible: Meta Skill: PickAndPlace robot: left_arm object: b2_1
+Skill is feasible: Meta Skill: PickAndPlace robot: left_arm object: b2_1
+[33mFailed to update the planning scene[0m
+[33mFailed to update the planning scene[0m
+[33mFailed to update the planning scene[0m
+[33mFailed to update the planning scene[0m
+[33m[33mFailed to update the planning scene[0mFailed to update the planning scene
+[0m
+[33m[33mFailed to update the planning scene[0mFailed to update the planning scene
+[0m
+[33m[33mFailed to update the planning scene[0m
+Failed to update the planning scene[0m
+Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+error: not feasible, id: 1741980349612
+Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+IK failed! No valid candidate.
+Skill is not feasible.
+Skill is not feasible.
