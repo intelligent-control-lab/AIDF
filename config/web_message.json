@@ -1,11 +1,12 @@
 {
     "skill": "pick",
-    "object": "b2_1",
+    "object": "b9_1",
     "robot": "1",
     "target_location": {
         "x": "1",
         "y": "2",
         "z": "3",
-        "ori": ""
-    }
+        "ori": "1"
+    },
+    "command_id": 1741917417295
 }
