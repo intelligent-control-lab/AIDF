@@ -188,7 +188,7 @@ LegoBrick LegoSkillGraph::getLegoStart(const std::string &brick_name) {
 
 LegoBrick LegoSkillGraph::getLegoTarget(int task_idx) {
     auto cur_graph_node =  task_json_[std::to_string(task_idx)];
-    std::string brick_name = lego_ptr_->get_brick_name_by_id(cur_graph_node["brick_id"].asInt(), cur_graph_node["brick_seq"].asString());
+    std::string brick_name = lego_ptr_->get_brick_name_by_id(cur_graph_node["brick_id"].asInt(), "1");
 
     Eigen::Matrix4d brick_pose_mtx;
     lego_ptr_->calc_bric_asssemble_pose(brick_name, cur_graph_node["x"].asInt(), cur_graph_node["y"].asInt(),
@@ -326,6 +326,8 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
                     bool skill_feasible = true;
+
+                    State end_state_i = state;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
                         // create atomic skill executor
                         auto atomic_skill = gs->atomic_skills[i];
@@ -336,12 +338,13 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                         // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = state;
+                        task_param->target_state = end_state_i;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;
                             break;
                         }
+                        end_state_i = task_param->target_state;
                     }
                     
                     if (skill_feasible) {
@@ -367,6 +370,8 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
                     bool skill_feasible = true;
+
+                    State end_state_i = state;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
                          // create atomic skill executor
                         auto atomic_skill = gs->atomic_skills[i];
@@ -377,12 +382,14 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                         // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = state;
+                        task_param->target_state = end_state_i;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;
                             continue;
                         }
+
+                        end_state_i = task_param->target_state;
                     }
 
                     if (skill_feasible) {
@@ -408,6 +415,8 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                     // call grasp pose generator
                     auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
+                    
+                    State end_state_i = state;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
                          // create atomic skill executor
                         auto atomic_skill = gs->atomic_skills[i];
@@ -418,12 +427,13 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                         // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = state;
+                        task_param->target_state = end_state_i;
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                             log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
                             skill_feasible = false;
                             continue;
                         }
+                        end_state_i = task_param->target_state;
                     }
 
                     if (skill_feasible) {
@@ -442,11 +452,11 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 }
 
 bool LegoSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) {
-    next_state = state;
     // incrase the assembled step
     next_state.assembled_steps = state.assembled_steps + 1;
     // keep the robot state the same for now (at home pose)
     next_state.robot_states = state.robot_states;
+    next_state.env_state = state.env_state;
 
     // update env state based on the grounded skill
     auto obj_to_move = gs->get_object();
@@ -458,13 +468,14 @@ bool LegoSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next
     if (gs->type == Skill::Type::PickAndPlace || gs->type == Skill::Type::PickAndPlaceWithSupport
         || gs->type == Skill::Type::PickHandoverAndPlace) {
         // get a new object at goal location
-        auto obj_moved = std::make_shared<LegoBrick>(getLegoTarget(state.assembled_steps));
+        
+        auto obj_moved = std::make_shared<LegoBrick>(getLegoTarget(state.assembled_steps + 1));
         obj_moved->name = obj_to_move->name;
         
         // update the pointer to the object moved to the new object
         auto &existing_objs = next_state.env_state.objects;
         for (int i = 0; i < existing_objs.size(); i++) {
-            if (existing_objs[i] == obj_to_move) {
+            if (existing_objs[i]->name == obj_to_move->name) {
                existing_objs[i] = obj_moved;
             }
         }

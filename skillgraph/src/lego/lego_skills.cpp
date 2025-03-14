@@ -19,6 +19,8 @@ bool LegoSkillExecutor::execute(State &current_state) {
     }
 
     bool success = controller_->move(post_condition);
+    current_state.robot_states = post_condition->target_state.robot_states;
+    current_state.env_state = post_condition->target_state.env_state;
     // sleep for 1 second
     std::this_thread::sleep_for(std::chrono::seconds(1));
     return success;

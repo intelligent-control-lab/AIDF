@@ -632,3 +632,38 @@ t2 Pick and place brick 9 to 24 23 1
 
 === End of Skill Graph ===
 Processing new data from /home/philip/catkin_ws/src/AIDF/config/web_message.json
+[0m[ INFO] [1741898934.193271421]: rviz version 1.14.25[0m
+[0m[ INFO] [1741898934.193314170]: compiled against Qt version 5.12.8[0m
+[0m[ INFO] [1741898934.193320021]: compiled against OGRE version 1.9.0 (Ghadamon)[0m
+[0m[ INFO] [1741898934.206729648]: Forcing OpenGl version 0.[0m
+[0m[ INFO] [1741898934.349810749]: Stereo is NOT SUPPORTED[0m
+[0m[ INFO] [1741898934.349899034]: OpenGL device: llvmpipe (LLVM 12.0.0, 256 bits)[0m
+[0m[ INFO] [1741898934.349935362]: OpenGl version: 3.1 (GLSL 1.4).[0m
+[0m[ INFO] [1741898937.558295678]: Loading robot model 'dual_gp4'...[0m
+[0m[ INFO] [1741898937.558350340]: No root/virtual joint specified in SRDF. Assuming fixed joint[0m
+[0m[ INFO] [1741898937.682205698]: Starting planning scene monitor[0m
+[0m[ INFO] [1741898937.683844973]: Listening to '/move_group/monitored_planning_scene'[0m
+[0m[ INFO] [1741898937.720558835]: No active joints or end effectors found for group 'dual_arms'. Make sure that kinematics.yaml is loaded in this node's namespace.[0m
+[0m[ INFO] [1741898937.724805876]: Constructing new MoveGroup connection for group 'dual_arms' in namespace ''[0m
+[0m[ INFO] [1741898938.747064203]: Ready to take commands for planning group dual_arms.[0m
+
+auto-starting new master
+[1mprocess[master]: started with pid [680831][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/philip/catkin_ws/src/moveit_configs/dual_gp4_moveit_config/launch/demo.launch http://localhost:11311
+[1msetting /run_id to 93134b84-004c-11f0-8da1-91cac88881d3[0m
+[1mprocess[rosout-1]: started with pid [680864][0m
+started core service [/rosout]
+[1mprocess[joint_state_publisher-2]: started with pid [680871][0m
+[1mprocess[robot_state_publisher-3]: started with pid [680872][0m
+[1mprocess[move_group-4]: started with pid [680873][0m
+[1mprocess[rviz_thinkpad_p_680784_4821499937292926934-5]: started with pid [680874][0m
+[rviz_thinkpad_p_680784_4821499937292926934-5] killing on exit
+[robot_state_publisher-3] killing on exit
+[joint_state_publisher-2] killing on exit
+[move_group-4] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

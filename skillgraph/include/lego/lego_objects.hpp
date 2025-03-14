@@ -7,6 +7,7 @@ struct LegoBrick : public Object {
     LegoBrick() = default;
 
     LegoBrick(lego_manipulation::lego::Lego::Ptr lego_ptr, const Json::Value &node, const std::string &brick_seq);
+
     virtual bool sameType(const LegoBrick &other) const {
         return this->brick_id == other.brick_id;
     }
@@ -29,6 +30,27 @@ struct LegoBrick : public Object {
         return str;
     }
 
+    virtual std::shared_ptr<Object> clone() const override {
+        auto obj =  std::make_shared<LegoBrick>(*this);
+        obj->brick_id = this->brick_id;
+        obj->in_storage = this->in_storage;
+        obj->brick = this->brick;
+        obj->length = this->length;
+        obj->width = this->width;
+        obj->height = this->height;
+        obj->x = this->x;
+        obj->y = this->y;
+        obj->z = this->z;
+        obj->qx = this->qx;
+        obj->qy = this->qy;
+        obj->qz = this->qz;
+        obj->qw = this->qw;
+        obj->state = this->state;
+        obj->name = this->name;
+        obj->parent_link = this->parent_link;
+        return obj;
+    }
+    
 
     int brick_id;
     bool in_storage = true;

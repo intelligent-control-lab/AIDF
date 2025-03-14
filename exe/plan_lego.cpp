@@ -64,10 +64,19 @@ int main() {
         // get plan solution
         skillgraph::State state = sg->get_initial_state();
         for (auto &skill : planner->plan_skill_seq) {
+            // print atomic skills
+
+            skillgraph::MetaSkillPtr meta_skill = std::dynamic_pointer_cast<skillgraph::MetaSkill>(skill);
+            for (const auto &atomic_skill : meta_skill->atomic_skills) {
+                log(atomic_skill->to_string(), LogLevel::INFO);
+            }
+
             if (!skill->executor->execute(state)) {
                 log("Failed to execute skill: " + skill->to_string(), LogLevel::ERROR);
                 break;
             }
+
+
         }
 
         // Shutdown Logic (for natural exit)

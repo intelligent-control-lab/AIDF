@@ -18,6 +18,7 @@ struct LegoPolicyCfg {
     double dt = 0.1; // discretization threshold for trajectory
     double velocity = 1.0; // maximum L1 velocity for one robot arm's trajectory
     double sup_force_tol = 0.03; // force tolerance for touching the object to support
+    double pre_support_z_offset = -0.001; // z offset for pre-support pose
 };
 
 class LegoGraspGenerator : public PlanningAlgorithm {
@@ -34,6 +35,8 @@ private:
     void calculateIKforLego(const Eigen::MatrixXd& T, const Eigen::MatrixXd & home_q,
         int robot_id, int fk_type, bool check_collision, lego_manipulation::math::VectorJd &joint_q, 
         RobotState &robot_state, bool &reachable);
+
+    bool calculateHandoverPoses(int robot_id, std::vector<RobotState> &handover_goal, Eigen::MatrixXd &receive_q);
 
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
     std::shared_ptr<skillgraph::PlanInstance> instance_;
@@ -85,6 +88,7 @@ public:
     virtual void add_stop_clients(const std::vector<std::shared_ptr<ros::ServiceClient>> &stop_clients);
     virtual void add_enable_clients(const std::vector<std::shared_ptr<ros::ServiceClient>> &enable_clients);
     virtual void add_getpose_clients(const std::vector<std::shared_ptr<ros::ServiceClient>> &getpose_clients);
+
 #endif
 
 private:

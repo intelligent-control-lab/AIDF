@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/opt/ros/noetic/include/**",
+        "/home/philip/catkin_ws/devel/include/**",
+        "/home/philip/catkin_ws/src/arcs_kortex/arcs_kortex_safety/include/**",
+        "/home/philip/catkin_ws/src/arcs_kortex/ros_kortex/third_party/gazebo-pkgs/gazebo_grasp_plugin/include/**",
+        "/home/philip/catkin_ws/src/arcs_kortex/ros_kortex/third_party/gazebo-pkgs/gazebo_version_helpers/include/**",
+        "/home/philip/catkin_ws/src/arcs_kortex/ros_kortex/kortex_driver/include/**",
+        "/home/philip/catkin_ws/src/Robotic_Lego_Manipulation/include/**",
+        "/home/philip/catkin_ws/src/mr_planner/include/**",
+        "/home/philip/catkin_ws/src/arcs_kortex/ros_kortex/third_party/roboticsgroup_upatras_gazebo_plugins/include/**",
+        "/home/philip/catkin_ws/src/Stream_Motion_Controller/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

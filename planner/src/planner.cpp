@@ -33,8 +33,8 @@ void AssemblyPlanner::plan() {
         pq.pop();
         State current_state = top.second;
         double current_cost = top.first;
-        //std::cout << "Current state: " << current_state.to_string() << std::endl;
-        //std::cout << "Current cost: " << current_cost << std::endl;
+        // std::cout << "Current state: " << current_state.to_string() << std::endl;
+        // std::cout << "Current cost: " << current_cost << std::endl;
 
         if (skillgraph_->at_target(current_state)) {
             // print the path

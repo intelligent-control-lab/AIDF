@@ -2247,7 +2247,7 @@ void Lego::get_lego_above(int brick_x, int brick_y, int brick_z, int brick_ori, 
 int Lego::get_brick_type(const std::string &brick_name) {
     auto dash_id = brick_name.find("_");
     std::string id = brick_name.substr(1, dash_id - 1);
-    std::cout << brick_name << " " << id << std::endl;
+    std::cout << brick_name << " " << id << " " << std::stoi(id) << std::endl;
     return std::stoi(id);
 }
 

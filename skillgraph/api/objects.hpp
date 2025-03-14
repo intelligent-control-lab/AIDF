@@ -44,12 +44,15 @@ namespace skillgraph {
         virtual std::string to_string() const {
             std::string str = "Object: ";
             str += "Name: " + name + " ";
-            str += "Type: " + std::to_string(type) + " ";
             str += "State: " + std::to_string(state) + " ";
             str += "Parent Link: " + parent_link + " \n";
             str += "Position: " + std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(z) + " \n";
             str += "Orientation: " + std::to_string(qx) + " " + std::to_string(qy) + " " + std::to_string(qz) + " " + std::to_string(qw) + " \n";
             return str;
+        }
+
+        virtual std::shared_ptr<Object> clone() const {
+            return std::make_shared<Object>(*this);
         }
         
         std::string name;

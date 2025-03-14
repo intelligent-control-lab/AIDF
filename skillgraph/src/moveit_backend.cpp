@@ -772,6 +772,31 @@ void MoveitInstance::setState(const State &state) {
             co.object.header.stamp = ros::Time::now();
             co.object.id = obj->name;
             co.object.operation = co.object.ADD;
+
+            shape_msgs::SolidPrimitive primitive;
+            if (obj->shape == Object::Shape::Box) {
+                primitive.type = primitive.BOX;
+                primitive.dimensions.resize(3);
+                primitive.dimensions[primitive.BOX_X] = obj->length;
+                primitive.dimensions[primitive.BOX_Y] = obj->width;
+                primitive.dimensions[primitive.BOX_Z] = obj->height;
+            }
+            else if (obj->shape == Object::Shape::Cylinder) {
+                primitive.type = primitive.CYLINDER;
+                primitive.dimensions.resize(2);
+                primitive.dimensions[primitive.CYLINDER_HEIGHT] = obj->length;
+                primitive.dimensions[primitive.CYLINDER_RADIUS] = obj->radius;
+            }
+            geometry_msgs::Pose world_pose;
+            world_pose.position.x = 0;
+            world_pose.position.y = 0;
+            world_pose.position.z = -0.1;
+            world_pose.orientation.x = obj->qx;
+            world_pose.orientation.y = obj->qy;
+            world_pose.orientation.z = obj->qz;
+            world_pose.orientation.w = obj->qw;
+
+            co.object.primitives.push_back(primitive);
             planning_scene.robot_state.attached_collision_objects.push_back(co);
         }
         else {

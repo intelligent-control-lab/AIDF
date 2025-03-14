@@ -34,6 +34,7 @@ namespace skillgraph {
             for (const auto& val : hand_values) {
                 str += std::to_string(val) + " ";
             }
+            str += "\n";
             return str;
         }
 
@@ -43,10 +44,42 @@ namespace skillgraph {
 
     struct EnvState {
         EnvState() = default;
+        // copy constructor
+        EnvState(const EnvState &other) {
+            objects.clear();
+            objects.reserve(other.objects.size());
+            
+            for (const auto& obj : other.objects) {
+                if (obj) { // Check for null pointers
+                    objects.push_back(obj->clone());
+                } else {
+                    // Push a null pointer or create an empty object based on your needs
+                    objects.push_back(nullptr);
+                }
+            }
+        }
+
+        // Assignment operator
+        EnvState& operator=(const EnvState& other) {
+            if (this != &other) {  // Self-assignment check
+                objects.clear();
+                objects.reserve(other.objects.size());
+                
+                for (const auto& obj : other.objects) {
+                    if (obj) {
+                        objects.push_back(obj->clone());
+                    } else {
+                        objects.push_back(nullptr);
+                    }
+                }
+            }
+            return *this;
+        }
+
         std::vector<ObjPtr> objects;
     
         std::string to_string() const {
-            std::string str = "EnvState: ";
+            std::string str = "EnvState: \n";
             for (const auto& obj : objects) {
                 str += obj->to_string() + "\n";
             }
