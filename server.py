@@ -20,6 +20,15 @@ logging.basicConfig(
 # Variable to keep track of the current simulation process
 simulation_process = None
 
+def check_simulation_log(command_id):
+    log_file_path = "simulation.log"
+    if os.path.exists(log_file_path):
+        with open(log_file_path, 'r') as log_file:
+            for line in log_file:
+                if f"error: not feasible, id: {command_id}" in line:
+                    return True
+    return False
+
 @app.route('/start_simulator', methods=['POST'])
 def start_simulator():
     global simulation_process
@@ -60,8 +69,9 @@ def start_simulator():
 def run_target_task():
     global simulation_process
 
-    logging.info("Starting Simulation...")
+    logging.info("Running target task...")
     data = request.json
+    command_id = data.get("command_id")
     robot_id = data.get("robot_id")
     obj = data.get("object")
     skill = data.get("skill")
@@ -77,11 +87,21 @@ def run_target_task():
         web_message['object'] = obj
         web_message['robot'] = robot_id
         web_message['target_location'] = target
+        web_message['command_id'] = command_id
 
         with open(web_message_path, 'w') as file:
             json.dump(web_message, file, indent=4)
         
         logging.info(f"web_message.json updated successfully: {web_message}")
+        
+        # Check the simulation log for errors
+        time.sleep(2)  # Wait for the simulation to run and log output
+        if check_simulation_log(command_id):
+            return jsonify({
+                "status": -1,
+                "output": "Error: Not feasible"
+            }), 400
+        
         return jsonify({
             "status": 0,
             "output": f"web_message.json updated successfully: {web_message}",

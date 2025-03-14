@@ -232,6 +232,7 @@
             "ori": ori
         }
         const command = {
+            command_id: Date.now(),
             skill: document.getElementById('skill').value,
             object: document.getElementById('object').value,
             robot_id: document.getElementById('robot-id').value,
@@ -253,6 +254,9 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
+            if (data.status === -1 && data.output === "Error: Not feasible") {
+                alert("Error: The chosen set is not feasible.");
+            }
             if (callback) callback(data);
         })
         .catch(() => {
