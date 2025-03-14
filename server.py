@@ -44,7 +44,7 @@ def start_simulator():
     launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
     # change the skillgraph.json
-    skillgraph_path = './config/skillgraph.json'
+    skillgraph_path = './config/lego_tasks/skillgraph.json'
     with open(skillgraph_path, 'r') as file:
         skillgraph_json = json.load(file)
     skillgraph_json['tasks']['name'] = task

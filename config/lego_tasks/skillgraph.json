@@ -1,14 +1,40 @@
 {
     "robots": {
         "numRobot": 2,
-        "names": ["left_arm", "right_arm"],
-        "type": ["gp4", "gp4"],
-        "gripperTypes": ["lego", "lego"],
-        "sensorTypes": ["fts", "fts"],
+        "names": [
+            "left_arm",
+            "right_arm"
+        ],
+        "type": [
+            "gp4",
+            "gp4"
+        ],
+        "gripperTypes": [
+            "lego",
+            "lego"
+        ],
+        "sensorTypes": [
+            "fts",
+            "fts"
+        ],
         "stateForm": "RobotArmState",
-        "homePoses":[
-            [0.0, -15.456, -40.357, 0, -65.099, 0],
-            [0.0, -15.456, -40.357, 0, -65.099, 0]
+        "homePoses": [
+            [
+                0.0,
+                -15.456,
+                -40.357,
+                0,
+                -65.099,
+                0
+            ],
+            [
+                0.0,
+                -15.456,
+                -40.357,
+                0,
+                -65.099,
+                0
+            ]
         ]
     },
     "environment": {
@@ -94,32 +120,99 @@
     },
     "metaskills": {
         "gp4": {
-            "PlaceWithSupport" : {
+            "PlaceWithSupport": {
                 "numRobot": 2,
-                "atomicSkills": ["Support-Bottom", "Place-Down"],
-                "robotId": [0, 1]
+                "atomicSkills": [
+                    "Support-Bottom",
+                    "Place-Down"
+                ],
+                "robotId": [
+                    0,
+                    1
+                ]
             },
             "PickAndPlace": {
                 "numRobot": 1,
-                "atomicSkills": ["Transit", "Pick", "Transit", "Place-Down", "Transit"],
-                "robotId": [0, 0, 0, 0, 0]
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Place-Down",
+                    "Transit"
+                ],
+                "robotId": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
             },
             "PickAndPlaceWithSupport": {
                 "numRobot": 2,
-                "atomicSkills": ["Transit", "Pick", "Transit", "Transit", "Support-Bottom", "Transit", "Place-Down", "Transit", "Transit"],
-                "robotId": [0, 0, 0, 1, 1, 0, 0, 0, 1]
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Transit",
+                    "Support-Bottom",
+                    "Transit",
+                    "Place-Down",
+                    "Transit",
+                    "Transit"
+                ],
+                "robotId": [
+                    0,
+                    0,
+                    0,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0,
+                    1
+                ]
             },
             "PickHandoverAndPlace": {
                 "numRobot": 2,
-                "atomicSkills": ["Transit", "Pick", "Transit", "Transit", "Transit", "Handover", "Transit", "Transit", "Transit", "Support-Top", "Place-Up", "Transit", "Transit"],
-                "robotId": [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Transit",
+                    "Transit",
+                    "Handover",
+                    "Transit",
+                    "Transit",
+                    "Transit",
+                    "Support-Top",
+                    "Place-Up",
+                    "Transit",
+                    "Transit"
+                ],
+                "robotId": [
+                    1,
+                    1,
+                    1,
+                    0,
+                    1,
+                    1,
+                    1,
+                    0,
+                    1,
+                    1,
+                    0,
+                    0,
+                    1
+                ]
             }
         }
     },
     "tasks": {
         "type": "Lego",
-        "name": "tower",
+        "name": null,
         "assembly_seq": "config/lego_tasks/assembly_tasks/tower.json",
-        "assemble": "true"
+        "assemble": "true",
+        "\"assembly_seq\"": "config/lego_tasks/assembly_tasks/None.json"
     }
 }
