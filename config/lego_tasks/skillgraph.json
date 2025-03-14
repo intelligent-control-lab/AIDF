@@ -213,6 +213,5 @@
         "name": null,
         "assembly_seq": "config/lego_tasks/assembly_tasks/tower.json",
         "assemble": "true",
-        "\"assembly_seq\"": "config/lego_tasks/assembly_tasks/None.json"
     }
 }
