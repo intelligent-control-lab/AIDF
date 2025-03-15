@@ -259,8 +259,9 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
-            if (data.status === -1 && data.output === "Error: Not feasible") {
-                alert("Error: The chosen set is not feasible.");
+            if (data.status === -1 && data.output.includes("error: not feasible")) {
+                const reason = data.output.split("reason:")[1];
+                alert(`Error: The chosen set is not feasible. Reason: ${reason}`);
             }
             if (callback) callback(data);
         })

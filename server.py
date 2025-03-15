@@ -26,7 +26,7 @@ def check_simulation_log(command_id):
         with open(log_file_path, 'r') as log_file:
             for line in log_file:
                 if f"error: not feasible, id: {command_id}" in line:
-                    return True
+                    return line
     return False
 
 @app.route('/start_simulator', methods=['POST'])
@@ -108,10 +108,12 @@ def run_target_task():
         
         # Check the simulation log for errors
         time.sleep(2)  # Wait for the simulation to run and log output
-        if check_simulation_log(command_id):
+        check_simulation_log_result = check_simulation_log(command_id)
+        if check_simulation_log_result:
+            logging.error(f"Simulation error found in log: {check_simulation_log_result}")
             return jsonify({
                 "status": -1,
-                "output": "Error: Not feasible"
+                "output": check_simulation_log_result
             }), 400
         
         return jsonify({
