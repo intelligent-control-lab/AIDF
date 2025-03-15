@@ -1,1 +1,1 @@
-bash: exec: rosrun: not found
+/bin/sh: 1: Syntax error: Unterminated quoted string

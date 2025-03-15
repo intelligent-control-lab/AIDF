@@ -60,18 +60,18 @@
             <label for="simulator">Choose Simulator:</label>
             <select id="simulator">
                 <option value="Moveit">Moveit</option>
-                <option value="Gazebo (to be developed)">Gazebo</option>
-                <option value="Issac Sim (to be developed)">Issac Sim</option>
+                <option value="Gazebo">Gazebo (to be developed)</option>
+                <option value="Issac Sim">Issac Sim (to be developed)</option>
             </select>
 
             <label for="robot">Choose Robot Type:</label>
             <select id="robot">
-                <option value="Fanuc (to be developed)">Fanuc</option>
                 <option value="GP4">GP4</option>
+                <option value="Fanuc">Fanuc (to be developed)</option>
             </select>
 
             <label for="task">Choose Task:</label>
-            <select id="task" placeholder="None">
+            <select id="task">
                 <option value="none">None</option>
                 <option value="fish">Fish</option>
                 <option value="stairs">Stairs</option>
@@ -109,7 +109,7 @@
                 <option value="none">None</option>
             </select>
 
-            <label for="robot-id">Robot ID:</label>
+            <label for="robot-id">Primary Robot:</label>
             <select id="robot-id">
                 <option value="0">Robot 1</option>
                 <option value="1">Robot 2</option>
@@ -176,14 +176,14 @@
         })
         .then(data => {
             document.getElementById('debug-output').innerText += "JSON fetched successfully:\n";
-            updateObjectDropdown(data);
+            updateObjectDropdown(data, task);
         })
         .catch(error => {
             document.getElementById('debug-output').innerText += `\n❌ Fetch error: ${error}`;
         });
     }
 
-    function updateObjectDropdown(data) {
+    function updateObjectDropdown(data, task) {
         let objectDropdown = document.getElementById('object'); // Assuming 'object' is the ID of the dropdown
         objectDropdown.innerHTML = ""; // Clear existing options
 
@@ -199,7 +199,7 @@
         objectKeys.forEach(objName => {
             const option = document.createElement('option');
             option.value = objName;
-            option.textContent = objName;
+            option.textContent = `${task}-${objName}`;
             object.appendChild(option);
         });
     }
@@ -207,7 +207,8 @@
     function startSimulator() {
         const command = {
             simulator: document.getElementById('simulator').value,
-            robot: document.getElementById('robot').value
+            robot: document.getElementById('robot').value,
+            task: document.getElementById('task').value
         };
         
         sendRequest('/start_simulator', command, (data) => {

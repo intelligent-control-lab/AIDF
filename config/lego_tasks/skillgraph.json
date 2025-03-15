@@ -210,8 +210,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": null,
-        "assembly_seq": "config/lego_tasks/assembly_tasks/tower.json",
-        "assemble": "true",
+        "name": "chair",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/chair.json",
+        "assemble": "true"
     }
 }

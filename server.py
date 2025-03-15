@@ -44,16 +44,18 @@ def start_simulator():
     launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
     # change the skillgraph.json
+    logging.info(f"task:{task}")
     skillgraph_path = './config/lego_tasks/skillgraph.json'
     with open(skillgraph_path, 'r') as file:
         skillgraph_json = json.load(file)
-    skillgraph_json['tasks']["name"] = task
-    skillgraph_json['tasks']["assembly_seq"] = f"config/lego_tasks/assembly_tasks/{task}.json"
+    skillgraph_json['tasks']['name'] = task
+    skillgraph_json['tasks']['assembly_seq'] = f'config/lego_tasks/assembly_tasks/{task}.json'
     with open(skillgraph_path, 'w') as file:
         json.dump(skillgraph_json, file, indent=4)
-    logging.info(f"skillgraph.json updated successfully: {skillgraph_json}")
+    logging.info(f"skillgraph.json updated successfully!")
 
     # Prepare the command to run the simulation
+    # command = f'exec bash -i -c "echo "test"'
     command = f'exec bash -i -c "exec rosrun aidf webplan_lego"' # TODO: Update the real execution commands
     # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
