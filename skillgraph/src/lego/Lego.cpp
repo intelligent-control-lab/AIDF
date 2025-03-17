@@ -1211,7 +1211,7 @@ math::VectorJd Lego::IK(const math::VectorJd& cur_q, const Eigen::Matrix4d& goal
     }
     if(!status)
     {
-        std::cout<<"IK failed! No valid candidate."<<std::endl;
+        //std::cout<<"IK failed! No valid candidate."<<std::endl;
         return cur_q;
     }
 

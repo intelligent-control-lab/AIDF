@@ -73,6 +73,10 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     planning_scene_diff_client_.waitForExistence();
 
     planning_scene_->getPlanningSceneMsg(original_scene_);
+
+    // marker_publisher
+    marker_pub_ = nh_->advertise<visualization_msgs::MarkerArray>("visualization_marker", 10);
+
 }
 
 MoveitInstance::~MoveitInstance() {
@@ -759,6 +763,10 @@ void MoveitInstance::setState(const State &state) {
         }
     }
 
+    // Prepare visualization markers publisher for object labels
+    visualization_msgs::MarkerArray marker_array;
+    int marker_id = 0;
+
     // update the object state
     for (int i = 0; i < env_states.objects.size(); i++) {
         ObjPtr obj = env_states.objects[i];
@@ -836,7 +844,36 @@ void MoveitInstance::setState(const State &state) {
         }
         // copy the object information to the scene
         objects_[obj->name] = *obj;
+
+        // Add text marker for this object
+        visualization_msgs::Marker text_marker;
+        text_marker.header.frame_id = obj->parent_link;
+        text_marker.header.stamp = ros::Time::now();
+        text_marker.ns = "object_labels";
+        text_marker.id = marker_id++;
+        text_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        text_marker.action = visualization_msgs::Marker::ADD;
+        
+        // Position the text slightly above the object
+        text_marker.pose.position.x = obj->x;
+        text_marker.pose.position.y = obj->y;
+        text_marker.pose.position.z = obj->z + obj->height/2 + 0.05; // Adjust based on object size
+        text_marker.pose.orientation.w = 1.0;
+        
+        // Set text properties
+        text_marker.text = obj->name;
+        text_marker.scale.z = 0.02; // Text height
+        text_marker.color.r = 1.0;
+        text_marker.color.g = 1.0;
+        text_marker.color.b = 1.0;
+        text_marker.color.a = 1.0;
+        text_marker.lifetime = ros::Duration(); // Persistent until removed
+        
+        marker_array.markers.push_back(text_marker);
+        
     }
+
+    marker_pub_.publish(marker_array);
 
     //planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = false;

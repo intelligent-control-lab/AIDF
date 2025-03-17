@@ -16,6 +16,8 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <boost/process.hpp>
 #include <boost/asio.hpp>
@@ -86,6 +88,7 @@ private:
     /* store the planning scene diff temporarily*/
     moveit_msgs::PlanningScene planning_scene_diff_;
     ros::ServiceClient planning_scene_diff_client_;
+    ros::Publisher marker_pub_;
 
     // random number generator
     std::mt19937 rng_;
