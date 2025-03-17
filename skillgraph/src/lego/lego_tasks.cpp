@@ -20,7 +20,7 @@ LegoAssemblySeq::LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
         int brick_y = node["y"].asInt();
         int brick_z = node["z"].asInt() - 1;
         int ori = node["ori"].asInt();
-        int manip_type = node["manip_type"].asInt();
+        int manip_type = node["manipulate_type"].asInt();
         int support_x = node["support_x"].asInt();
         int support_y = node["support_y"].asInt();
         int support_z = node["support_z"].asInt() - 1;

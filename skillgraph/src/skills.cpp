@@ -65,14 +65,18 @@ MetaSkill::MetaSkill(const MetaSkill &meta_skill) {
     this->robot_ids = meta_skill.robot_ids;
 }
 
-bool MetaSkill::set_robot(const std::vector<RobotPtr> robots, int primary_robot_id) {
+bool MetaSkill::set_robot(const std::vector<RobotPtr> &robots) {
+    /*
+    * Use provided robots to set the robot for all atomic skills, based on robot_ids in skillgraph
+    */
     if (robots.size() != num_robot) {
         log("Number of robots does not match", LogLevel::ERROR);
         return false;
     }
 
     for (int i = 0; i < robot_ids.size(); i++) {
-        atomic_skills[i]->robot = robots[robot_ids[i]];
+        int use_robot_id = robot_ids[i];
+        atomic_skills[i]->robot = robots[use_robot_id];
     }
     this->robots = robots;
     return true;

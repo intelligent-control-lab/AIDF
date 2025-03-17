@@ -88,7 +88,7 @@ namespace skillgraph {
         MetaSkill(const MetaSkill &meta_skill);
 
         // Set the robot for all atomic skills according to the id of the primary robot
-        bool set_robot(const std::vector<RobotPtr> robots, int primary_robot_id);
+        bool set_robot(const std::vector<RobotPtr> &robots);
         // Set the object for all atomic skills
         bool set_object(ObjPtr obj);
         // Set executor;

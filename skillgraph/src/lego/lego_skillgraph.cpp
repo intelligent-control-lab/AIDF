@@ -306,16 +306,22 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
     // 4. generrate the robot poses for each atomic skill with a lego grasp pose generator algorithm
     
     for (const auto &skill_type : allowed_skills) {
-        //std::cout << "Skill Type: " << skill_type << std::endl;
         auto base_skill = skill_map_[skill_type];
-        if (skill_type == Skill::Type::PickAndPlace) {
+        if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport 
+            || skill_type == Skill::Type::PickHandoverAndPlace) {
             for (auto obj : usable_bricks) {
                 // this block is symbolically feasible
                 for (int ri = 0; ri < robots.size(); ri++) {
                     //make a copy of skill_map_[skill_type];
                     auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
                     MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
-                    gs->set_robot({robots[ri]}, 0);
+                    if (skill_type == Skill::Type::PickAndPlace) {
+                        gs->set_robot({robots[ri]});
+                    }
+                    else {
+                        int sup_ri = (ri + 1) % robots.size();
+                        gs->set_robot({robots[ri], robots[sup_ri]});
+                    }
                     gs->set_object(obj);
                     auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
                     gs->set_executor(meta_executor);
@@ -323,8 +329,10 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     // set the task parameters
                     meta_executor->set_post_condition(task->post_condition);
 
+                    log("Generating grasp pose for skill " + gs->to_string(), LogLevel::INFO);
+
                     // call grasp pose generator
-                    auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
+                    
                     bool skill_feasible = true;
 
                     State end_state_i = state;
@@ -336,106 +344,19 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         atomic_executor->set_post_condition(task->post_condition);
                         meta_executor->add_atomic_executor(atomic_executor);
 
+                        //log("Generating grasp pose for atomic skill " + std::to_string(i) + " " + atomic_skill->to_string(), LogLevel::INFO);
                         // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
                         task_param->target_state = end_state_i;
+                        auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
                         if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
-                            log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
+                            log("Failed to generate grasp pose for skill " + std::to_string(i) + " " + atomic_skill->to_string(), LogLevel::INFO);
                             skill_feasible = false;
                             break;
                         }
                         end_state_i = task_param->target_state;
                     }
                     
-                    if (skill_feasible) {
-                        feasible_set.push_back(gs);
-                    }
-                }
-            }
-        }
-        else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
-            for (auto obj : usable_bricks) {
-                for (int ri = 0; ri < robots.size(); ri++) {
-                    // check if the robot has the capability to support
-                    auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
-                    MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
-                    gs->set_robot(robots, ri);
-                    gs->set_object(obj);
-                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
-                    gs->set_executor(meta_executor);
-
-                    // set the task parameters
-                    meta_executor->set_post_condition(task->post_condition);
-
-                    // call grasp pose generator
-                    auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
-                    bool skill_feasible = true;
-
-                    State end_state_i = state;
-                    for (int i = 0; i < gs->atomic_skills.size(); i++) {
-                         // create atomic skill executor
-                        auto atomic_skill = gs->atomic_skills[i];
-                        auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
-                        atomic_skill->executor = atomic_executor;
-                        atomic_executor->set_post_condition(task->post_condition);
-                        meta_executor->add_atomic_executor(atomic_executor);
-
-                        // generate the grasp pose
-                        TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = end_state_i;
-                        if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
-                            log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
-                            skill_feasible = false;
-                            continue;
-                        }
-
-                        end_state_i = task_param->target_state;
-                    }
-
-                    if (skill_feasible) {
-                        feasible_set.push_back(gs);
-                    }
-                }
-            }
-        }
-        else if (skill_type == Skill::Type::PickHandoverAndPlace) {
-            for (auto obj : usable_bricks) {
-                for (int ri = 0; ri < robots.size(); ri++) {
-                    // check if the robot has the capability to handover
-                    auto skill = std::dynamic_pointer_cast<MetaSkill>(base_skill);
-                    MetaSkillPtr gs = std::make_shared<MetaSkill>(*skill);
-                    gs->set_robot(robots, ri);
-                    gs->set_object(obj);
-                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
-                    gs->set_executor(meta_executor);
-
-                    // set the task parameters
-                    meta_executor->set_post_condition(task->post_condition);
-                    bool skill_feasible = true;
-
-                    // call grasp pose generator
-                    auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, robots[ri], obj);
-                    
-                    State end_state_i = state;
-                    for (int i = 0; i < gs->atomic_skills.size(); i++) {
-                         // create atomic skill executor
-                        auto atomic_skill = gs->atomic_skills[i];
-                        auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
-                        atomic_skill->executor = atomic_executor;
-                        atomic_executor->set_post_condition(task->post_condition);
-                        meta_executor->add_atomic_executor(atomic_executor);
-
-                        // generate the grasp pose
-                        TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = end_state_i;
-                        if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
-                            log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::DEBUG);
-                            skill_feasible = false;
-                            continue;
-                        }
-                        end_state_i = task_param->target_state;
-                    }
-
                     if (skill_feasible) {
                         feasible_set.push_back(gs);
                     }
@@ -505,11 +426,11 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         RobotPtr robot = robots[rid];
         ObjPtr obj;
         if (skill_type == Skill::Type::PickAndPlace) {
-            gs->set_robot({robot}, rid);
+            gs->set_robot({robot});
         }
         else {
             // support and handover skills require two robots
-            gs->set_robot(robots, rid);
+            gs->set_robot({robots[rid], robots[(rid + 1) % num_robots_]});
         }
 
         // set object
@@ -536,7 +457,7 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         if (skill_type == Skill::Type::PickAndPlace) {
             config["press_side"] = 1;
             config["press_offset"] = 0;
-            config["manip_type"] = 0;
+            config["manipulate_type"] = 0;
             int press_x, press_y, press_ori;
             lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
                 config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
@@ -549,7 +470,7 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
             config["press_side"] = 1;
             config["press_offset"] = 0;
-            config["manip_type"] = 0;
+            config["manipulate_type"] = 0;
             int press_x, press_y, press_ori;
             lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
                 config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
@@ -564,7 +485,7 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         else if (skill_type == Skill::Type::PickHandoverAndPlace) {
             config["press_side"] = 1;
             config["press_offset"] = 0;
-            config["manip_type"] = 1;
+            config["manipulate_type"] = 1;
             int press_x, press_y, press_ori;
             lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
                 config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 

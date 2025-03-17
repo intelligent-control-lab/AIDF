@@ -73,7 +73,7 @@
             }
         },
         "lego_library": "config/lego_tasks/lego_library.json",
-        "object_library": "config/lego_tasks/env_setup/env_setup_tower.json"
+        "object_library": "config/lego_tasks/env_setup/env_setup_stairs_new.json"
     },
     "skills": {
         "gp4": {
@@ -210,8 +210,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "chair",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/chair.json",
+        "name": "stairs_new",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs_new.json",
         "assemble": "true"
     }
 }

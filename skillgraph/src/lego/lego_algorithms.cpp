@@ -109,7 +109,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
     int brick_y = constraint["y"].asInt();
     int brick_z = constraint["z"].asInt();
     int ori = constraint["ori"].asInt();
-    int manip_type = constraint["manip_type"].asInt();
+    int manip_type = constraint["manipulate_type"].asInt();
     bool sup_req = false;
     
     // optional fields
@@ -252,16 +252,16 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                     obj->qz = quat.z();
                     obj->qw = quat.w();
                     break;
-                    break;
                 }
             }
         }
         if (meta_skill_type == "pickplacewithsupport" && skill_seq == 3) {
             // go to support_pre pose
             Eigen::Matrix4d sup_T = Eigen::MatrixXd::Identity(4, 4);
+
             lego_ptr_->support_pose(support_x, support_y, support_z, support_ori, sup_T);
             sup_T(2, 3) = sup_T(2, 3) + config_.pre_support_z_offset;
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, true, goal_q, robot_goal_state, reachable);
+            calculateIKforLego(sup_T, home_q, robot_->robot_id, 0, true, goal_q, robot_goal_state, reachable);
             if (!reachable) {
                 return false;
             }
