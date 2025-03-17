@@ -26,7 +26,7 @@ def check_simulation_log(command_id):
         with open(log_file_path, 'r') as log_file:
             for line in log_file:
                 if f"error: not feasible, id: {command_id}" in line:
-                    return True
+                    return line
     return False
 
 @app.route('/start_simulator', methods=['POST'])
@@ -43,7 +43,19 @@ def start_simulator():
     ros_package = "your_ros_package" # TODO: Update the real ROS package name
     launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
+    # change the skillgraph.json
+    logging.info(f"task:{task}")
+    skillgraph_path = './config/lego_tasks/skillgraph.json'
+    with open(skillgraph_path, 'r') as file:
+        skillgraph_json = json.load(file)
+    skillgraph_json['tasks']['name'] = task
+    skillgraph_json['tasks']['assembly_seq'] = f'config/lego_tasks/assembly_tasks/{task}.json'
+    with open(skillgraph_path, 'w') as file:
+        json.dump(skillgraph_json, file, indent=4)
+    logging.info(f"skillgraph.json updated successfully!")
+
     # Prepare the command to run the simulation
+    # command = f'exec bash -i -c "echo "test"'
     command = f'exec bash -i -c "exec rosrun aidf webplan_lego"' # TODO: Update the real execution commands
     # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
@@ -96,10 +108,12 @@ def run_target_task():
         
         # Check the simulation log for errors
         time.sleep(2)  # Wait for the simulation to run and log output
-        if check_simulation_log(command_id):
+        check_simulation_log_result = check_simulation_log(command_id)
+        if check_simulation_log_result:
+            logging.error(f"Simulation error found in log: {check_simulation_log_result}")
             return jsonify({
                 "status": -1,
-                "output": "Error: Not feasible"
+                "output": check_simulation_log_result
             }), 400
         
         return jsonify({
