@@ -4,6 +4,20 @@ This is the code repository repo for AIDF project. The goal of this repo is to p
 
 ## 📦 Build Instruction
 Download and build the codebase using standard ROS1 ```catkin_tools```
+To enable our ROS Noetic backend (tested on Ubuntu 20.04), you may need to install some system dependencies
+- [ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)
+- [moveit](https://moveit.ai/install/)
+- [catkin tools](https://catkin-tools.readthedocs.io/en/latest/)
+- [rviz tools](http://wiki.ros.org/rviz_visual_tools)
+- [moveit visual tools](http://wiki.ros.org/moveit_visual_tools)
+
+Follow the ros tutorial to create a workspace [tutorial](https://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
+For building code, I use catkin tools, which are documented [here](https://catkin-tools.readthedocs.io/en/latest/)
+
+Once you have download ros, and other system deps, under your catkin_ws/src, download the GP4-Lego simulator and environment setup to your workspace
+- [gp4 digital twin](https://github.com/intelligent-control-lab/Robot_Digital_Twin.git). checkout to the ``dual_arm_gp4`` branch!
+- this repo
+
 
 ## 🚀 Webpage On The Way!
 ### What's its function?
