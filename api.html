@@ -66,8 +66,8 @@
 
             <label for="robot">Choose Robot Type:</label>
             <select id="robot">
-                <option value="GP4">GP4</option>
-                <option value="Fanuc">Fanuc (to be developed)</option>
+                <option value="gp4">GP4</option>
+                <option value="fanuc">Fanuc (to be developed)</option>
             </select>
 
             <label for="task">Choose Task:</label>
@@ -88,16 +88,16 @@
         <div id="task-controls">
             <h2>Task Controls</h2>
 
-            <label for="skill">Choose Skill:</label>
+            <label for="skill">Choose MetaSkill:</label>
             <select id="skill">
-                <option value="Pick">Pick</option>
+                <!-- <option value="Pick">Pick</option>
                 <option value="PlaceTop">PlaceTop</option>
                 <option value="PlaceBottom">PlaceBottom</option>
                 <option value="SupportBottom">SupportBottom</option>
                 <option value="SupportTop">SupportTop</option>
                 <option value="Handover">HandOver</option>
                 <option value="Transit">Transit</option>
-                <option value="Align">Align</option>
+                <option value="Align">Align</option> -->
                 <option value="PlaceWithSupport">PlaceWithSupport</option>
                 <option value="PickAndPlace">PickAndPlace</option>
                 <option value="PickAndPlaceWithSupport">PickAndPlaceWithSupport</option>
@@ -151,6 +151,14 @@
         <div class="json-box">
             <pre id="response-output">[Response will appear here]</pre>
         </div>
+
+        <h2>Skill Decomposition</h2>
+        <div id="Skill Decomposition">
+            <div class="json-box">
+                <pre id="skill-output">[The decomposition of skills will appear here]</pre>
+            </div>
+        </div>
+
     </div>
 </div>
 <div class="json-box">
@@ -160,12 +168,22 @@
 <script>
     let currentPid = null;
 
-    document.getElementById('task').addEventListener('change', function() {
-        fetchEnvSetup(this.value);
+    document.getElementById('task').addEventListener('click', function() {
+        const selectedTask = this.value;
+        if (selectedTask){
+            fetchEnvSetup(selectedTask);
+        }
+    });
+
+    document.getElementById('skill').addEventListener('click', function () {
+        const selectedSkill = this.value;
+        if (selectedSkill) {
+            fetchSkillGraph(selectedSkill);
+        }
     });
 
     function fetchEnvSetup(task) {
-        document.getElementById('debug-output').innerText += "Fetching JSON for task: ${task}...";
+        document.getElementById('debug-output').innerText = "Fetching JSON for task: ${task}...";
 
         fetch(`./config/lego_tasks/env_setup/env_setup_${task}.json`)
         .then(response => {
@@ -203,6 +221,47 @@
             object.appendChild(option);
         });
     }
+
+    function fetchSkillGraph(skill) {
+        document.getElementById('debug-output').innerText = "Fetching skillgraph.json for skill: ${skill}...";
+
+        const robot = document.getElementById('robot').value;
+        
+        fetch(`./config/lego_tasks/skillgraph.json`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('debug-output').innerText += "\nSkillgraph JSON fetched successfully:\n";
+            showAtomicSkills(data, skill, robot);
+        })
+        .catch(error => {
+            document.getElementById('debug-output').innerText += `\n❌ Fetch error: ${error}`;
+        });
+        
+    }
+
+    function showAtomicSkills(data, skill, robot) {
+        const atomicSkills = data["metaskills"][robot][skill];
+        if (!atomicSkills || atomicSkills.length === 0) {
+            document.getElementById('debug-output').innerText += `\n❌ No atomic skills found for ${skill} on ${robot}!`;
+            return;
+        }
+
+        // Format the output in a cleaner way
+        const formattedOutput = 
+`<b>MetaSkill:</b> ${skill}
+<b>NumRobot:</b> ${atomicSkills.numRobot}
+<b>AtomicSkills:</b> [${atomicSkills.atomicSkills.join(', ')}]
+<b>RobotID:</b> [${atomicSkills.robotId.join(', ')}]`;
+
+        // Display formatted output in skill-output
+        document.getElementById('skill-output').innerHTML = formattedOutput;
+    }
+
 
     function startSimulator() {
         const command = {
