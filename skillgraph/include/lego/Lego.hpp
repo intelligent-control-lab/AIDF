@@ -200,6 +200,7 @@ class Lego
 
         std::vector<std::string> get_brick_names();
         std::vector<std::string> get_active_bricks_names();
+        std::vector<std::string> get_fixed_bricks_names();
         std::vector<std::string> get_brick_names_by_type(int id);
         std::vector<std::string> get_brick_above(const std::string& brick_name);
         std::vector<std::string> get_brick_below(const std::string& brick_name);

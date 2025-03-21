@@ -231,7 +231,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             //offset_T.col(3) << pick_offset(0), pick_offset(1) * attack_dir, pick_offset(2) - abs(pick_offset(2)), 1;
             //offset_T = cart_T * offset_T;
 
-            calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, false, goal_q, robot_goal_state, reachable);
+            calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, false, goal_q, robot_goal_state, reachable);
             if (!reachable) {
                 return false;
             }
@@ -410,7 +410,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
     }
     else if (type == Skill::Type::PlaceTop) {
         lego_ptr_->assemble_pose_from_top(press_x, press_y, press_z, press_ori, press_side, cart_T);
-        calculateIKforLego(cart_T, home_q, robot_->robot_id, 1, false, goal_q, robot_goal_state, reachable);
+        calculateIKforLego(cart_T, home_q, robot_->robot_id, 0, false, goal_q, robot_goal_state, reachable);
         if (!reachable) {
             return false;
         }

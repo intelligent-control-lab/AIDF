@@ -20,7 +20,7 @@
     "lego_lib_fname":"/config/lego_tasks/lego_library.json",
     "plate_calibration_fname":"/config/lego_tasks/plate_calibration.json",
     "env_setup_folder":"/config/lego_tasks/env_setup/",
-    "Twist_Deg":15,
+    "Twist_Deg":16,
     "Handover_Twist_Deg": 18,
     "Waypoint_Travel_Time":0.5,
     "Infinite_Tasks":0,

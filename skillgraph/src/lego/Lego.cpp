@@ -1800,6 +1800,17 @@ std::vector<std::string> Lego::get_active_bricks_names() {
     return brick_names;
 }
 
+std::vector<std::string> Lego::get_fixed_bricks_names() {
+    std::vector<std::string> brick_names;
+    for(auto brick:brick_map_)
+    {
+        if(brick.second.fixed) {
+            brick_names.push_back(brick.first);
+        }
+    }
+    return brick_names;
+}
+
 std::vector<std::string> Lego::get_brick_names_by_type(int id) {
     std::string brick_id = "b" + std::to_string(id) + "_";
     
