@@ -6,6 +6,7 @@
 #include "moveit_backend.hpp"
 #include <geometry_msgs/WrenchStamped.h>
 
+
 #ifdef HAVE_YK_TASKS
 #include "yk_tasks/GoToJointsAction.h"
 #include "yk_tasks/GoToPoseAction.h"
@@ -135,8 +136,8 @@ private:
 #ifdef HAVE_YK_TASKS
     void statusCallbackA(const industrial_msgs::RobotStatus::ConstPtr &msg);
     void statusCallbackB(const industrial_msgs::RobotStatus::ConstPtr &msg);
-    bool move_actionlib(int robot_id, const lego_manipulation::math::VectorJd &q_deg, Activity::Type task_type);
-    bool move_actionlib(int robot_id, const std::vector<double> &q, Activity::Type task_type);
+    //bool move_actionlib(int robot_id, const lego_manipulation::math::VectorJd &q_deg, Activity::Type task_type);
+    //bool move_actionlib(int robot_id, const std::vector<double> &q, Activity::Type task_type);
     //bool move_actionlib(int robot_id, const yk_tasks::GoToPoseGoal &goal, Activity::Type task_type);
     double waitUntilInMotion(int robot_id);
     double waitUntilStopped(int robot_id);
