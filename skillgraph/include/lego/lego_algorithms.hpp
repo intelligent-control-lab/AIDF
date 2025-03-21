@@ -6,6 +6,14 @@
 #include "moveit_backend.hpp"
 #include <geometry_msgs/WrenchStamped.h>
 
+#ifdef HAVE_YK_TASKS
+#include "yk_tasks/GoToJointsAction.h"
+#include "yk_tasks/GoToPoseAction.h"
+#include "yk_msgs/GetPose.h"
+#include "industrial_msgs/RobotStatus.h"
+#endif
+
+
 namespace skillgraph {
 
 struct LegoPolicyCfg {
