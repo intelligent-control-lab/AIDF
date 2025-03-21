@@ -41,14 +41,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(yk_tasks QUIET)
-# Conditionally define a macro if yk_tasks is found
-if(yk_tasks_FOUND)
-  message(STATUS "yk_tasks found, defining HAVE_YK_TASKS")
-  target_compile_definitions(lego PRIVATE HAVE_YK_TASKS)
-else()
-  message(WARNING "yk_tasks not found, excluding related code")
-endif()
-
 
 add_service_files(
   FILES
@@ -89,6 +81,16 @@ file(GLOB src_files skillgraph/src/*.cpp skillgraph/src/lego/*.cpp
           skillgraph/src/Utils/*.cpp planner/src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${src_files})
+
+
+# Conditionally define a macro if yk_tasks is found
+if(yk_tasks_FOUND)
+  message(STATUS "yk_tasks found, defining HAVE_YK_TASKS")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_YK_TASKS)
+else()
+  message(WARNING "yk_tasks not found, excluding related code")
+endif()
+
 
 target_link_libraries(${PROJECT_NAME}
   Eigen3::Eigen
