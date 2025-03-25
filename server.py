@@ -54,9 +54,11 @@ def start_simulator():
         json.dump(skillgraph_json, file, indent=4)
     logging.info(f"skillgraph.json updated successfully!")
 
+    skillgraph_abspath = os.path.abspath(skillgraph_path)
+
     # Prepare the command to run the simulation
     # command = f'exec bash -i -c "echo "test"'
-    command = f'exec bash -i -c "exec rosrun aidf webplan_lego"' # TODO: Update the real execution commands
+    command = f'exec bash -i -c "exec rosrun aidf webplan_lego {skillgraph_abspath}"' # TODO: Update the real execution commands
     # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
     

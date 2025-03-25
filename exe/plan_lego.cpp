@@ -45,14 +45,24 @@ void signal_handler(int signal) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     try {
         // Register signal handlers.
         std::signal(SIGINT, signal_handler);
         std::signal(SIGSEGV, signal_handler);
 
+        // Default path
+        std::string config_path = "/home/philip/catkin_ws/src/AIDF/config/lego_tasks/skillgraph.json";
+        
+        // Parse command-line arguments
+        if (argc > 1) {
+            config_path = argv[1];
+        } else {
+            log("Using default config path: " + config_path, LogLevel::INFO);
+        }
+
         // Main Logic
-        auto sg = std::make_shared<skillgraph::LegoSkillGraph>("/home/philip/catkin_ws/src/AIDF/config/lego_tasks/skillgraph.json");
+        auto sg = std::make_shared<skillgraph::LegoSkillGraph>(config_path);
         sg->initialize();
         log("Lego Skill Graph Initialized", LogLevel::INFO);
         sg->print_skillgraph();
