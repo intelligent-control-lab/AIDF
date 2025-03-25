@@ -25,6 +25,7 @@ namespace skillgraph {
             PickAndPlace = 102,
             PickAndPlaceWithSupport = 103,
             PickHandoverAndPlace = 104,
+            PickAndPlaceRealRobot = 105, // TODO: Chaitanya - correct this
         };
 
         static bool isAtomic(Type type);

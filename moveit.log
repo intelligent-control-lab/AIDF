@@ -1,0 +1,1117 @@
+... logging to /home/mfi/.ros/log/e8b02776-04e1-11f0-8249-8fab00e19c92/roslaunch-mfi-twin-1690802.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/mfi/repos/ros1_ws/src/shobhit/motoman_ros1/yk_launch/launch/moveit.launch
+[1mstarted roslaunch server http://192.168.1.2:33711/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro: noetic
+ * /rosversion: 1.16.0
+ * /yk_destroyer/controller_joint_names: ['joint_1_s', 'jo...
+ * /yk_destroyer/enable_robot/namespace: yk_destroyer
+ * /yk_destroyer/io_relay/port: 50242
+ * /yk_destroyer/mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267/database_path: /home/mfi/repos/r...
+ * /yk_destroyer/mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267/overwrite: False
+ * /yk_destroyer/move_for_lego_node/group_name: manipulator
+ * /yk_destroyer/move_group/allow_trajectory_execution: True
+ * /yk_destroyer/move_group/capabilities: 
+ * /yk_destroyer/move_group/controller_list: [{'name': '', 'ac...
+ * /yk_destroyer/move_group/default_planning_pipeline: ompl
+ * /yk_destroyer/move_group/disable_capabilities: 
+ * /yk_destroyer/move_group/max_range: 5.0
+ * /yk_destroyer/move_group/monitor_dynamics: False
+ * /yk_destroyer/move_group/moveit_controller_manager: moveit_simple_con...
+ * /yk_destroyer/move_group/moveit_manage_controllers: True
+ * /yk_destroyer/move_group/octomap_resolution: 0.025
+ * /yk_destroyer/move_group/planning_pipelines/chomp/collision_clearance: 0.2
+ * /yk_destroyer/move_group/planning_pipelines/chomp/collision_threshold: 0.07
+ * /yk_destroyer/move_group/planning_pipelines/chomp/enable_failure_recovery: False
+ * /yk_destroyer/move_group/planning_pipelines/chomp/jiggle_fraction: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/chomp/joint_update_limit: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/chomp/learning_rate: 0.01
+ * /yk_destroyer/move_group/planning_pipelines/chomp/max_iterations: 200
+ * /yk_destroyer/move_group/planning_pipelines/chomp/max_iterations_after_collision_free: 5
+ * /yk_destroyer/move_group/planning_pipelines/chomp/max_recovery_attempts: 5
+ * /yk_destroyer/move_group/planning_pipelines/chomp/obstacle_cost_weight: 1.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/planning_plugin: chomp_interface/C...
+ * /yk_destroyer/move_group/planning_pipelines/chomp/planning_time_limit: 10.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/pseudo_inverse_ridge_factor: 1e-4
+ * /yk_destroyer/move_group/planning_pipelines/chomp/request_adapters: default_planner_r...
+ * /yk_destroyer/move_group/planning_pipelines/chomp/ridge_factor: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/smoothness_cost_acceleration: 1.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/smoothness_cost_jerk: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/smoothness_cost_velocity: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/chomp/smoothness_cost_weight: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/chomp/start_state_max_bounds_error: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/chomp/use_pseudo_inverse: False
+ * /yk_destroyer/move_group/planning_pipelines/chomp/use_stochastic_descent: True
+ * /yk_destroyer/move_group/planning_pipelines/ompl/jiggle_fraction: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/manipulator/longest_valid_segment_fraction: 0.005
+ * /yk_destroyer/move_group/planning_pipelines/ompl/manipulator/planner_configs: ['AnytimePathShor...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/manipulator/projection_evaluator: joints(joint_1_s,...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/delay_rewiring_to_first_solution: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/drop_unconnected_samples_on_prune: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/find_approximate_solutions: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/inflation_scaling_parameter: 10
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/initial_inflation_factor: 1000000
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/prune_threshold_as_fractional_cost_change: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/rewire_factor: 1.001
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/samples_per_batch: 100
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/stop_on_each_solution_improvement: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/truncation_scaling_parameter: 5.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/type: geometric::ABITstar
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/use_graph_pruning: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/use_just_in_time_sampling: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/use_k_nearest: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ABITstar/use_strict_queue_ordering: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/find_approximate_solutions: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/rewire_factor: 1.001
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/samples_per_batch: 100
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/set_max_num_goals: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/type: geometric::AITstar
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/use_graph_pruning: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AITstar/use_k_nearest: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/hybridize: True
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/max_hybrid_paths: 24
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/num_planners: 4
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/planners: 
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/shortcut: True
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/AnytimePathShortening/type: geometric::Anytim...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/balanced: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/cache_cc: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/extended_fmt: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/heuristics: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/nearest_k: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/num_samples: 1000
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/optimality: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/radius_multiplier: 1.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BFMT/type: geometric::BFMT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/delay_rewiring_to_first_solution: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/drop_unconnected_samples_on_prune: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/find_approximate_solutions: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/prune_threshold_as_fractional_cost_change: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/rewire_factor: 1.001
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/samples_per_batch: 100
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/stop_on_each_solution_improvement: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/type: geometric::BITstar
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/use_graph_pruning: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/use_just_in_time_sampling: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/use_k_nearest: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BITstar/use_strict_queue_ordering: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BKPIECE/border_fraction: 0.9
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BKPIECE/failed_expansion_score_factor: 0.5
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BKPIECE/min_valid_path_fraction: 0.5
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BKPIECE/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BKPIECE/type: geometric::BKPIECE
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiEST/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiEST/type: geometric::BiEST
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/cost_threshold: 1e300
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/frountier_node_ratio: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/frountier_threshold: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/init_temperature: 100
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/temp_change_factor: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/BiTRRT/type: geometric::BiTRRT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/EST/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/EST/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/EST/type: geometric::EST
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/cache_cc: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/extended_fmt: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/heuristics: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/nearest_k: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/num_samples: 1000
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/radius_multiplier: 1.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/FMT/type: geometric::FMT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/border_fraction: 0.9
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/failed_expansion_score_factor: 0.5
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/min_valid_path_fraction: 0.5
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/KPIECE/type: geometric::KPIECE
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBKPIECE/border_fraction: 0.9
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBKPIECE/min_valid_path_fraction: 0.5
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBKPIECE/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBKPIECE/type: geometric::LBKPIECE
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBTRRT/epsilon: 0.4
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBTRRT/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBTRRT/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LBTRRT/type: geometric::LBTRRT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LazyPRM/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LazyPRM/type: geometric::LazyPRM
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/LazyPRMstar/type: geometric::LazyPR...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/PDST/type: geometric::PDST
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/PRM/max_nearest_neighbors: 10
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/PRM/type: geometric::PRM
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/PRMstar/type: geometric::PRMstar
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ProjEST/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ProjEST/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/ProjEST/type: geometric::ProjEST
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRT/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRT/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRT/type: geometric::RRT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTConnect/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTConnect/type: geometric::RRTCon...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTstar/delay_collision_checking: 1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTstar/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTstar/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/RRTstar/type: geometric::RRTstar
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SBL/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SBL/type: geometric::SBL
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARS/dense_delta_fraction: 0.001
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARS/max_failures: 1000
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARS/sparse_delta_fraction: 0.25
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARS/stretch_factor: 3.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARS/type: geometric::SPARS
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARStwo/dense_delta_fraction: 0.001
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARStwo/max_failures: 5000
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARStwo/sparse_delta_fraction: 0.25
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARStwo/stretch_factor: 3.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/SPARStwo/type: geometric::SPARStwo
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/degree: 16
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/estimated_dimension: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/max_degree: 18
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/max_pts_per_leaf: 6
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/min_degree: 12
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/min_valid_path_fraction: 0.2
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/type: geometric::STRIDE
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/STRIDE/use_projected_distance: 0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/frountierNodeRatio: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/frountier_threshold: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/goal_bias: 0.05
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/init_temperature: 10e-6
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/k_constant: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/max_states_failed: 10
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/min_temperature: 10e-10
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/range: 0.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/temp_change_factor: 2.0
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planner_configs/TRRT/type: geometric::TRRT
+ * /yk_destroyer/move_group/planning_pipelines/ompl/planning_plugin: ompl_interface/OM...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/request_adapters: default_planner_r...
+ * /yk_destroyer/move_group/planning_pipelines/ompl/start_state_max_bounds_error: 0.1
+ * /yk_destroyer/move_group/planning_pipelines/pilz_industrial_motion_planner/capabilities: pilz_industrial_m...
+ * /yk_destroyer/move_group/planning_pipelines/pilz_industrial_motion_planner/default_planner_config: PTP
+ * /yk_destroyer/move_group/planning_pipelines/pilz_industrial_motion_planner/planning_plugin: pilz_industrial_m...
+ * /yk_destroyer/move_group/planning_pipelines/pilz_industrial_motion_planner/request_adapters: 
+ * /yk_destroyer/move_group/planning_scene_monitor/publish_geometry_updates: True
+ * /yk_destroyer/move_group/planning_scene_monitor/publish_planning_scene: True
+ * /yk_destroyer/move_group/planning_scene_monitor/publish_state_updates: True
+ * /yk_destroyer/move_group/planning_scene_monitor/publish_transforms_updates: True
+ * /yk_destroyer/move_group/sense_for_plan/max_safe_path_cost: 1
+ * /yk_destroyer/move_group/sensors: []
+ * /yk_destroyer/move_group/trajectory_execution/allowed_execution_duration_scaling: 1.2
+ * /yk_destroyer/move_group/trajectory_execution/allowed_goal_duration_margin: 0.5
+ * /yk_destroyer/move_group/trajectory_execution/allowed_start_tolerance: 0.01
+ * /yk_destroyer/robot_description: <?xml version="1....
+ * /yk_destroyer/robot_description_kinematics/manipulator/goal_joint_tolerance: 0.0001
+ * /yk_destroyer/robot_description_kinematics/manipulator/goal_orientation_tolerance: 0.001
+ * /yk_destroyer/robot_description_kinematics/manipulator/goal_position_tolerance: 0.0001
+ * /yk_destroyer/robot_description_kinematics/manipulator/kinematics_solver: kdl_kinematics_pl...
+ * /yk_destroyer/robot_description_kinematics/manipulator/kinematics_solver_search_resolution: 0.005
+ * /yk_destroyer/robot_description_kinematics/manipulator/kinematics_solver_timeout: 0.005
+ * /yk_destroyer/robot_description_planning/cartesian_limits/max_rot_vel: 1.57
+ * /yk_destroyer/robot_description_planning/cartesian_limits/max_trans_acc: 2.25
+ * /yk_destroyer/robot_description_planning/cartesian_limits/max_trans_dec: -5
+ * /yk_destroyer/robot_description_planning/cartesian_limits/max_trans_vel: 1
+ * /yk_destroyer/robot_description_planning/default_acceleration_scaling_factor: 1
+ * /yk_destroyer/robot_description_planning/default_velocity_scaling_factor: 1
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_1_s/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_1_s/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_1_s/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_1_s/max_velocity: 16.2315620435
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_2_l/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_2_l/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_2_l/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_2_l/max_velocity: 16.2315620435
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_3_u/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_3_u/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_3_u/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_3_u/max_velocity: 18.3259571459
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_4_r/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_4_r/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_4_r/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_4_r/max_velocity: 19.7222205475
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_5_b/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_5_b/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_5_b/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_5_b/max_velocity: 19.7222205475
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_6_t/has_acceleration_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_6_t/has_velocity_limits: True
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_6_t/max_acceleration: 100
+ * /yk_destroyer/robot_description_planning/joint_limits/joint_6_t/max_velocity: 34.9065850399
+ * /yk_destroyer/robot_description_semantic: <?xml version="1....
+ * /yk_destroyer/robot_ip_address: 192.168.1.74
+ * /yk_destroyer/tf_prefix: yk_destroyer
+ * /yk_destroyer/warehouse_exec: mongod
+ * /yk_destroyer/warehouse_host: localhost
+ * /yk_destroyer/warehouse_plugin: warehouse_ros_mon...
+ * /yk_destroyer/warehouse_port: 33829
+
+NODES
+  /yk_destroyer/
+    enable_robot (yk_tasks/rosservice_enable.py)
+    io_relay (motoman_driver/io_relay)
+    joint_state (motoman_driver/robot_state)
+    joint_trajectory_action (industrial_robot_client/joint_trajectory_action)
+    mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267 (warehouse_ros_mongo/mongo_wrapper_ros.py)
+    motion_streaming_interface (motoman_driver/motion_streaming_interface)
+    move_for_lego_node (yk_tasks/yk_tasks)
+    move_group (moveit_ros_move_group/move_group)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    rviz_mfi_twin_1690802_6999319818236882132 (rviz/rviz)
+    yk_pub (yk_pub/yk_pub)
+qt.qpa.xcb: could not connect to display 
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "/usr/local/lib/python3.8/dist-packages/cv2/qt/plugins" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, xcb.
+
+[0m[ INFO] [1742678821.383537077]: Loading robot model 'motoman_gp4'...[0m
+[0m[ INFO] [1742678821.426014813]: Publishing maintained planning scene on 'monitored_planning_scene'[0m
+[0m[ INFO] [1742678821.427316119]: Listening to 'joint_states' for joint states[0m
+[0m[ INFO] [1742678821.428584941]: Listening to '/yk_destroyer/attached_collision_object' for attached collision objects[0m
+[0m[ INFO] [1742678821.428597897]: Starting planning scene monitor[0m
+[0m[ INFO] [1742678821.429289486]: Listening to '/yk_destroyer/planning_scene'[0m
+[0m[ INFO] [1742678821.429302146]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.[0m
+[0m[ INFO] [1742678821.429906006]: Listening to '/yk_destroyer/collision_object'[0m
+[0m[ INFO] [1742678821.430489979]: Listening to '/yk_destroyer/planning_scene_world' for planning scene world geometry[0m
+[0m[ INFO] [1742678821.431762498]: Loading planning pipeline 'chomp'[0m
+[0m[ INFO] [1742678821.439289476]: Using planning interface 'CHOMP'[0m
+[0m[ INFO] [1742678821.441211355]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
+[0m[ INFO] [1742678821.441368669]: Param 'start_state_max_bounds_error' was set to 0.1[0m
+[0m[ INFO] [1742678821.441491731]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1742678821.441621228]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1742678821.441744405]: Param 'jiggle_fraction' was set to 0.05[0m
+[0m[ INFO] [1742678821.441860226]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
+[0m[ INFO] [1742678821.441879570]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
+[0m[ INFO] [1742678821.441888492]: Using planning request adapter 'Add Time Parameterization'[0m
+[0m[ INFO] [1742678821.441895581]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
+[0m[ INFO] [1742678821.441902665]: Using planning request adapter 'Fix Workspace Bounds'[0m
+[0m[ INFO] [1742678821.441909145]: Using planning request adapter 'Fix Start State Bounds'[0m
+[0m[ INFO] [1742678821.441915985]: Using planning request adapter 'Fix Start State In Collision'[0m
+[0m[ INFO] [1742678821.441923101]: Using planning request adapter 'Fix Start State Path Constraints'[0m
+[0m[ INFO] [1742678821.442335713]: Loading planning pipeline 'ompl'[0m
+[0m[ INFO] [1742678821.472429261]: Using planning interface 'OMPL'[0m
+[0m[ INFO] [1742678821.473635159]: Param 'default_workspace_bounds' was not set. Using default value: 10[0m
+[0m[ INFO] [1742678821.473855689]: Param 'start_state_max_bounds_error' was set to 0.1[0m
+[0m[ INFO] [1742678821.473994721]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1742678821.474205934]: Param 'start_state_max_dt' was not set. Using default value: 0.5[0m
+[0m[ INFO] [1742678821.474380261]: Param 'jiggle_fraction' was set to 0.05[0m
+[0m[ INFO] [1742678821.474581045]: Param 'max_sampling_attempts' was not set. Using default value: 100[0m
+[0m[ INFO] [1742678821.474597979]: Using planning request adapter 'Limiting Max Cartesian Speed'[0m
+[0m[ INFO] [1742678821.474605225]: Using planning request adapter 'Add Time Parameterization'[0m
+[0m[ INFO] [1742678821.474612031]: Using planning request adapter 'Resolve constraint frames to robot links'[0m
+[0m[ INFO] [1742678821.474619533]: Using planning request adapter 'Fix Workspace Bounds'[0m
+[0m[ INFO] [1742678821.474625956]: Using planning request adapter 'Fix Start State Bounds'[0m
+[0m[ INFO] [1742678821.474633047]: Using planning request adapter 'Fix Start State In Collision'[0m
+[0m[ INFO] [1742678821.474639528]: Using planning request adapter 'Fix Start State Path Constraints'[0m
+[0m[ INFO] [1742678821.474671653]: Loading planning pipeline 'pilz_industrial_motion_planner'[0m
+[0m[ INFO] [1742678821.476547942]: Reading limits from namespace /yk_destroyer/robot_description_planning[0m
+[0m[ INFO] [1742678821.488701561]: Available plugins: pilz_industrial[ERROR] [1742678821.553254]: Mongo process exited with error code 100
+_motion_planner::PlanningContextLoaderCIRC pilz_industrial_motion_planner::PlanningContextLoaderLIN pilz_industrial_motion_planner::PlanningContextLoaderPTP [0m
+[0m[ INFO] [1742678821.488728927]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderCIRC[0m
+[0m[ INFO] [1742678821.490074891]: Registered Algorithm [CIRC][0m
+[0m[ INFO] [1742678821.490098484]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderLIN[0m
+[0m[ INFO] [1742678821.491137991]: Registered Algorithm [LIN][0m
+[0m[ INFO] [1742678821.491147128]: About to load: pilz_industrial_motion_planner::PlanningContextLoaderPTP[0m
+[0m[ INFO] [1742678821.491818151]: Registered Algorithm [PTP][0m
+[0m[ INFO] [1742678821.491825064]: Using planning interface 'Pilz Industrial Motion Planner'[0m
+[0m[ INFO] [1742678821.755797305]: Added FollowJointTrajectory controller for [0m
+[0m[ INFO] [1742678821.755988650]: Returned 1 controllers in list[0m
+[0m[ INFO] [1742678821.768930277]: Trajectory execution is managing controllers[0m
+[0m[ INFO] [1742678821.768942675]: MoveGroup debug mode is OFF[0m
+[96mLoading 'move_group/ApplyPlanningSceneService'...
+[0m[96mLoading 'move_group/ClearOctomapService'...
+[0m[96mLoading 'move_group/MoveGroupCartesianPathService'...
+[0m[96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...
+[0m[96mLoading 'move_group/MoveGroupGetPlanningSceneService'...
+[0m[96mLoading 'move_group/MoveGroupKinematicsService'...
+[0m[96mLoading 'move_group/MoveGroupMoveAction'...
+[0m[96mLoading 'move_group/MoveGroupPickPlaceAction'...
+[0m[96mLoading 'move_group/MoveGroupPlanService'...
+[0m[96mLoading 'move_group/MoveGroupQueryPlannersService'...
+[0m[96mLoading 'move_group/MoveGroupStateValidationService'...
+[0m[96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceAction'...
+[0m[0m[ INFO] [1742678821.803978287]: initialize move group sequence action[0m
+[0m[ INFO] [1742678821.807378002]: Reading limits from namespace /yk_destroyer/robot_description_planning[0m
+[96mLoading 'pilz_industrial_motion_planner/MoveGroupSequenceService'...
+[0m[0m[ INFO] [1742678821.819832333]: Reading limits from namespace /yk_destroyer/robot_description_planning[0m
+[0m[ INFO] [1742678821.827280587]: 
+
+********************************************************
+* MoveGroup using: 
+*     - ApplyPlanningSceneService
+*     - ClearOctomapService
+*     - CartesianPathService
+*     - ExecuteTrajectoryAction
+*     - GetPlanningSceneService
+*     - KinematicsService
+*     - MoveAction
+*     - PickPlaceAction
+*     - MotionPlanService
+*     - QueryPlannersService
+*     - StateValidationService
+*     - SequenceAction
+*     - SequenceService
+********************************************************
+[0m
+[0m[ INFO] [1742678821.827463738]: MoveGroup context using planning plugin ompl_interface/OMPLPlanner[0m
+[0m[ INFO] [1742678821.827471004]: MoveGroup context initialization complete[0m
+[92m
+You can start planning now!
+
+[0m[33m[ WARN] [1742678822.360494254]: Trajectory state not received for 1.000000 seconds[0m
+[31m[ERROR] [1742678839.891048147]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[31m[ERROR] [1742678839.891087987]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[31m[ERROR] [1742678839.891117240]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[31m[FATAL] [1742678839.894268786]: Failed to connect[0m
+[31m[ERROR] [1742678842.963077015]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[31m[ERROR] [1742678842.963139488]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678842.963211942]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678842.963238111]: Failed to receive message length[0m
+[31m[ERROR] [1742678842.963300186]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678842.963324982]: Send failure, no callback support[0m
+[33m[ WARN] [1742678842.963563829]: Not connected, bytes not sent[0m
+[31m[ERROR] [1742678842.963660626]: Failed to send MotionCtrl message[0m
+[31m[ERROR] [1742678842.963693405]: Failed to send TRAJ_MODE command[0m
+[31m[ERROR] [1742678842.963719647]: Motoman robot was NOT enabled. Please re-examine and retry.[0m
+[INFO] [1742678821.524742]: Requesting yk_destroyer/robot_enable service...
+[31m[ERROR] [1742678843.213318462]: Timeout connecting to robot controller.  Send new motion command to retry.[0m
+[31m[ERROR] [1742678851.026937290]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678851.026982580]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678851.026987849]: Failed to receive message length[0m
+[31m[ERROR] [1742678851.026996770]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678851.027000423]: Send failure, no callback support[0m
+[31m[ERROR] [1742678859.091073188]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678859.091206457]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678859.091236732]: Failed to receive message length[0m
+[31m[ERROR] [1742678859.091264156]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678859.091288434]: Send failure, no callback support[0m
+[31m[ERROR] [1742678867.155086225]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678867.155223343]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678867.155247338]: Failed to receive message length[0m
+[31m[ERROR] [1742678867.155272913]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678867.155293297]: Send failure, no callback support[0m
+[31m[ERROR] [1742678875.219081377]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678875.219213004]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678875.219240721]: Failed to receive message length[0m
+[31m[ERROR] [1742678875.219272188]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678875.219295166]: Send failure, no callback support[0m
+[31m[ERROR] [1742678883.282952991]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678883.283068767]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678883.283093306]: Failed to receive message length[0m
+[31m[ERROR] [1742678883.283121151]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678883.283140954]: Send failure, no callback support[0m
+[31m[ERROR] [1742678891.346983470]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678891.347110651]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678891.347135556]: Failed to receive message length[0m
+[31m[ERROR] [1742678891.347163083]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678891.347191367]: Send failure, no callback support[0m
+[31m[ERROR] [1742678899.411057845]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678899.411185226]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678899.411210706]: Failed to receive message length[0m
+[31m[ERROR] [1742678899.411244429]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678899.411266039]: Send failure, no callback support[0m
+[31m[ERROR] [1742678907.475053471]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678907.475176818]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678907.475207218]: Failed to receive message length[0m
+[31m[ERROR] [1742678907.475236452]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678907.475257316]: Send failure, no callback support[0m
+[31m[ERROR] [1742678915.539015223]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678915.539060361]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678915.539066357]: Failed to receive message length[0m
+[31m[ERROR] [1742678915.539074060]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678915.539091584]: Send failure, no callback support[0m
+[31m[ERROR] [1742678923.602970795]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678923.603100949]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678923.603129559]: Failed to receive message length[0m
+[31m[ERROR] [1742678923.603162488]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678923.603187347]: Send failure, no callback support[0m
+[31m[ERROR] [1742678931.666989787]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678931.667128568]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678931.667152773]: Failed to receive message length[0m
+[31m[ERROR] [1742678931.667180840]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678931.667202758]: Send failure, no callback support[0m
+[31m[ERROR] [1742678939.731041727]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678939.731183497]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678939.731207309]: Failed to receive message length[0m
+[31m[ERROR] [1742678939.731237753]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678939.731262204]: Send failure, no callback support[0m
+[31m[ERROR] [1742678947.795094128]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678947.795231486]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678947.795255049]: Failed to receive message length[0m
+[31m[ERROR] [1742678947.795287941]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678947.795314770]: Send failure, no callback support[0m
+[31m[ERROR] [1742678955.862982500]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678955.863113609]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678955.863138576]: Failed to receive message length[0m
+[31m[ERROR] [1742678955.863181932]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678955.863214243]: Send failure, no callback support[0m
+[31m[ERROR] [1742678963.922986563]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678963.923118790]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678963.923143381]: Failed to receive message length[0m
+[31m[ERROR] [1742678963.923171127]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678963.923191262]: Send failure, no callback support[0m
+[31m[ERROR] [1742678971.986984291]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678971.987096756]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678971.987120671]: Failed to receive message length[0m
+[31m[ERROR] [1742678971.987146935]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678971.987185199]: Send failure, no callback support[0m
+[31m[ERROR] [1742678980.050910136]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678980.050948086]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678980.050953243]: Failed to receive message length[0m
+[31m[ERROR] [1742678980.050959457]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678980.050963050]: Send failure, no callback support[0m
+[31m[ERROR] [1742678988.115067514]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678988.115203660]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678988.115229504]: Failed to receive message length[0m
+[31m[ERROR] [1742678988.115255139]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678988.115277080]: Send failure, no callback support[0m
+[31m[ERROR] [1742678996.178989753]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742678996.179135299]: Not connected, bytes not received[0m
+[31m[ERROR] [1742678996.179186493]: Failed to receive message length[0m
+[31m[ERROR] [1742678996.179225422]: Failed to receive incoming message[0m
+[33m[ WARN] [1742678996.179252794]: Send failure, no callback support[0m
+[31m[ERROR] [1742679004.242919778]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679004.242957869]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679004.242964066]: Failed to receive message length[0m
+[31m[ERROR] [1742679004.242971709]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679004.242976418]: Send failure, no callback support[0m
+[31m[ERROR] [1742679012.307098765]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679012.307219433]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679012.307245103]: Failed to receive message length[0m
+[31m[ERROR] [1742679012.307272083]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679012.307292830]: Send failure, no callback support[0m
+[31m[ERROR] [1742679020.371067825]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679020.371215170]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679020.371253209]: Failed to receive message length[0m
+[31m[ERROR] [1742679020.371282302]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679020.371322496]: Send failure, no callback support[0m
+[31m[ERROR] [1742679028.435075617]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679028.435224673]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679028.435249444]: Failed to receive message length[0m
+[31m[ERROR] [1742679028.435279415]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679028.435299903]: Send failure, no callback support[0m
+[31m[ERROR] [1742679036.499005943]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679036.499137631]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679036.499161975]: Failed to receive message length[0m
+[31m[ERROR] [1742679036.499190740]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679036.499211777]: Send failure, no callback support[0m
+[31m[ERROR] [1742679044.563073126]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679044.563201266]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679044.563226334]: Failed to receive message length[0m
+[31m[ERROR] [1742679044.563254103]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679044.563273525]: Send failure, no callback support[0m
+[31m[ERROR] [1742679052.627088867]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679052.627220786]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679052.627245501]: Failed to receive message length[0m
+[31m[ERROR] [1742679052.627279860]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679052.627299056]: Send failure, no callback support[0m
+[31m[ERROR] [1742679060.690965275]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679060.691099666]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679060.691127465]: Failed to receive message length[0m
+[31m[ERROR] [1742679060.691157263]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679060.691178656]: Send failure, no callback support[0m
+[31m[ERROR] [1742679068.758957629]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679068.759085987]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679068.759114059]: Failed to receive message length[0m
+[31m[ERROR] [1742679068.759142691]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679068.759164694]: Send failure, no callback support[0m
+[31m[ERROR] [1742679076.818984229]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679076.819116313]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679076.819142693]: Failed to receive message length[0m
+[31m[ERROR] [1742679076.819172669]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679076.819194095]: Send failure, no callback support[0m
+[31m[ERROR] [1742679084.883082829]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679084.891342175]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679084.891350038]: Failed to receive message length[0m
+[31m[ERROR] [1742679084.891356929]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679084.891365080]: Send failure, no callback support[0m
+[31m[ERROR] [1742679092.946965693]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679092.947088030]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679092.947111700]: Failed to receive message length[0m
+[31m[ERROR] [1742679092.947139880]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679092.947161814]: Send failure, no callback support[0m
+[31m[ERROR] [1742679101.011101370]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679101.011241601]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679101.011267146]: Failed to receive message length[0m
+[31m[ERROR] [1742679101.011313310]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679101.011335219]: Send failure, no callback support[0m
+[31m[ERROR] [1742679109.074980115]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679109.075110813]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679109.075137466]: Failed to receive message length[0m
+[31m[ERROR] [1742679109.075170007]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679109.075195781]: Send failure, no callback support[0m
+[31m[ERROR] [1742679117.142965249]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679117.143089517]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679117.143115838]: Failed to receive message length[0m
+[31m[ERROR] [1742679117.143144786]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679117.143164932]: Send failure, no callback support[0m
+[31m[ERROR] [1742679125.202982252]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679125.203114186]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679125.203139688]: Failed to receive message length[0m
+[31m[ERROR] [1742679125.203172839]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679125.203223377]: Send failure, no callback support[0m
+[31m[ERROR] [1742679133.266982296]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679133.267109262]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679133.267136928]: Failed to receive message length[0m
+[31m[ERROR] [1742679133.267168582]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679133.267193655]: Send failure, no callback support[0m
+[31m[ERROR] [1742679141.331066178]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679141.331187527]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679141.331211914]: Failed to receive message length[0m
+[31m[ERROR] [1742679141.331239332]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679141.331261058]: Send failure, no callback support[0m
+[31m[ERROR] [1742679149.394950043]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679149.394993640]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679149.394999286]: Failed to receive message length[0m
+[31m[ERROR] [1742679149.395006744]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679149.395011739]: Send failure, no callback support[0m
+[31m[ERROR] [1742679157.459091686]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679157.459236553]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679157.459264002]: Failed to receive message length[0m
+[31m[ERROR] [1742679157.459297240]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679157.459318249]: Send failure, no callback support[0m
+[31m[ERROR] [1742679165.522996933]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679165.523116781]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679165.523146410]: Failed to receive message length[0m
+[31m[ERROR] [1742679165.523172577]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679165.523192638]: Send failure, no callback support[0m
+[31m[ERROR] [1742679173.587070612]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679173.587194911]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679173.587229044]: Failed to receive message length[0m
+[31m[ERROR] [1742679173.587262593]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679173.587287301]: Send failure, no callback support[0m
+[31m[ERROR] [1742679181.651077051]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679181.651213529]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679181.651255003]: Failed to receive message length[0m
+[31m[ERROR] [1742679181.651284877]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679181.651309557]: Send failure, no callback support[0m
+[31m[ERROR] [1742679189.715075984]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679189.715209848]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679189.715234294]: Failed to receive message length[0m
+[31m[ERROR] [1742679189.715262714]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679189.715284788]: Send failure, no callback support[0m
+[31m[ERROR] [1742679197.779163540]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679197.779291997]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679197.779317305]: Failed to receive message length[0m
+[31m[ERROR] [1742679197.779346115]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679197.779367590]: Send failure, no callback support[0m
+[31m[ERROR] [1742679205.843062580]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679205.843190945]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679205.843216491]: Failed to receive message length[0m
+[31m[ERROR] [1742679205.843250307]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679205.843271173]: Send failure, no callback support[0m
+[31m[ERROR] [1742679213.906927363]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679213.906963496]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679213.906970229]: Failed to receive message length[0m
+[31m[ERROR] [1742679213.906976335]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679213.906980363]: Send failure, no callback support[0m
+[31m[ERROR] [1742679221.971078194]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679221.971212302]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679221.971242097]: Failed to receive message length[0m
+[31m[ERROR] [1742679221.971271621]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679221.971297259]: Send failure, no callback support[0m
+[31m[ERROR] [1742679230.035081870]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679230.035215500]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679230.035241853]: Failed to receive message length[0m
+[31m[ERROR] [1742679230.035276416]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679230.035297202]: Send failure, no callback support[0m
+[31m[ERROR] [1742679238.099083063]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679238.099208768]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679238.099232929]: Failed to receive message length[0m
+[31m[ERROR] [1742679238.099259677]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679238.099281167]: Send failure, no callback support[0m
+[31m[ERROR] [1742679246.163050829]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679246.163182130]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679246.163210051]: Failed to receive message length[0m
+[31m[ERROR] [1742679246.163240452]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679246.163266610]: Send failure, no callback support[0m
+[31m[ERROR] [1742679254.226995687]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679254.227079040]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679254.227093217]: Failed to receive message length[0m
+[31m[ERROR] [1742679254.227108793]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679254.227121688]: Send failure, no callback support[0m
+[31m[ERROR] [1742679262.291237427]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679262.291397371]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679262.291423592]: Failed to receive message length[0m
+[31m[ERROR] [1742679262.291455081]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679262.291491360]: Send failure, no callback support[0m
+[31m[ERROR] [1742679270.355055816]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679270.355183191]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679270.355211514]: Failed to receive message length[0m
+[31m[ERROR] [1742679270.355242343]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679270.355268852]: Send failure, no callback support[0m
+[31m[ERROR] [1742679278.419112085]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679278.419249781]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679278.419277936]: Failed to receive message length[0m
+[31m[ERROR] [1742679278.419309708]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679278.419333519]: Send failure, no callback support[0m
+[31m[ERROR] [1742679286.482997379]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679286.483138842]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679286.483168630]: Failed to receive message length[0m
+[31m[ERROR] [1742679286.483208380]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679286.483235548]: Send failure, no callback support[0m
+[31m[ERROR] [1742679294.547073639]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679294.547220312]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679294.547249739]: Failed to receive message length[0m
+[31m[ERROR] [1742679294.547281133]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679294.547306020]: Send failure, no callback support[0m
+[31m[ERROR] [1742679302.611085279]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679302.611217634]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679302.611240773]: Failed to receive message length[0m
+[31m[ERROR] [1742679302.611267633]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679302.611286674]: Send failure, no callback support[0m
+[31m[ERROR] [1742679310.675070271]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679310.675199037]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679310.675223595]: Failed to receive message length[0m
+[31m[ERROR] [1742679310.675257113]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679310.675276596]: Send failure, no callback support[0m
+[31m[ERROR] [1742679318.742874722]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679318.742913788]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679318.742920319]: Failed to receive message length[0m
+[31m[ERROR] [1742679318.742938823]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679318.742944595]: Send failure, no callback support[0m
+[31m[ERROR] [1742679326.803162159]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679326.803280943]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679326.803309237]: Failed to receive message length[0m
+[31m[ERROR] [1742679326.803338083]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679326.803363122]: Send failure, no callback support[0m
+[31m[ERROR] [1742679334.867075850]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679334.867238285]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679334.867264228]: Failed to receive message length[0m
+[31m[ERROR] [1742679334.867292533]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679334.867316706]: Send failure, no callback support[0m
+[31m[ERROR] [1742679342.931083145]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679342.931207288]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679342.931231608]: Failed to receive message length[0m
+[31m[ERROR] [1742679342.931258326]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679342.931278448]: Send failure, no callback support[0m
+[31m[ERROR] [1742679350.995018160]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679350.995158914]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679350.995189820]: Failed to receive message length[0m
+[31m[ERROR] [1742679350.995223765]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679350.995246684]: Send failure, no callback support[0m
+[31m[ERROR] [1742679359.059013041]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679359.059147770]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679359.059173547]: Failed to receive message length[0m
+[31m[ERROR] [1742679359.059203228]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679359.059225005]: Send failure, no callback support[0m
+[31m[ERROR] [1742679367.123077376]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679367.123215075]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679367.123242516]: Failed to receive message length[0m
+[31m[ERROR] [1742679367.123273619]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679367.123299352]: Send failure, no callback support[0m
+[31m[ERROR] [1742679375.187055979]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679375.187185330]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679375.187213850]: Failed to receive message length[0m
+[31m[ERROR] [1742679375.187242745]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679375.187268367]: Send failure, no callback support[0m
+[31m[ERROR] [1742679383.250918141]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679383.250955879]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679383.250974102]: Failed to receive message length[0m
+[31m[ERROR] [1742679383.250981590]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679383.250986184]: Send failure, no callback support[0m
+[31m[ERROR] [1742679391.314969450]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679391.315096801]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679391.315123686]: Failed to receive message length[0m
+[31m[ERROR] [1742679391.315151337]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679391.315174501]: Send failure, no callback support[0m
+[31m[ERROR] [1742679399.379071179]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679399.379195476]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679399.379223224]: Failed to receive message length[0m
+[31m[ERROR] [1742679399.379254661]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679399.379277029]: Send failure, no callback support[0m
+[31m[ERROR] [1742679407.443087862]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679407.443225087]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679407.443254080]: Failed to receive message length[0m
+[31m[ERROR] [1742679407.443288058]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679407.443313052]: Send failure, no callback support[0m
+[31m[ERROR] [1742679415.507084156]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679415.507208906]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679415.507236115]: Failed to receive message length[0m
+[31m[ERROR] [1742679415.507266535]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679415.507309337]: Send failure, no callback support[0m
+[31m[ERROR] [1742679423.571074718]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679423.571208849]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679423.571236709]: Failed to receive message length[0m
+[31m[ERROR] [1742679423.571269438]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679423.571296731]: Send failure, no callback support[0m
+[31m[ERROR] [1742679431.635070231]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679431.635200814]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679431.635228965]: Failed to receive message length[0m
+[31m[ERROR] [1742679431.635261317]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679431.635283503]: Send failure, no callback support[0m
+[31m[ERROR] [1742679439.699059975]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679439.699182858]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679439.699211640]: Failed to receive message length[0m
+[31m[ERROR] [1742679439.699240629]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679439.699263127]: Send failure, no callback support[0m
+[31m[ERROR] [1742679447.762939157]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679447.762982133]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679447.763000646]: Failed to receive message length[0m
+[31m[ERROR] [1742679447.763009225]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679447.763014872]: Send failure, no callback support[0m
+[31m[ERROR] [1742679455.826987103]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679455.827116105]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679455.827143031]: Failed to receive message length[0m
+[31m[ERROR] [1742679455.827175414]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679455.827198208]: Send failure, no callback support[0m
+[31m[ERROR] [1742679463.890987280]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679463.891121436]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679463.891144955]: Failed to receive message length[0m
+[31m[ERROR] [1742679463.891173871]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679463.891193913]: Send failure, no callback support[0m
+[31m[ERROR] [1742679471.954962408]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679471.955079209]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679471.955108880]: Failed to receive message length[0m
+[31m[ERROR] [1742679471.955137995]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679471.955160179]: Send failure, no callback support[0m
+[31m[ERROR] [1742679480.022985282]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679480.023104699]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679480.023131506]: Failed to receive message length[0m
+[31m[ERROR] [1742679480.023161321]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679480.023183455]: Send failure, no callback support[0m
+[31m[ERROR] [1742679488.082910854]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679488.082949608]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679488.082954659]: Failed to receive message length[0m
+[31m[ERROR] [1742679488.082965779]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679488.082982765]: Send failure, no callback support[0m
+[31m[ERROR] [1742679496.150988197]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679496.151108503]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679496.151133665]: Failed to receive message length[0m
+[31m[ERROR] [1742679496.151176251]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679496.151196520]: Send failure, no callback support[0m
+[31m[ERROR] [1742679504.211079474]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679504.211203798]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679504.211234783]: Failed to receive message length[0m
+[31m[ERROR] [1742679504.211264139]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679504.211301105]: Send failure, no callback support[0m
+[31m[ERROR] [1742679512.275009336]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679512.275145529]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679512.275170153]: Failed to receive message length[0m
+[31m[ERROR] [1742679512.275201707]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679512.275234659]: Send failure, no callback support[0m
+[31m[ERROR] [1742679520.339000166]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679520.339124244]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679520.339150580]: Failed to receive message length[0m
+[31m[ERROR] [1742679520.339183104]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679520.339203808]: Send failure, no callback support[0m
+[31m[ERROR] [1742679528.403105972]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679528.403243073]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679528.403269159]: Failed to receive message length[0m
+[31m[ERROR] [1742679528.403300294]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679528.403322672]: Send failure, no callback support[0m
+[31m[ERROR] [1742679536.470979134]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679536.471103371]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679536.471131518]: Failed to receive message length[0m
+[31m[ERROR] [1742679536.471164452]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679536.471197047]: Send failure, no callback support[0m
+[31m[ERROR] [1742679544.531079739]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679544.531211971]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679544.531239276]: Failed to receive message length[0m
+[31m[ERROR] [1742679544.531270324]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679544.531293286]: Send failure, no callback support[0m
+[31m[ERROR] [1742679552.594872982]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679552.594914658]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679552.594920160]: Failed to receive message length[0m
+[31m[ERROR] [1742679552.594926613]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679552.594930895]: Send failure, no callback support[0m
+[31m[ERROR] [1742679560.659075251]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679560.659209691]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679560.659234581]: Failed to receive message length[0m
+[31m[ERROR] [1742679560.659265543]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679560.659285962]: Send failure, no callback support[0m
+[31m[ERROR] [1742679568.723153785]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679568.723299068]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679568.723325995]: Failed to receive message length[0m
+[31m[ERROR] [1742679568.723357673]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679568.723380254]: Send failure, no callback support[0m
+[31m[ERROR] [1742679576.787083534]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679576.787218458]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679576.787258453]: Failed to receive message length[0m
+[31m[ERROR] [1742679576.787292051]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679576.787314236]: Send failure, no callback support[0m
+[31m[ERROR] [1742679584.850960234]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679584.851089606]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679584.851114002]: Failed to receive message length[0m
+[31m[ERROR] [1742679584.851161208]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679584.851185900]: Send failure, no callback support[0m
+[31m[ERROR] [1742679592.914999019]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679592.915132803]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679592.915158178]: Failed to receive message length[0m
+[31m[ERROR] [1742679592.915184029]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679592.915204443]: Send failure, no callback support[0m
+[31m[ERROR] [1742679600.979076847]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679600.979208944]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679600.979233396]: Failed to receive message length[0m
+[31m[ERROR] [1742679600.979267199]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679600.979287164]: Send failure, no callback support[0m
+[31m[ERROR] [1742679609.046993028]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679609.047113908]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679609.047140652]: Failed to receive message length[0m
+[31m[ERROR] [1742679609.047175325]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679609.047200027]: Send failure, no callback support[0m
+[31m[ERROR] [1742679617.106886498]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679617.106923431]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679617.106930442]: Failed to receive message length[0m
+[31m[ERROR] [1742679617.106938560]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679617.106944070]: Send failure, no callback support[0m
+[31m[ERROR] [1742679625.170982124]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679625.171103503]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679625.171129922]: Failed to receive message length[0m
+[31m[ERROR] [1742679625.171164432]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679625.171186516]: Send failure, no callback support[0m
+[31m[ERROR] [1742679633.234962983]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679633.235094293]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679633.235121191]: Failed to receive message length[0m
+[31m[ERROR] [1742679633.235152286]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679633.235175480]: Send failure, no callback support[0m
+[31m[ERROR] [1742679641.299092946]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679641.299225356]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679641.299254332]: Failed to receive message length[0m
+[31m[ERROR] [1742679641.299285390]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679641.299307207]: Send failure, no callback support[0m
+[31m[ERROR] [1742679649.362956842]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679649.363080083]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679649.363106448]: Failed to receive message length[0m
+[31m[ERROR] [1742679649.363135476]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679649.363156162]: Send failure, no callback support[0m
+[31m[ERROR] [1742679657.427016547]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679657.427151772]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679657.427190378]: Failed to receive message length[0m
+[31m[ERROR] [1742679657.427221789]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679657.427247666]: Send failure, no callback support[0m
+[31m[ERROR] [1742679665.491011120]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679665.491137948]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679665.491163050]: Failed to receive message length[0m
+[31m[ERROR] [1742679665.491192080]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679665.491215792]: Send failure, no callback support[0m
+[31m[ERROR] [1742679673.558969247]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679673.559095083]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679673.559122060]: Failed to receive message length[0m
+[31m[ERROR] [1742679673.559154133]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679673.559177338]: Send failure, no callback support[0m
+[31m[ERROR] [1742679681.619090532]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679681.619218927]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679681.619244293]: Failed to receive message length[0m
+[31m[ERROR] [1742679681.619272803]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679681.619294445]: Send failure, no callback support[0m
+[31m[ERROR] [1742679689.683078669]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679689.683203388]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679689.683229230]: Failed to receive message length[0m
+[31m[ERROR] [1742679689.683256140]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679689.683274603]: Send failure, no callback support[0m
+[31m[ERROR] [1742679697.747048370]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679697.747180106]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679697.747204231]: Failed to receive message length[0m
+[31m[ERROR] [1742679697.747228921]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679697.747257250]: Send failure, no callback support[0m
+[31m[ERROR] [1742679705.811056407]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679705.811190955]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679705.811216208]: Failed to receive message length[0m
+[31m[ERROR] [1742679705.811245008]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679705.811266737]: Send failure, no callback support[0m
+[31m[ERROR] [1742679713.875065940]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679713.875195308]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679713.875227007]: Failed to receive message length[0m
+[31m[ERROR] [1742679713.875262546]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679713.875282889]: Send failure, no callback support[0m
+[31m[ERROR] [1742679721.938860687]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679721.938908399]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679721.938913429]: Failed to receive message length[0m
+[31m[ERROR] [1742679721.938919776]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679721.938923899]: Send failure, no callback support[0m
+[31m[ERROR] [1742679730.003086973]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679730.003219867]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679730.003245008]: Failed to receive message length[0m
+[31m[ERROR] [1742679730.003271844]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679730.003290999]: Send failure, no callback support[0m
+[31m[ERROR] [1742679738.066966321]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679738.067105581]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679738.067134468]: Failed to receive message length[0m
+[31m[ERROR] [1742679738.067171665]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679738.067195702]: Send failure, no callback support[0m
+[31m[ERROR] [1742679746.130972563]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679746.131100749]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679746.131126370]: Failed to receive message length[0m
+[31m[ERROR] [1742679746.131155595]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679746.131175969]: Send failure, no callback support[0m
+[31m[ERROR] [1742679754.199109111]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679754.199267351]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679754.199294465]: Failed to receive message length[0m
+[31m[ERROR] [1742679754.199327238]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679754.199350827]: Send failure, no callback support[0m
+[31m[ERROR] [1742679762.259141186]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679762.259265975]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679762.259290310]: Failed to receive message length[0m
+[31m[ERROR] [1742679762.259318159]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679762.259337550]: Send failure, no callback support[0m
+[31m[ERROR] [1742679770.323030853]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679770.323170553]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679770.323195487]: Failed to receive message length[0m
+[31m[ERROR] [1742679770.323230327]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679770.323252407]: Send failure, no callback support[0m
+[31m[ERROR] [1742679778.387067245]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679778.387194670]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679778.387227777]: Failed to receive message length[0m
+[31m[ERROR] [1742679778.387258242]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679778.387282735]: Send failure, no callback support[0m
+[31m[ERROR] [1742679786.450924329]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679786.450965179]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679786.450995213]: Failed to receive message length[0m
+[31m[ERROR] [1742679786.451002932]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679786.451007453]: Send failure, no callback support[0m
+[31m[ERROR] [1742679794.515083296]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679794.515216905]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679794.515264189]: Failed to receive message length[0m
+[31m[ERROR] [1742679794.515297010]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679794.515320335]: Send failure, no callback support[0m
+[31m[ERROR] [1742679802.579077032]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679802.579207415]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679802.579234213]: Failed to receive message length[0m
+[31m[ERROR] [1742679802.579278879]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679802.579299559]: Send failure, no callback support[0m
+[31m[ERROR] [1742679810.643082893]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679810.643216410]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679810.643242715]: Failed to receive message length[0m
+[31m[ERROR] [1742679810.643272965]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679810.643305278]: Send failure, no callback support[0m
+[31m[ERROR] [1742679818.707079733]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679818.707211598]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679818.707235854]: Failed to receive message length[0m
+[31m[ERROR] [1742679818.707262610]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679818.707280994]: Send failure, no callback support[0m
+[31m[ERROR] [1742679826.774968289]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679826.775104620]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679826.775135725]: Failed to receive message length[0m
+[31m[ERROR] [1742679826.775168871]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679826.775193353]: Send failure, no callback support[0m
+[31m[ERROR] [1742679834.835060519]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679834.835191438]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679834.835216431]: Failed to receive message length[0m
+[31m[ERROR] [1742679834.835247049]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679834.835269190]: Send failure, no callback support[0m
+[31m[ERROR] [1742679842.899082850]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679842.899208538]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679842.899232974]: Failed to receive message length[0m
+[31m[ERROR] [1742679842.899258651]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679842.899279163]: Send failure, no callback support[0m
+[31m[ERROR] [1742679850.962958417]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679850.962994550]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679850.963012716]: Failed to receive message length[0m
+[31m[ERROR] [1742679850.963022262]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679850.963027564]: Send failure, no callback support[0m
+[31m[ERROR] [1742679859.027014514]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679859.027145013]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679859.027172196]: Failed to receive message length[0m
+[31m[ERROR] [1742679859.027202502]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679859.027231611]: Send failure, no callback support[0m
+[31m[ERROR] [1742679867.091087336]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679867.091228693]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679867.091256729]: Failed to receive message length[0m
+[31m[ERROR] [1742679867.091289822]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679867.091313558]: Send failure, no callback support[0m
+[31m[ERROR] [1742679875.155096384]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679875.155230820]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679875.155254966]: Failed to receive message length[0m
+[31m[ERROR] [1742679875.155283747]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679875.155304724]: Send failure, no callback support[0m
+[31m[ERROR] [1742679883.218968583]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679883.219098429]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679883.219127003]: Failed to receive message length[0m
+[31m[ERROR] [1742679883.219157268]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679883.219182127]: Send failure, no callback support[0m
+[31m[ERROR] [1742679891.282975480]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679891.283097854]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679891.283124672]: Failed to receive message length[0m
+[31m[ERROR] [1742679891.283152920]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679891.283187968]: Send failure, no callback support[0m
+[31m[ERROR] [1742679899.350977110]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679899.351099693]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679899.351124925]: Failed to receive message length[0m
+[31m[ERROR] [1742679899.351176167]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679899.351197009]: Send failure, no callback support[0m
+[31m[ERROR] [1742679907.414978780]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679907.415106238]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679907.415132122]: Failed to receive message length[0m
+[31m[ERROR] [1742679907.415161225]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679907.415180509]: Send failure, no callback support[0m
+[31m[ERROR] [1742679915.474872621]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679915.474923089]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679915.474931866]: Failed to receive message length[0m
+[31m[ERROR] [1742679915.474943164]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679915.474951343]: Send failure, no callback support[0m
+[31m[ERROR] [1742679923.539071303]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679923.539209705]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679923.539234528]: Failed to receive message length[0m
+[31m[ERROR] [1742679923.539263822]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679923.539284879]: Send failure, no callback support[0m
+[31m[ERROR] [1742679931.602974799]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679931.603107494]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679931.603134149]: Failed to receive message length[0m
+[31m[ERROR] [1742679931.603165587]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679931.603188431]: Send failure, no callback support[0m
+[31m[ERROR] [1742679939.670955702]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679939.671083134]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679939.671109769]: Failed to receive message length[0m
+[31m[ERROR] [1742679939.671138949]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679939.671158536]: Send failure, no callback support[0m
+[31m[ERROR] [1742679947.731077916]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679947.731205473]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679947.731229064]: Failed to receive message length[0m
+[31m[ERROR] [1742679947.731254295]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679947.731294463]: Send failure, no callback support[0m
+[31m[ERROR] [1742679955.794982562]: Failed to connect to server, rc: -1. Error: 'No route to host' (errno: 113)[0m
+[33m[ WARN] [1742679955.795032809]: Not connected, bytes not received[0m
+[31m[ERROR] [1742679955.795040564]: Failed to receive message length[0m
+[31m[ERROR] [1742679955.795049215]: Failed to receive incoming message[0m
+[33m[ WARN] [1742679955.795055803]: Send failure, no callback support[0m
+motion_streaming_interface: /usr/include/boost/thread/pthread/mutex.hpp:56: boost::mutex::~mutex(): Assertion `!posix::pthread_mutex_destroy(&m)' failed.
+[0m[ INFO] [1742678821.379951355]: yk_pub node starting[0m
+[0m[ INFO] [1742678821.389798702]: yk_pub node started[0m
+[0m[ INFO] [1742678821.398064141]: yk_interface node starting[0m
+[0m[ INFO] [1742678821.414774731]: Loading robot model 'motoman_gp4'...[0m
+[0m[ INFO] [1742678822.780855887]: Ready to take commands for planning group manipulator.[0m
+[0m[ INFO] [1742678822.780908029]: planning frame..base_link[0m
+[0m[ INFO] [1742678822.780926900]: pose reference frame..base_link[0m
+[0m[ INFO] [1742678822.780951381]: End Effector..[0m
+[0m[ INFO] [1742678822.780970796]: End Effector Link..tool0[0m
+[0m[ INFO] [1742678822.817628501]: yk_interface node started[0m
+[31mWARNING: disk usage in log directory [/home/mfi/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+[31m[yk_destroyer/rviz_mfi_twin_1690802_6999319818236882132-7] process has died [pid 1690954, exit code -6, cmd /opt/ros/noetic/lib/rviz/rviz -d /home/mfi/repos/ros1_ws/src/shobhit/motoman_ros1/motoman_gp4_moveit_config/launch/moveit.rviz __name:=rviz_mfi_twin_1690802_6999319818236882132 __log:=/home/mfi/.ros/log/e8b02776-04e1-11f0-8249-8fab00e19c92/yk_destroyer-rviz_mfi_twin_1690802_6999319818236882132-7.log].
+log file: /home/mfi/.ros/log/e8b02776-04e1-11f0-8249-8fab00e19c92/yk_destroyer-rviz_mfi_twin_1690802_6999319818236882132-7*.log[0m
+
+[1mROS_MASTER_URI=http://192.168.1.2:11311[0m
+]2;/home/mfi/repos/ros1_ws/src/shobhit/motoman_ros1/yk_launch/launch/moveit.launch http://192.168.1.2:11311
+[1mprocess[yk_destroyer/joint_state-1]: started with pid [1690923][0m
+[1mprocess[yk_destroyer/motion_streaming_interface-2]: started with pid [1690924][0m
+[1mprocess[yk_destroyer/io_relay-3]: started with pid [1690929][0m
+[1mprocess[yk_destroyer/joint_trajectory_action-4]: started with pid [1690935][0m
+[1mprocess[yk_destroyer/robot_state_publisher-5]: started with pid [1690942][0m
+[1mprocess[yk_destroyer/move_group-6]: started with pid [1690947][0m
+[1mprocess[yk_destroyer/rviz_mfi_twin_1690802_6999319818236882132-7]: started with pid [1690954][0m
+[1mprocess[yk_destroyer/mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267-8]: started with pid [1690956][0m
+[1mprocess[yk_destroyer/move_for_lego_node-9]: started with pid [1690958][0m
+[1mprocess[yk_destroyer/yk_pub-10]: started with pid [1690959][0m
+[1mprocess[yk_destroyer/enable_robot-11]: started with pid [1690963][0m
+[1m[yk_destroyer/mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267-8] process has finished cleanly
+log file: /home/mfi/.ros/log/e8b02776-04e1-11f0-8249-8fab00e19c92/yk_destroyer-mongo_wrapper_ros_mfi_twin_1690802_7724590134475773267-8*.log[0m
+[1m[yk_destroyer/enable_robot-11] process has finished cleanly
+log file: /home/mfi/.ros/log/e8b02776-04e1-11f0-8249-8fab00e19c92/yk_destroyer-enable_robot-11*.log[0m
+[yk_destroyer/yk_pub-10] killing on exit
+[yk_destroyer/move_for_lego_node-9] killing on exit
+[yk_destroyer/move_group-6] killing on exit
+[yk_destroyer/robot_state_publisher-5] killing on exit
+[yk_destroyer/joint_trajectory_action-4] killing on exit
+[yk_destroyer/io_relay-3] killing on exit
+[yk_destroyer/motion_streaming_interface-2] killing on exit
+[yk_destroyer/joint_state-1] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
