@@ -210,8 +210,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "stairs_new",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs_new.json",
+        "name": "none",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/none.json",
         "assemble": "true"
     }
 }

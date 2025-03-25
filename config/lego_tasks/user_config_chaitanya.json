@@ -1,0 +1,20 @@
+{
+    "DH_fname":"/config/lego_tasks/robot_properties/gp4_DH.txt",
+    "DH_tool_fname":"/config/lego_tasks/robot_properties/gp4_new_tool_DH.txt",
+    "DH_tool_assemble_fname":"/config/lego_tasks/robot_properties/gp4_new_tool_assemble_DH.txt",
+    "DH_tool_disassemble_fname":"/config/lego_tasks/robot_properties/gp4_new_tool_disassemble_DH.txt",
+    "robot_base_fname":"/config/lego_tasks/robot_properties/gp4_base_new.txt",
+    "env_setup_fname":"/config/lego_tasks/env_setup/env_setup_chaitanya.json",
+    "task_graph_fname":"/config/lego_tasks/assembly_tasks/chaitanya_test.json",
+    "lego_lib_fname":"/config/lego_tasks/lego_library.json",
+    "JPC_travel_time":0.5,
+    "Infinite_tasks":0,
+    "Start_with_assemble":1,
+    "Use_robot":1,
+    "IK":
+    {
+        "Use_IK":1,
+        "Record_Joint_Waypoints":0,
+        "Record_Waypoints_fname":"/record_tasks/human.txt"
+    }
+}

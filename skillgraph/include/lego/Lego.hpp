@@ -33,6 +33,13 @@ struct lego_brick{
 struct lego_plate{
     int height;
     int width;
+    double x;
+    double y;
+    double z;
+    double roll;
+    double pitch;
+    double yaw;
+    Eigen::Quaterniond quat;
     Eigen::Matrix4d pose;
 };
 
@@ -136,8 +143,13 @@ class Lego
         std::string get_brick_name_by_id(const int& id, const std::string& seq_id);
         void update_brick_connection();
         void calc_brick_grab_pose(const std::string& name, const bool& assemble_pose, const bool& take_brick,
-                                  const int& brick_assemble_x, const int& brick_assemble_y, const int& brick_assemble_z, 
-                                  const int& orientation, const int& press_side, const int& press_offset, Eigen::MatrixXd& T);
+                                  const int& brick_assemble_x, 
+                                  const int& brick_assemble_y, 
+                                  const int& brick_assemble_z, 
+                                  const int& orientation, 
+                                  const int& press_side, 
+                                  const int& press_offset, 
+                                  Eigen::MatrixXd& T);
         void calc_brick_sup_pose(int robot_id, const int &sup_x, const int &sup_y, const int &sup_z, const int &sup_ori, const double &z_offset, Eigen::MatrixXd &T);
         
         void brick_pose_in_stock(const std::string& name, const int& press_side, const int& press_offset, Eigen::Matrix4d& T);
@@ -191,6 +203,18 @@ class Lego
         bool robot_reached_goal(math::VectorJd robot_q, math::VectorJd goal, const int& robot_dof);
         Eigen::Matrix4d assemble_plate_pose() {return assemble_plate_.pose;};
         Eigen::Matrix4d storage_plate_pose() {return storage_plate_.pose;};
+        double storage_plate_roll() {return storage_plate_.roll;};
+        double storage_plate_pitch() {return storage_plate_.pitch;};
+        double storage_plate_yaw() {return storage_plate_.yaw;};
+        double assemble_plate_roll() {return assemble_plate_.roll;};
+        double assemble_plate_pitch() {return assemble_plate_.pitch;};
+        double assemble_plate_yaw() {return assemble_plate_.yaw;};
+        double storage_plate_x() {return storage_plate_.x;};
+        double storage_plate_y() {return storage_plate_.y;};
+        double storage_plate_z() {return storage_plate_.z;};
+        double assemble_plate_x() {return assemble_plate_.x;};
+        double assemble_plate_y() {return assemble_plate_.y;};
+        double assemble_plate_z() {return assemble_plate_.z;};
         void calc_bric_asssemble_pose(const std::string &name, const int& brick_loc_x,
                             const int& brick_loc_y, const int& brick_loc_z, const int& orientation,
                             Eigen::Matrix4d& out_pose);

@@ -138,11 +138,23 @@
             </div>
 
             <button onclick="runTargetTask()">Run Target Task</button>
-            <button onclick="startCameraFeed()">Start Camera Feed</button>
         </div>
     </div>
 
     <div class="right-panel">
+        <h2>Camera Feed</h2>
+        <div id="camera-container" style="margin-bottom: 20px; text-align: center;">
+            <div id="connection-status" style="margin-bottom: 10px; padding: 5px; border-radius: 3px; background-color: #f8d7da; color: #721c24;">
+                Camera Status: Disconnected
+            </div>
+            <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
+                 alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="connect-camera-btn" style="width: auto; padding: 5px 10px;">Connect Camera</button>
+                <button id="disconnect-camera-btn" style="width: auto; padding: 5px 10px;" disabled>Disconnect Camera</button>
+            </div>
+        </div>
+
         <h2>Request and Response</h2>
         <div class="section-title">✅ Request Sent to Server:</div>
         <div class="json-box">
@@ -158,14 +170,6 @@
         <div id="Skill Decomposition">
             <div class="json-box">
                 <pre id="skill-output">[The decomposition of skills will appear here]</pre>
-            </div>
-        </div>
-
-        <h2>Camera Feed</h2>
-        <div id="Camera Feed">
-            <div class="json-box">
-                <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
-                     alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
             </div>
         </div>
 
@@ -317,21 +321,6 @@
         sendRequest('/run_target_task', command);
     }
 
-    function startCameraFeed() {
-        const eventSource = new EventSource('http://127.0.0.1:5000/start_camera_feed');
-
-        eventSource.onmessage = function(event) {
-            const imageElement = document.getElementById('camera-feed');
-            // Prepend the proper data URL header for a JPEG image
-            imageElement.src = "data:image/jpeg;base64," + event.data;
-        };
-
-        eventSource.onerror = function(error) {
-            console.error("Error receiving camera feed:", error);
-            eventSource.close();
-        };
-    }
-
     function sendRequest(endpoint, command, callback) {
         document.getElementById('request-output').innerText = JSON.stringify(command, null, 4);
 
@@ -354,7 +343,84 @@
         });
     }
 
+    // Camera streaming using Server-sent Events
+    document.addEventListener('DOMContentLoaded', function() {
+        const cameraFeed = document.getElementById('camera-feed');
+        const connectBtn = document.getElementById('connect-camera-btn');
+        const disconnectBtn = document.getElementById('disconnect-camera-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        let eventSource = null;
+        let isConnected = false;
 
+        // Connect to the server's SSE endpoint
+        function connectCamera() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            eventSource = new EventSource('/stream');
+            
+            // Setup event listeners
+            eventSource.onopen = function() {
+                isConnected = true;
+                updateConnectionStatus();
+            };
+            
+            eventSource.onmessage = function(event) {
+                if (event.data === 'connected') {
+                    isConnected = true;
+                    updateConnectionStatus();
+                } else {
+                    // Assume the data is a base64 encoded image
+                    cameraFeed.src = 'data:image/jpeg;base64,' + event.data;
+                }
+            };
+            
+            eventSource.onerror = function() {
+                isConnected = false;
+                updateConnectionStatus();
+                eventSource.close();
+                eventSource = null;
+            };
+        }
+        
+        // Disconnect from the server
+        function disconnectCamera() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            isConnected = false;
+            updateConnectionStatus();
+        }
+
+        // Connect button click handler
+        connectBtn.addEventListener('click', function() {
+            connectCamera();
+        });
+
+        // Disconnect button click handler
+        disconnectBtn.addEventListener('click', function() {
+            disconnectCamera();
+        });
+
+        // Update connection status UI
+        function updateConnectionStatus() {
+            if (isConnected) {
+                connectionStatus.style.backgroundColor = '#d4edda';
+                connectionStatus.style.color = '#155724';
+                connectionStatus.textContent = 'Camera Status: Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                connectionStatus.style.backgroundColor = '#f8d7da';
+                connectionStatus.style.color = '#721c24';
+                connectionStatus.textContent = 'Camera Status: Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+    });
 </script>
 
 </body>
