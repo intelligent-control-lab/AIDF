@@ -10,10 +10,10 @@ import time
 # import rospy
 # from sensor_msgs.msg import Image
 # from cv_bridge import CvBridge, CvBridgeError
-# import cv2
-# import numpy as np
-# import threading
-# import base64
+import cv2
+import numpy as np
+import threading
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -53,11 +53,11 @@ def check_simulation_log(command_id):
 
 # # Function to convert ROS Image message to OpenCV image
 # bridge = CvBridge()
-# latest_image = None
-# image_lock = threading.Lock()  # Add thread safety for image access
-# ros_initialized = False
-# moveit_process = None
-# task_planning_process = None
+latest_image = None
+image_lock = threading.Lock()  # Add thread safety for image access
+ros_initialized = False
+moveit_process = None
+task_planning_process = None
 
 # def vis_frame_callback(msg):
 #     """
@@ -243,19 +243,19 @@ def run_simulation():
             task_planning_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
             
             
-            # # get image from /vis_frame topic
-            # time.sleep(2)
-            # image = latest_image
-            # # convert image to base64
-            # with image_lock:
-            #     image_base64 = cv2.imencode('.jpg', image)[1].tobytes()
-            #     image_base64 = base64.b64encode(image_base64).decode('utf-8')
+            # get image from /vis_frame topic
+            time.sleep(2)
+            image = latest_image
+            # convert image to base64
+            with image_lock:
+                image_base64 = cv2.imencode('.jpg', image)[1].tobytes()
+                image_base64 = base64.b64encode(image_base64).decode('utf-8')
                 
-            # # send image to the client
-            # return jsonify({
-            #     "status": 0,
-            #     "output": image_base64
-            # }), 200
+            # send image to the client
+            return jsonify({
+                "status": 0,
+                "output": image_base64
+            }), 200
             
         
         return jsonify({
@@ -326,11 +326,13 @@ def add_skill():
     logging.info("Adding skill...")
     data = request.json
     skill_name = data.get("skill_name")
-    skill_sequence = data.get("skill_sequence")
+    numRobot = data.get("num_robot")
+    atomic_skills = data.get("atomic_skills")
+    robot_id = data.get("robot_id")
 
     return jsonify({
             "status": 0,
-            "output": f"Skill {skill_name} added successfully!",
+            "output": f"Skill {skill_name} added successfully! with atomic skills: {atomic_skills}",
         }), 200
 
 @app.route('/stop_simulation', methods=['POST'])

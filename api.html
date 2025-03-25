@@ -269,9 +269,9 @@
         reader.onload = function(event) {
             const data = JSON.parse(event.target.result);
             let formattedOutput = `<b>MetaSkill:</b> ${newSkillName}<br>`;
-            let numRobot = [];
+            numRobot = [];
             atomicSkills = [];
-            let mainRobot = [];
+            mainRobot = [];
 
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
@@ -308,7 +308,9 @@
 
         const newSkill = {
             skill_name: newSkillName,
-            skill_sequence: atomicSkills
+            num_robot: numRobot,
+            atomic_skills: atomicSkills,
+            robot_id: mainRobot
         };
 
         // Log the new skill for debugging
