@@ -795,14 +795,18 @@ void MoveitInstance::setState(const State &state) {
                 primitive.dimensions[primitive.CYLINDER_HEIGHT] = obj->length;
                 primitive.dimensions[primitive.CYLINDER_RADIUS] = obj->radius;
             }
-            geometry_msgs::Pose world_pose;
-            world_pose.position.x = 0;
-            world_pose.position.y = 0;
-            world_pose.position.z = -0.1;
-            world_pose.orientation.x = obj->qx;
-            world_pose.orientation.y = obj->qy;
-            world_pose.orientation.z = obj->qz;
-            world_pose.orientation.w = obj->qw;
+            // object world pose is obj.x, obj.y, obj.z, obj.qx, obj.qy, obj.qz, obj.qw
+            // now need to compute this in the robot endeffector frame
+
+            geometry_msgs::Pose relative_pose;
+            relative_pose.position.x = obj->x_attach;
+            relative_pose.position.y = obj->y_attach;
+            relative_pose.position.z = obj->z_attach;
+            relative_pose.orientation.x = obj->qx_attach;
+            relative_pose.orientation.y = obj->qy_attach;
+            relative_pose.orientation.z = obj->qz_attach;
+            relative_pose.orientation.w = obj->qw_attach;
+            co.object.pose = relative_pose;
 
             co.object.primitives.push_back(primitive);
             planning_scene.robot_state.attached_collision_objects.push_back(co);
@@ -951,6 +955,80 @@ bool MoveitInstance::setCollision(const std::string& obj_name, const std::string
     return true;
 }
 
+void MoveitInstance::computeRelativeTransform(Object &obj, const RobotState &robot_state)
+{
+    // Get the transform from world to end-effector
+    moveit::core::RobotState tmp_robot_state = planning_scene_->getCurrentStateNonConst();
+    int obj_robot_id = obj.robot_id;
+    if((obj_robot_id < robot_names_.size() && obj_robot_id >= 0) == false) {
+        log("Object " + obj.name + " has invalid robot id " + std::to_string(obj_robot_id), LogLevel::ERROR);
+        return;
+    }
+    tmp_robot_state.setJointGroupPositions(robot_state.robot_name, robot_state.joint_values);
+    tmp_robot_state.update();
+
+    // Get the transform from world to end-effector
+    const Eigen::Isometry3d& world_to_ee = tmp_robot_state.getGlobalLinkTransform(obj.parent_link);
+
+    // Create Eigen transform from world object pose
+    Eigen::Isometry3d world_obj_transform = Eigen::Isometry3d::Identity();
+    Eigen::Quaterniond q(obj.qw, obj.qx, obj.qy, obj.qz);
+    world_obj_transform.translate(Eigen::Vector3d(obj.x, obj.y, obj.z));
+    world_obj_transform.rotate(q);
+
+    // Compute relative transform (object in end-effector frame)
+    Eigen::Isometry3d relative_transform = world_to_ee.inverse() * world_obj_transform;
+
+    // Convert back to geometry_msgs::Pose
+    Eigen::Vector3d pos = relative_transform.translation();
+    Eigen::Quaterniond rot(relative_transform.rotation());
+    obj.x_attach = pos.x();
+    obj.y_attach = pos.y();
+    obj.z_attach = pos.z();
+    obj.qx_attach = rot.x();
+    obj.qy_attach = rot.y();
+    obj.qz_attach = rot.z();
+    obj.qw_attach = rot.w();
+}
+
+void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_state)
+{
+    // Get the robot state
+    moveit::core::RobotState tmp_robot_state = planning_scene_->getCurrentStateNonConst();
+    int obj_robot_id = obj.robot_id;
+    if((obj_robot_id < robot_names_.size() && obj_robot_id >= 0) == false) {
+        log("Object " + obj.name + " has invalid robot id " + std::to_string(obj_robot_id), LogLevel::ERROR);
+        return;
+    }
+    
+    // Set the joint positions from robot_state
+    tmp_robot_state.setJointGroupPositions(robot_state.robot_name, robot_state.joint_values);
+    tmp_robot_state.update();
+
+    // Get the transform from world to end-effector
+    const Eigen::Isometry3d& world_to_ee = tmp_robot_state.getGlobalLinkTransform(obj.parent_link);
+
+    // Create Eigen transform for object in end-effector frame
+    Eigen::Isometry3d ee_obj_transform = Eigen::Isometry3d::Identity();
+    Eigen::Quaterniond q(obj.qw_attach, obj.qx_attach, obj.qy_attach, obj.qz_attach);
+    ee_obj_transform.translate(Eigen::Vector3d(obj.x_attach, obj.y_attach, obj.z_attach));
+    ee_obj_transform.rotate(q);
+
+    // Compute world transform (object in world frame)
+    Eigen::Isometry3d world_transform = world_to_ee * ee_obj_transform;
+
+    // Convert back to object world coordinates
+    Eigen::Vector3d pos = world_transform.translation();
+    Eigen::Quaterniond rot(world_transform.rotation());
+    obj.x = pos.x();
+    obj.y = pos.y();
+    obj.z = pos.z();
+    obj.qx = rot.x();
+    obj.qy = rot.y();
+    obj.qz = rot.z(); 
+    obj.qw = rot.w();
+}
+
 MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move) 
         : instance_(instance), fake_move_(fake_move) {
     // initialize the moveit instance
@@ -965,5 +1043,7 @@ bool MoveitControl::move(TaskParamPtr post_condition) {
     }
 
 }
+
+
 
 }
