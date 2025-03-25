@@ -136,7 +136,8 @@
                 </div>
             </div>
 
-            <button onclick="runTargetTask()">Run Target Task</button>
+            <button onclick="runSimulation()">Run Simulation</button>
+            <button onclick="runRealRobot()">Run Real Robot</button>
         </div>
     </div>
 
@@ -156,6 +157,24 @@
         <div id="Skill Decomposition">
             <div class="json-box">
                 <pre id="skill-output">[The decomposition of skills will appear here]</pre>
+            </div>
+        </div>
+        
+        <h2>Skill Expansion</h2>
+        <div id="Skill Expansion">
+            <div class="json-box">
+                <div>
+                    <h3>Skill Sequence</h3>
+                    <input type="file" id="skill-sequence-file" accept=".json" style="padding: 10px; font-size: 16px;">
+                </div>
+                <div>
+                    <h3>New Skill Name</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="text" id="new-skill-name" placeholder="Enter new skill name" style="flex: 1;">
+                        <button onclick="addNewSkill()" style="flex: 1;">Add Skill</button>
+                        <button onclick="showNewSkill()" style="flex: 1;">Show Skill</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -222,6 +241,75 @@
         });
     }
 
+    function showNewSkill(){
+        const file = document.getElementById('skill-sequence-file').files[0];
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
+        const newSkillName = document.getElementById('new-skill-name').value;
+        if (!newSkillName) {
+            alert('Please enter a name for the new skill.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = JSON.parse(event.target.result);
+            let formattedOutput = `<b>MetaSkill:</b> ${newSkillName}<br>`;
+
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const entry = data[key];
+                    formattedOutput += `
+                        <b>${key}:</b> {
+                            "x": ${entry["target-x"]},
+                            "y": ${entry["target-y"]},
+                            "z": ${entry["target-z"]},
+                            "object": ${entry["object"]},
+                            "ori": ${entry["ori"]},
+                            "skill": ${entry["skill"]}
+                        }<br>`;
+                }
+            }
+
+        // Display formatted output in skill-output
+        document.getElementById('skill-output').innerHTML = formattedOutput;
+        }
+    }
+
+    function addNewSkill() {
+        const newSkillName = document.getElementById('new-skill-name').value;
+        if (!newSkillName) {
+            alert('Please enter a name for the new skill.');
+            return;
+        }
+
+        const newSkill = {
+            name: newSkillName,
+            sequence: metaSkillSequence
+        };
+
+        // Log the new skill for debugging
+        document.getElementById('debug-output').innerText += `\nNew Skill: ${JSON.stringify(newSkill, null, 4)}`;
+
+        // Send the new skill to the server
+        sendRequest('/add_skill', newSkill, (data) => {
+            // Clear the input and sequence
+            document.getElementById('new-skill-name').value = '';
+            metaSkillSequence = [];
+
+            // Update the MetaSkill dropdown menu
+            const skillDropdown = document.getElementById('skill');
+            const option = document.createElement('option');
+            option.value = newSkillName;
+            option.textContent = newSkillName;
+            skillDropdown.appendChild(option);
+            alert(`New skill "${newSkillName} Added Successfully!"`);
+        });
+    }
+
     function fetchSkillGraph(skill) {
         document.getElementById('debug-output').innerText = "Fetching skillgraph.json for skill: ${skill}...";
 
@@ -256,7 +344,7 @@
 `<b>MetaSkill:</b> ${skill}
 <b>NumRobot:</b> ${atomicSkills.numRobot}
 <b>AtomicSkills:</b> [${atomicSkills.atomicSkills.join(', ')}]
-<b>RobotID:</b> [${atomicSkills.robotId.join(', ')}]`;
+<b>MainRobot:</b> [${atomicSkills.robotId.join(', ')}]`;
 
         // Display formatted output in skill-output
         document.getElementById('skill-output').innerHTML = formattedOutput;
@@ -276,7 +364,7 @@
         });
     }
 
-    function runTargetTask() {
+    function runSimulation() {
         // if (!currentPid) {
         //     alert('Please start the simulator first.');
         //     return;
@@ -304,7 +392,33 @@
             pid: currentPid
         };
         
-        sendRequest('/run_target_task', command);
+        sendRequest('/run_simulation', command);
+    }
+
+    function runRealRobot(){
+        const x = document.getElementById('target-x').value ? parseInt(document.getElementById('target-x').value, 10) : 0;
+        const y = document.getElementById('target-y').value ? parseInt(document.getElementById('target-y').value, 10) : 0;
+        const z = document.getElementById('target-z').value ? parseInt(document.getElementById('target-z').value, 10) : 0;
+        const ori = document.getElementById('target-ori').value ? parseInt(document.getElementById('target-ori').value, 10) : 0;
+        const robot_id = parseInt(document.getElementById('robot-id').value, 10);
+        
+        const target = {
+            "x": x,
+            "y": y,
+            "z": z,
+            "ori": ori
+        };
+        
+        const command = {
+            command_id: Date.now(),
+            skill: document.getElementById('skill').value,
+            object: document.getElementById('object').value,
+            robot_id: robot_id, // Now this will be a number, not a string
+            target: target, // Using target_location instead of target to match your JSON example
+            pid: currentPid
+        };
+        
+        sendRequest('/run_real_robot', command);
     }
 
     function sendRequest(endpoint, command, callback) {

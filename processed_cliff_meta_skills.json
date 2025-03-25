@@ -1,0 +1,122 @@
+{
+    "1": {
+        "skill": "PickAndPlace",
+        "object": "b2_14",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 1,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "2": {
+        "skill": "PickAndPlace",
+        "object": "b2_13",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 2,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "3": {
+        "skill": "PickAndPlace",
+        "object": "b2_4",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 3,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "4": {
+        "skill": "PickAndPlace",
+        "object": "b2_8",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 4,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 1
+    },
+    "5": {
+        "skill": "PickAndPlace",
+        "object": "b2_15",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 5,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "6": {
+        "skill": "PickAndPlace",
+        "object": "b2_7",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 6,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 1
+    },
+    "7": {
+        "skill": "PickAndPlace",
+        "object": "b2_6",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 7,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "8": {
+        "skill": "PickAndPlace",
+        "object": "b2_9",
+        "target-x": 24,
+        "target-y": 28,
+        "target-z": 8,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 1
+    },
+    "9": {
+        "skill": "PickAndPlace",
+        "object": "b2_5",
+        "target-x": 24,
+        "target-y": 26,
+        "target-z": 9,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "10": {
+        "skill": "PickAndPlaceWithSupport",
+        "object": "b2_11",
+        "target-x": 24,
+        "target-y": 24,
+        "target-z": 10,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 2
+    },
+    "11": {
+        "skill": "PickAndPlaceWithSupport",
+        "object": "b2_10",
+        "target-x": 24,
+        "target-y": 22,
+        "target-z": 11,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 2
+    },
+    "12": {
+        "skill": "PickHandoverAndPlace",
+        "object": "b2_12",
+        "target-x": 24,
+        "target-y": 20,
+        "target-z": 10,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 2
+    }
+}

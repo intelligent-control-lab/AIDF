@@ -20,6 +20,19 @@ logging.basicConfig(
 # Variable to keep track of the current simulation process
 simulation_process = None
 
+# for demo use
+def check_target(input_file, robot_id, obj, skill, target):
+
+    with open(input_file, 'r') as file:
+        data = json.load(file)
+    # logging.info(f"input_file: {data}")
+    for key, value in data.items():
+        if value.get('object') == obj and value.get('skill') == skill and value.get('robot-id') == robot_id and \
+            value.get('target-x') == target["x"] and value.get('target-y') == target["y"] and value.get('target-z') == target["z"] and value.get('ori') == target["ori"]:
+            return key
+
+    return None
+
 def check_simulation_log(command_id):
     log_file_path = "simulation.log"
     if os.path.exists(log_file_path):
@@ -77,11 +90,11 @@ def start_simulator():
         logging.error(f"Exception occurred: {str(e)}")
         return jsonify({"error": str(e), "status": -1}), 500
 
-@app.route('/run_target_task', methods=['POST'])
-def run_target_task():
+@app.route('/run_simulation', methods=['POST'])
+def run_simulation():
     global simulation_process
 
-    logging.info("Running target task...")
+    logging.info("Running simulation...")
     data = request.json
     command_id = data.get("command_id")
     robot_id = data.get("robot_id")
@@ -128,6 +141,56 @@ def run_target_task():
             "output": "Failed to update web_message.json"
             }), 500
 
+@app.route('/run_real_robot', methods=['POST'])
+def run_real_robot():
+    global simulation_process
+
+    logging.info("Running real robot...")
+    data = request.json
+    command_id = data.get("command_id")
+    robot_id = data.get("robot_id")
+    obj = data.get("object")
+    skill = data.get("skill")
+    target = data.get("target")
+
+    input_file = './processed_cliff_meta_skills.json'
+    result = check_target(input_file, robot_id, obj, skill, target)
+    if result == "9" or result == "10" or result == "11":
+        num = result
+    else:
+        logging.error(f"Error found in log: error: not feasible {result}")
+        return jsonify({
+            "status": -1,
+            "output": "error: not feasible, reason: target location is not feasible!"
+        }), 400
+
+    # send the ros command to the real robot
+    # command = f'exec bash -i -c "exec rosrun mr_planner gotostart.sh"'
+    command = f'exec bash -i -c "exec rosrun mr_planner gotostart.sh && exec roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}"'
+    # command = f'exec bash -i -c "exec roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
+    logging.info(f"Executing command: {command}")
+    
+    try:
+        # Start the simulation in a subprocess
+        log_file = open("real_robot.log", "w")
+        simulation_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
+        
+        logging.info(f"Real robot session started with PID {simulation_process.pid}")
+        
+        # Return success response with pid
+        return jsonify({
+            "status": 0,
+            "output": "Real robot execution",
+            "pid": simulation_process.pid
+        }), 200
+        
+    except Exception as e:
+        logging.error(f"Fail: {str(e)}")
+        return jsonify({
+            "status": -1,
+            "error": str(e), 
+            "output": "Failed to run real robot demo!"
+            }), 500
 
 @app.route('/stop_simulation', methods=['POST'])
 def stop_simulation():

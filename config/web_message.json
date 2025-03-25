@@ -1,12 +1,12 @@
 {
     "skill": "PickAndPlace",
-    "object": "b2_7",
-    "robot": 1,
+    "object": "b2_5",
+    "robot": 0,
     "target_location": {
-        "x": 30,
-        "y": 30,
-        "z": 1,
-        "ori": 1
+        "x": 24,
+        "y": 26,
+        "z": 9,
+        "ori": 0
     },
-    "command_id": 1741983392647
+    "command_id": 1742937562905
 }
