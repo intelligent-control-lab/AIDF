@@ -38,6 +38,11 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
   message_generation
   actionlib
+
+  yk_msgs # For the yk robot and gp4-lego-assembly repo - 
+  geometry_msgs
+  cv_bridge
+  image_transport
 )
 
 find_package(yk_tasks QUIET)
@@ -45,11 +50,16 @@ find_package(yk_tasks QUIET)
 add_service_files(
   FILES
   StabilityScore.srv
+  SetPose.srv
+  GetPose.srv
+  SetJoints.srv
 )
 
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
+  sensor_msgs
 )
 
 # /* -------------------------------------------------------------------------- */
@@ -64,15 +74,22 @@ catkin_package(
     moveit_ros_planning_interface
     tf2_geometry_msgs 
     message_runtime
+    yk_msgs
   DEPENDS
     EIGEN3
 )
 
-# /* -------------------------------------------------------------------------- */
-# /*                               Include Directories                          */
-# /* -------------------------------------------------------------------------- */
+  # /* -------------------------------------------------------------------------- */
+  # /*                               Include Directories                          */
+  # /* -------------------------------------------------------------------------- */
 
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+include_directories(
+  SYSTEM 
+  ${OpenCV_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} 
+  ${Boost_INCLUDE_DIR} 
+  ${EIGEN3_INCLUDE_DIRS}
+  )
 
 # /* -------------------------------------------------------------------------- */
 # /*                               Create Library                               */
@@ -97,6 +114,7 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${OMPL_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
   yaml-cpp
   jsoncpp
 )
@@ -163,4 +181,21 @@ target_link_libraries(webplan_lego
 
 install(TARGETS webplan_lego
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
+
+
+add_executable(${PROJECT_NAME}_integrate_task_planning_chaitanya
+  skillgraph/src/lego/lego_integrate_task_planning_chaitanya.cpp
+)
+
+add_dependencies(${PROJECT_NAME}_integrate_task_planning_chaitanya
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(${PROJECT_NAME}_integrate_task_planning_chaitanya
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
 )

@@ -10,17 +10,18 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>eigen</depend>
   <depend>boost</depend>
+  <depend>message_generation</depend>
   <depend>moveit_visual_tools</depend>
   <depend>rviz_visual_tools</depend>
   <depend>tf2_geometry_msgs </depend>
 
-  <build_depend>message_generation</build_depend>
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
@@ -28,6 +29,10 @@
   <exec_depend>rviz</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
+
+  <!-- From GP4-Lego -->
+
+  <depend>yk_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

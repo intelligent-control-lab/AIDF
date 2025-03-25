@@ -102,7 +102,7 @@
                 <option value="PickAndPlace">PickAndPlace</option>
                 <option value="PickAndPlaceWithSupport">PickAndPlaceWithSupport</option>
                 <option value="PickHandoverAndPlace">PickHandoverAndPlace</option>
-                <option value="Align">Align</option>
+                <option value="PickAndPlaceRealRobot">PickAndPlaceRealRobot</option>
             </select>
 
             <label for="object">Choose Object:</label>
@@ -137,17 +137,24 @@
                 </div>
             </div>
 
-            <button onclick="runSimulation()">Run Simulation</button>
-            <button onclick="runRealRobot()">Run Real Robot</button>
-            <button onclick="startCameraFeed()">Start Camera Feed</button>
-        </div>
-
-        <div class="json-box">
-            <pre id="debug-output">[Debug data will appear here]</pre>
+            <button onclick="runTargetTask()">Run Target Task</button>
         </div>
     </div>
 
     <div class="right-panel">
+        <h2>Camera Feed</h2>
+        <div id="camera-container" style="margin-bottom: 20px; text-align: center;">
+            <div id="connection-status" style="margin-bottom: 10px; padding: 5px; border-radius: 3px; background-color: #f8d7da; color: #721c24;">
+                Camera Status: Disconnected
+            </div>
+            <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
+                 alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="connect-camera-btn" style="width: auto; padding: 5px 10px;">Connect Camera</button>
+                <button id="disconnect-camera-btn" style="width: auto; padding: 5px 10px;" disabled>Disconnect Camera</button>
+            </div>
+        </div>
+
         <h2>Request and Response</h2>
         <div class="section-title">✅ Request Sent to Server:</div>
         <div class="json-box">
@@ -165,34 +172,11 @@
                 <pre id="skill-output">[The decomposition of skills will appear here]</pre>
             </div>
         </div>
-        
-        <h2>Skill Expansion</h2>
-        <div id="Skill Expansion">
-            <div class="json-box">
-                <div>
-                    <h3>Skill Sequence</h3>
-                    <input type="file" id="skill-sequence-file" accept=".json" style="padding: 10px; font-size: 16px;">
-                </div>
-                <div>
-                    <h3>New Skill Name</h3>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="text" id="new-skill-name" placeholder="Enter new skill name" style="flex: 1;">
-                        <button onclick="showNewSkill()" style="flex: 1;">Show Skill</button>
-                        <button onclick="addNewSkill()" style="flex: 1;">Add Skill</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h2>Camera Feed</h2>
-        <div id="Camera Feed">
-            <div class="json-box">
-                <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
-                     alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
-            </div>
-        </div>
 
     </div>
+</div>
+<div class="json-box">
+    <pre id="debug-output">[Debug data will appear here]</pre>
 </div>
 
 <script>
@@ -252,85 +236,6 @@
         });
     }
 
-    function showNewSkill() {
-        const file = document.getElementById('skill-sequence-file').files[0];
-        if (!file) {
-            alert('Please select a file to upload.');
-            return;
-        }
-
-        const newSkillName = document.getElementById('new-skill-name').value;
-        if (!newSkillName) {
-            alert('Please enter a name for the new skill.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const data = JSON.parse(event.target.result);
-            let formattedOutput = `<b>MetaSkill:</b> ${newSkillName}<br>`;
-            numRobot = [];
-            atomicSkills = [];
-            mainRobot = [];
-
-            for (const key in data) {
-                if (data.hasOwnProperty(key)) {
-                    const entry = data[key];
-                    atomicSkills.push(entry["skill"]);
-                    mainRobot.push(entry["robot-id"]);
-                    numRobot.push(entry["NumRobot"]);
-                }
-            }
-
-            formattedOutput += `<b>NumRobot:</b> ${numRobot.join(', ')}<br>`;
-            formattedOutput += `<b>AtomicSkills:</b> [${atomicSkills.join(', ')}]<br>`;
-            formattedOutput += `<b>MainRobot:</b> [${mainRobot.join(', ')}]<br>`;
-
-            // Display formatted output in skill-output
-            document.getElementById('skill-output').innerHTML = formattedOutput;
-        };
-
-        reader.readAsText(file);
-    }
-
-    function addNewSkill() {
-        const file = document.getElementById('skill-sequence-file').files[0];
-        if (!file) {
-            alert('Please select a file to upload.');
-            return;
-        }
-
-        const newSkillName = document.getElementById('new-skill-name').value;
-        if (!newSkillName) {
-            alert('Please enter a name for the new skill.');
-            return;
-        }
-
-        const newSkill = {
-            skill_name: newSkillName,
-            num_robot: numRobot,
-            atomic_skills: atomicSkills,
-            robot_id: mainRobot
-        };
-
-        // Log the new skill for debugging
-        document.getElementById('debug-output').innerText += `\nNew Skill: ${JSON.stringify(newSkill, null, 4)}`;
-
-        // Send the new skill to the server
-        sendRequest('/add_skill', newSkill, (data) => {
-            // Clear the input and sequence
-            document.getElementById('new-skill-name').value = '';
-            metaSkillSequence = [];
-
-            // Update the MetaSkill dropdown menu
-            const skillDropdown = document.getElementById('skill');
-            const option = document.createElement('option');
-            option.value = newSkillName;
-            option.textContent = newSkillName;
-            skillDropdown.appendChild(option);
-        });
-    }
-
     function fetchSkillGraph(skill) {
         document.getElementById('debug-output').innerText = "Fetching skillgraph.json for skill: ${skill}...";
 
@@ -365,7 +270,7 @@
 `<b>MetaSkill:</b> ${skill}
 <b>NumRobot:</b> ${atomicSkills.numRobot}
 <b>AtomicSkills:</b> [${atomicSkills.atomicSkills.join(', ')}]
-<b>MainRobot:</b> [${atomicSkills.robotId.join(', ')}]`;
+<b>RobotID:</b> [${atomicSkills.robotId.join(', ')}]`;
 
         // Display formatted output in skill-output
         document.getElementById('skill-output').innerHTML = formattedOutput;
@@ -385,7 +290,7 @@
         });
     }
 
-    function runSimulation() {
+    function runTargetTask() {
         // if (!currentPid) {
         //     alert('Please start the simulator first.');
         //     return;
@@ -413,48 +318,7 @@
             pid: currentPid
         };
         
-        sendRequest('/run_simulation', command);
-    }
-
-    function runRealRobot(){
-        const x = document.getElementById('target-x').value ? parseInt(document.getElementById('target-x').value, 10) : 0;
-        const y = document.getElementById('target-y').value ? parseInt(document.getElementById('target-y').value, 10) : 0;
-        const z = document.getElementById('target-z').value ? parseInt(document.getElementById('target-z').value, 10) : 0;
-        const ori = document.getElementById('target-ori').value ? parseInt(document.getElementById('target-ori').value, 10) : 0;
-        const robot_id = parseInt(document.getElementById('robot-id').value, 10);
-        
-        const target = {
-            "x": x,
-            "y": y,
-            "z": z,
-            "ori": ori
-        };
-        
-        const command = {
-            command_id: Date.now(),
-            skill: document.getElementById('skill').value,
-            object: document.getElementById('object').value,
-            robot_id: robot_id, // Now this will be a number, not a string
-            target: target, // Using target_location instead of target to match your JSON example
-            pid: currentPid
-        };
-        
-        sendRequest('/run_real_robot', command);
-    }
-
-    function startCameraFeed() {
-        const eventSource = new EventSource('http://127.0.0.1:5000/start_camera_feed');
-
-        eventSource.onmessage = function(event) {
-            const imageElement = document.getElementById('camera-feed');
-            // Prepend the proper data URL header for a JPEG image
-            imageElement.src = "data:image/jpeg;base64," + event.data;
-        };
-
-        eventSource.onerror = function(error) {
-            console.error("Error receiving camera feed:", error);
-            eventSource.close();
-        };
+        sendRequest('/run_target_task', command);
     }
 
     function sendRequest(endpoint, command, callback) {
@@ -479,7 +343,84 @@
         });
     }
 
+    // Camera streaming using Server-sent Events
+    document.addEventListener('DOMContentLoaded', function() {
+        const cameraFeed = document.getElementById('camera-feed');
+        const connectBtn = document.getElementById('connect-camera-btn');
+        const disconnectBtn = document.getElementById('disconnect-camera-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        let eventSource = null;
+        let isConnected = false;
 
+        // Connect to the server's SSE endpoint
+        function connectCamera() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            eventSource = new EventSource('/stream');
+            
+            // Setup event listeners
+            eventSource.onopen = function() {
+                isConnected = true;
+                updateConnectionStatus();
+            };
+            
+            eventSource.onmessage = function(event) {
+                if (event.data === 'connected') {
+                    isConnected = true;
+                    updateConnectionStatus();
+                } else {
+                    // Assume the data is a base64 encoded image
+                    cameraFeed.src = 'data:image/jpeg;base64,' + event.data;
+                }
+            };
+            
+            eventSource.onerror = function() {
+                isConnected = false;
+                updateConnectionStatus();
+                eventSource.close();
+                eventSource = null;
+            };
+        }
+        
+        // Disconnect from the server
+        function disconnectCamera() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            isConnected = false;
+            updateConnectionStatus();
+        }
+
+        // Connect button click handler
+        connectBtn.addEventListener('click', function() {
+            connectCamera();
+        });
+
+        // Disconnect button click handler
+        disconnectBtn.addEventListener('click', function() {
+            disconnectCamera();
+        });
+
+        // Update connection status UI
+        function updateConnectionStatus() {
+            if (isConnected) {
+                connectionStatus.style.backgroundColor = '#d4edda';
+                connectionStatus.style.color = '#155724';
+                connectionStatus.textContent = 'Camera Status: Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                connectionStatus.style.backgroundColor = '#f8d7da';
+                connectionStatus.style.color = '#721c24';
+                connectionStatus.textContent = 'Camera Status: Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+    });
 </script>
 
 </body>
