@@ -102,7 +102,7 @@
                 <option value="PickAndPlace">PickAndPlace</option>
                 <option value="PickAndPlaceWithSupport">PickAndPlaceWithSupport</option>
                 <option value="PickHandoverAndPlace">PickHandoverAndPlace</option>
-                <option value="PickAndPlaceRealRobot">PickAndPlaceRealRobot</option>
+                <option value="Align">Align</option>
             </select>
 
             <label for="object">Choose Object:</label>
@@ -177,8 +177,8 @@
                     <h3>New Skill Name</h3>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="text" id="new-skill-name" placeholder="Enter new skill name" style="flex: 1;">
-                        <button onclick="addNewSkill()" style="flex: 1;">Add Skill</button>
                         <button onclick="showNewSkill()" style="flex: 1;">Show Skill</button>
+                        <button onclick="addNewSkill()" style="flex: 1;">Add Skill</button>
                     </div>
                 </div>
             </div>
@@ -252,7 +252,7 @@
         });
     }
 
-    function showNewSkill(){
+    function showNewSkill() {
         const file = document.getElementById('skill-sequence-file').files[0];
         if (!file) {
             alert('Please select a file to upload.');
@@ -269,28 +269,37 @@
         reader.onload = function(event) {
             const data = JSON.parse(event.target.result);
             let formattedOutput = `<b>MetaSkill:</b> ${newSkillName}<br>`;
+            let numRobot = [];
+            atomicSkills = [];
+            let mainRobot = [];
 
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
                     const entry = data[key];
-                    formattedOutput += `
-                        <b>${key}:</b> {
-                            "x": ${entry["target-x"]},
-                            "y": ${entry["target-y"]},
-                            "z": ${entry["target-z"]},
-                            "object": ${entry["object"]},
-                            "ori": ${entry["ori"]},
-                            "skill": ${entry["skill"]}
-                        }<br>`;
+                    atomicSkills.push(entry["skill"]);
+                    mainRobot.push(entry["robot-id"]);
+                    numRobot.push(entry["NumRobot"]);
                 }
             }
 
-        // Display formatted output in skill-output
-        document.getElementById('skill-output').innerHTML = formattedOutput;
-        }
+            formattedOutput += `<b>NumRobot:</b> ${numRobot.join(', ')}<br>`;
+            formattedOutput += `<b>AtomicSkills:</b> [${atomicSkills.join(', ')}]<br>`;
+            formattedOutput += `<b>MainRobot:</b> [${mainRobot.join(', ')}]<br>`;
+
+            // Display formatted output in skill-output
+            document.getElementById('skill-output').innerHTML = formattedOutput;
+        };
+
+        reader.readAsText(file);
     }
 
     function addNewSkill() {
+        const file = document.getElementById('skill-sequence-file').files[0];
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
         const newSkillName = document.getElementById('new-skill-name').value;
         if (!newSkillName) {
             alert('Please enter a name for the new skill.');
@@ -298,8 +307,8 @@
         }
 
         const newSkill = {
-            name: newSkillName,
-            sequence: metaSkillSequence
+            skill_name: newSkillName,
+            skill_sequence: atomicSkills
         };
 
         // Log the new skill for debugging
@@ -317,7 +326,6 @@
             option.value = newSkillName;
             option.textContent = newSkillName;
             skillDropdown.appendChild(option);
-            alert(`New skill "${newSkillName} Added Successfully!"`);
         });
     }
 

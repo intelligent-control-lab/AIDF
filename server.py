@@ -7,13 +7,13 @@ import os
 import signal
 import time
 
-import rospy
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
-import cv2
-import numpy as np
-import threading
-import base64
+# import rospy
+# from sensor_msgs.msg import Image
+# from cv_bridge import CvBridge, CvBridgeError
+# import cv2
+# import numpy as np
+# import threading
+# import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -51,92 +51,92 @@ def check_simulation_log(command_id):
     return False
 
 
-# Function to convert ROS Image message to OpenCV image
-bridge = CvBridge()
-latest_image = None
-image_lock = threading.Lock()  # Add thread safety for image access
-ros_initialized = False
-moveit_process = None
-task_planning_process = None
+# # Function to convert ROS Image message to OpenCV image
+# bridge = CvBridge()
+# latest_image = None
+# image_lock = threading.Lock()  # Add thread safety for image access
+# ros_initialized = False
+# moveit_process = None
+# task_planning_process = None
 
-def vis_frame_callback(msg):
-    """
-    Callback function for processing image messages from the /vis_frame topic
-    """
-    print(f"Received image from /vis_frame callback")
-    global latest_image
-    try:
-        # Convert ROS Image message to OpenCV image
-        cv_image = CvBridge().imgmsg_to_cv2(msg, "bgr8")
-        with image_lock:
-            latest_image = cv_image
-        logging.info("Received new image from /vis_frame")
-        print('Received new image from /vis_frame')
-    except CvBridgeError as e:
-        print(f"CV Bridge error: {str(e)}")
-        logging.error(f"CV Bridge error: {str(e)}")
+# def vis_frame_callback(msg):
+#     """
+#     Callback function for processing image messages from the /vis_frame topic
+#     """
+#     print(f"Received image from /vis_frame callback")
+#     global latest_image
+#     try:
+#         # Convert ROS Image message to OpenCV image
+#         cv_image = CvBridge().imgmsg_to_cv2(msg, "bgr8")
+#         with image_lock:
+#             latest_image = cv_image
+#         logging.info("Received new image from /vis_frame")
+#         print('Received new image from /vis_frame')
+#     except CvBridgeError as e:
+#         print(f"CV Bridge error: {str(e)}")
+#         logging.error(f"CV Bridge error: {str(e)}")
 
-def ros_spin_thread():
-    """
-    Thread function that runs the ROS spin loop
-    """
-    print("Starting ROS spin loop")
-    rate = rospy.Rate(10)
-    # while not rospy.is_shutdown():
-    rospy.spin()
-    #     time.sleep(0.01)
-    #     rate.sleep()
+# def ros_spin_thread():
+#     """
+#     Thread function that runs the ROS spin loop
+#     """
+#     print("Starting ROS spin loop")
+#     rate = rospy.Rate(10)
+#     # while not rospy.is_shutdown():
+#     rospy.spin()
+#     #     time.sleep(0.01)
+#     #     rate.sleep()
 
 
-# Initialize ROS node if it's not already initialized
-def init_ros():
-    global ros_initialized
-    if not ros_initialized:
-        try:
-            # Initialize ROS node without a node name to avoid conflicts
-            # with other nodes if roscore is already running
-            rospy.init_node('flask_server', anonymous=True, disable_signals=True)
+# # Initialize ROS node if it's not already initialized
+# def init_ros():
+#     global ros_initialized
+#     if not ros_initialized:
+#         try:
+#             # Initialize ROS node without a node name to avoid conflicts
+#             # with other nodes if roscore is already running
+#             rospy.init_node('flask_server', anonymous=True, disable_signals=True)
             
-            # Check ROS master connection
-            if not rospy.is_shutdown():
-                print("Successfully connected to ROS master")
-            else:
-                print("Failed to connect to ROS master")
-                return False
+#             # Check ROS master connection
+#             if not rospy.is_shutdown():
+#                 print("Successfully connected to ROS master")
+#             else:
+#                 print("Failed to connect to ROS master")
+#                 return False
             
-            # Check if our target topic exists
-            vis_frame_exists = any(topic[0] == '/vis_frame' for topic in rospy.get_published_topics())
-            print(f"'/vis_frame' topic exists: {vis_frame_exists}")
-            print('checked')
+#             # Check if our target topic exists
+#             vis_frame_exists = any(topic[0] == '/vis_frame' for topic in rospy.get_published_topics())
+#             print(f"'/vis_frame' topic exists: {vis_frame_exists}")
+#             print('checked')
             
-            # Subscribe to image topic
-            rospy.Subscriber('/vis_frame', Image, vis_frame_callback)
-            print('checked')
+#             # Subscribe to image topic
+#             rospy.Subscriber('/vis_frame', Image, vis_frame_callback)
+#             print('checked')
 
             
-            # Add a diagnostic timer to periodically check if we're receiving images
-            def check_image_reception():
-                global latest_image
-                with image_lock:
-                    has_image = latest_image is not None
-                logging.info(f"Image reception check - Have we received an image? {has_image}")
+#             # Add a diagnostic timer to periodically check if we're receiving images
+#             def check_image_reception():
+#                 global latest_image
+#                 with image_lock:
+#                     has_image = latest_image is not None
+#                 logging.info(f"Image reception check - Have we received an image? {has_image}")
                 
-                        # Start the ROS spin thread to process callbacks
-            spin_thread = threading.Thread(target=ros_spin_thread)
-            spin_thread.daemon = True  # Allow the thread to exit when main program exits
-            spin_thread.start()
-            logging.info("Started ROS spin thread")
+#                         # Start the ROS spin thread to process callbacks
+#             spin_thread = threading.Thread(target=ros_spin_thread)
+#             spin_thread.daemon = True  # Allow the thread to exit when main program exits
+#             spin_thread.start()
+#             logging.info("Started ROS spin thread")
                 
-            rospy.Timer(rospy.Duration(15), lambda event: check_image_reception())
+#             rospy.Timer(rospy.Duration(15), lambda event: check_image_reception())
             
-            print("ROS node initialized and subscribed to /vis_frame")
-            ros_initialized = True
-        except Exception as e:
-            logging.error(f"Failed to initialize ROS: {str(e)}")
-            return False
-    else:
-        print('ROS node already initialized')
-    return True
+#             print("ROS node initialized and subscribed to /vis_frame")
+#             ros_initialized = True
+#         except Exception as e:
+#             logging.error(f"Failed to initialize ROS: {str(e)}")
+#             return False
+#     else:
+#         print('ROS node already initialized')
+#     return True
 
     
 @app.route('/start_simulator', methods=['POST'])
@@ -192,10 +192,10 @@ def start_simulator():
 
 @app.route('/run_simulation', methods=['POST'])
 def run_simulation():
-    # Initialize ROS connection
-    global ros_initialized
-    if not ros_initialized:
-        init_ros()
+    # # Initialize ROS connection
+    # global ros_initialized
+    # if not ros_initialized:
+    #     init_ros()
 
     global simulation_process
 
@@ -234,7 +234,7 @@ def run_simulation():
                 "output": check_simulation_log_result
             }), 400
             
-        if skill == "PickAndPlaceRealRobot":
+        if skill == "Align":
             # TODO: Chaitanya - incorporate the folllowing command into the skill graph
             log_file = open("moveit.log", "w")
             command = f'exec bash -i -c "exec roslaunch yk_launch moveit.launch namespace:=yk_destroyer"'
@@ -321,6 +321,18 @@ def run_real_robot():
             "output": "Failed to run real robot demo!"
             }), 500
 
+@app.route('/add_skill', methods=['POST'])
+def add_skill():
+    logging.info("Adding skill...")
+    data = request.json
+    skill_name = data.get("skill_name")
+    skill_sequence = data.get("skill_sequence")
+
+    return jsonify({
+            "status": 0,
+            "output": f"Skill {skill_name} added successfully!",
+        }), 200
+
 @app.route('/stop_simulation', methods=['POST'])
 def stop_simulation():
     global simulation_process
@@ -353,58 +365,58 @@ def stop_simulation():
 default_image = None
 
 # Add a streaming endpoint using Server-sent Events
-@app.route('/start_camera_feed')
-def start_camera_feed():
-    global ros_initialized
-    if not ros_initialized:
-        init_ros()
+# @app.route('/start_camera_feed')
+# def start_camera_feed():
+#     global ros_initialized
+#     if not ros_initialized:
+#         init_ros()
 
-    logging.info("Starting camera feed...")
-    def generate():
-        logging.info("Generating camera feed...")
-        global default_image
+#     logging.info("Starting camera feed...")
+#     def generate():
+#         logging.info("Generating camera feed...")
+#         global default_image
         
-        # Load default image if not already loaded
-        if default_image is None:
-            try:
-                default_image_path = os.path.join('static', 'images', 'default_camera.jpg')
-                if os.path.exists(default_image_path):
-                    default_image = cv2.imread(default_image_path)
-                else:
-                    logging.warning(f"Default image not found at {default_image_path}")
-                    # Create a simple black image with text as fallback
-                    default_image = np.zeros((480, 640, 3), dtype=np.uint8)
-                    cv2.putText(default_image, "No camera feed available", (50, 240), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            except Exception as e:
-                logging.error(f"Error loading default image: {str(e)}")
-                default_image = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(default_image, "Error loading camera feed", (50, 240), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+#         # Load default image if not already loaded
+#         if default_image is None:
+#             try:
+#                 default_image_path = os.path.join('static', 'images', 'default_camera.jpg')
+#                 if os.path.exists(default_image_path):
+#                     default_image = cv2.imread(default_image_path)
+#                 else:
+#                     logging.warning(f"Default image not found at {default_image_path}")
+#                     # Create a simple black image with text as fallback
+#                     default_image = np.zeros((480, 640, 3), dtype=np.uint8)
+#                     cv2.putText(default_image, "No camera feed available", (50, 240), 
+#                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+#             except Exception as e:
+#                 logging.error(f"Error loading default image: {str(e)}")
+#                 default_image = np.zeros((480, 640, 3), dtype=np.uint8)
+#                 cv2.putText(default_image, "Error loading camera feed", (50, 240), 
+#                             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
-        yield "data: connected\n\n"  # Initial connection message
-        while True:
-            global latest_image
-            image_to_send = None
+#         yield "data: connected\n\n"  # Initial connection message
+#         while True:
+#             global latest_image
+#             image_to_send = None
             
-            if latest_image is not None:
-                with image_lock:
-                    image_to_send = latest_image.copy()
-                print('Sending latest image')
-            else:
-                # print('No latest image available')
-                # Use default image if latest_image is None
-                image_to_send = default_image
-                print("Using default image")
+#             if latest_image is not None:
+#                 with image_lock:
+#                     image_to_send = latest_image.copy()
+#                 print('Sending latest image')
+#             else:
+#                 # print('No latest image available')
+#                 # Use default image if latest_image is None
+#                 image_to_send = default_image
+#                 print("Using default image")
             
-            # Convert image to base64
-            _, buffer = cv2.imencode('.jpg', image_to_send, [cv2.IMWRITE_JPEG_QUALITY, 80])
-            img_str = base64.b64encode(buffer).decode('utf-8')
+#             # Convert image to base64
+#             _, buffer = cv2.imencode('.jpg', image_to_send, [cv2.IMWRITE_JPEG_QUALITY, 80])
+#             img_str = base64.b64encode(buffer).decode('utf-8')
             
-            yield f"data: {img_str}\n\n"
-            time.sleep(0.1)  # 10 FPS
+#             yield f"data: {img_str}\n\n"
+#             time.sleep(0.1)  # 10 FPS
     
-    return Response(generate(), mimetype="text/event-stream")
+#     return Response(generate(), mimetype="text/event-stream")
 
 if __name__ == '__main__':
     try:
@@ -418,9 +430,9 @@ if __name__ == '__main__':
         streaming_active = False
         if simulation_process:
             simulation_process.kill()
-        if moveit_process:
-            moveit_process.kill()
-        if task_planning_process:
-            task_planning_process.kill()
+        # if moveit_process:
+        #     moveit_process.kill()
+        # if task_planning_process:
+        #     task_planning_process.kill()
         
         logging.info("Server shut down successfully")
