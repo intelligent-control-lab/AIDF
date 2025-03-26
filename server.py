@@ -282,21 +282,23 @@ def run_real_robot():
     skill = data.get("skill")
     target = data.get("target")
 
-    input_file = './processed_cliff_meta_skills.json'
-    result = check_target(input_file, robot_id, obj, skill, target)
-    if result == "9" or result == "10" or result == "11":
-        num = result
-    else:
-        logging.error(f"Error found in log: error: not feasible {result}")
-        return jsonify({
-            "status": -1,
-            "output": "error: not feasible, reason: target location is not feasible!"
-        }), 400
+    if skill != "base":
+        input_file = './processed_cliff_meta_skills.json'
+        result = check_target(input_file, robot_id, obj, skill, target)
+        if result == "9" or result == "10" or result == "11":
+            num = result
+        else:
+            logging.error(f"Error found in log: error: not feasible {result}")
+            return jsonify({
+                "status": -1,
+                "output": "error: not feasible, reason: target location is not feasible!"
+            }), 400
 
-    # send the ros command to the real robot
-    # command = f'exec bash -i -c "exec rosrun mr_planner gotostart.sh"'
-    command = f'exec bash -i -c "exec rosrun mr_planner gotostart.sh && exec roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}"'
-    # command = f'exec bash -i -c "exec roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
+        # send the ros command to the real robot
+        command = f'roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
+    else:
+        command = f'roslaunch ' # TODO
+
     logging.info(f"Executing command: {command}")
     
     try:
