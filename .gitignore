@@ -1,3 +1,7 @@
 html/
 latex/
 
+
+*.log
+
+Doxyfile

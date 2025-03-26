@@ -45,6 +45,15 @@
             font-family: monospace;
         }
 
+        .camera-container {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            height: 400px;
+            font-family: monospace;
+        }
+
         .section-title {
             font-weight: bold;
             margin-bottom: 5px;
@@ -112,8 +121,8 @@
 
             <label for="robot-id">Primary Robot:</label>
             <select id="robot-id">
-                <option value="0">Robot 1</option>
-                <option value="1">Robot 2</option>
+                <option value="0">Robot 1 (Destroyer)</option>
+                <option value="1">Robot 2 (Architect)</option>
             </select>
 
             <label for="target">Target Location:</label>
@@ -186,7 +195,7 @@
 
         <h2>Camera Feed</h2>
         <div id="Camera Feed">
-            <div class="json-box">
+            <div class="camera-container">
                 <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
                      alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
             </div>
@@ -207,8 +216,11 @@
 
     document.getElementById('skill').addEventListener('click', function () {
         const selectedSkill = this.value;
-        if (selectedSkill) {
+        if (selectedSkill!="base") {
             fetchSkillGraph(selectedSkill);
+        }
+        else {
+            showSkillBase();
         }
     });
 
@@ -252,6 +264,41 @@
         });
     }
 
+    function showSkillBase() {
+        const file = document.getElementById('skill-sequence-file').files[0];
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = JSON.parse(event.target.result);
+            let formattedOutput = `<b>MetaSkill:</b>base<br>`;
+            numRobot = [];
+            skillSequence = [];
+            mainRobot = [];
+
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    const entry = data[key];
+                    skillSequence.push(entry["skill"]);
+                    mainRobot.push(entry["robot-id"]);
+                    numRobot.push(entry["NumRobot"]);
+                }
+            }
+
+            formattedOutput += `<b>NumRobot:</b> ${numRobot.join(', ')}<br>`;
+            formattedOutput += `<b>Skill Sequence:</b> [${skillSequence.join(', ')}]<br>`;
+            formattedOutput += `<b>MainRobot:</b> [${mainRobot.join(', ')}]<br>`;
+
+            // Display formatted output in skill-output
+            document.getElementById('skill-output').innerHTML = formattedOutput;
+        };
+
+        reader.readAsText(file);
+    }
+
     function showNewSkill() {
         const file = document.getElementById('skill-sequence-file').files[0];
         if (!file) {
@@ -270,20 +317,20 @@
             const data = JSON.parse(event.target.result);
             let formattedOutput = `<b>MetaSkill:</b> ${newSkillName}<br>`;
             numRobot = [];
-            atomicSkills = [];
+            skillSequence = [];
             mainRobot = [];
 
             for (const key in data) {
                 if (data.hasOwnProperty(key)) {
                     const entry = data[key];
-                    atomicSkills.push(entry["skill"]);
+                    skillSequence.push(entry["skill"]);
                     mainRobot.push(entry["robot-id"]);
                     numRobot.push(entry["NumRobot"]);
                 }
             }
 
             formattedOutput += `<b>NumRobot:</b> ${numRobot.join(', ')}<br>`;
-            formattedOutput += `<b>AtomicSkills:</b> [${atomicSkills.join(', ')}]<br>`;
+            formattedOutput += `<b>Skill Sequence:</b> [${skillSequence.join(', ')}]<br>`;
             formattedOutput += `<b>MainRobot:</b> [${mainRobot.join(', ')}]<br>`;
 
             // Display formatted output in skill-output
@@ -309,7 +356,7 @@
         const newSkill = {
             skill_name: newSkillName,
             num_robot: numRobot,
-            atomic_skills: atomicSkills,
+            skill_sequence: skillSequence,
             robot_id: mainRobot
         };
 

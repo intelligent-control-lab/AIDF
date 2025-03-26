@@ -50,9 +50,9 @@ find_package(yk_tasks QUIET)
 add_service_files(
   FILES
   StabilityScore.srv
-  SetPose.srv
-  GetPose.srv
-  SetJoints.srv
+  # SetPose.srv
+  # GetPose.srv
+  # SetJoints.srv
 )
 
 generate_messages(
