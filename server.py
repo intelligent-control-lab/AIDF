@@ -274,7 +274,7 @@ def run_real_robot():
         # send the ros command to the real robot
         command = f'roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
     else:
-        command = f'roslaunch ' # TODO
+        command = f'roslaunch mr_planner mfi_lego.launch task:=base'
 
     logging.info(f"Executing command: {command}")
     

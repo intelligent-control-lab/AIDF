@@ -2,7 +2,6 @@ html/
 latex/
 
 
-**/real_robot.log
-**/simulation.log
-
 *.log
+
+Doxyfile

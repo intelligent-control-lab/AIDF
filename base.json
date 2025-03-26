@@ -1,0 +1,42 @@
+{
+    "1": {
+        "skill": "PickAndPlace",
+        "object": "b2_14",
+        "target-x": 23,
+        "target-y": 28,
+        "target-z": 1,
+        "ori": 0,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "2": {
+        "skill": "PickAndPlace",
+        "object": "b2_13",
+        "target-x": 25,
+        "target-y": 28,
+        "target-z": 1,
+        "ori": 0,
+        "robot-id": 1,
+        "NumRobot": 1
+    },
+    "3": {
+        "skill": "PickAndPlace",
+        "object": "b2_4",
+        "target-x": 23,
+        "target-y": 28,
+        "target-z": 2,
+        "ori": 1,
+        "robot-id": 0,
+        "NumRobot": 1
+    },
+    "4": {
+        "skill": "PickAndPlace",
+        "object": "b2_8",
+        "target-x": 23,
+        "target-y": 30,
+        "target-z": 2,
+        "ori": 1,
+        "robot-id": 1,
+        "NumRobot": 1
+    }
+}
