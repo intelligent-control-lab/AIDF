@@ -2,5 +2,7 @@ html/
 latex/
 
 
-*.log
+**/real_robot.log
+**/simulation.log
 
+*.log
