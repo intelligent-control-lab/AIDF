@@ -38,6 +38,8 @@ public:
     virtual bool setCollision(const std::string& obj_name, const std::string& link_name, bool allow) { throw std::runtime_error("Not implemented");};
     virtual void printKnownObjects() const { throw std::runtime_error("Not implemented");};
     virtual void setState(const State &state) {throw std::runtime_error("Not implemented");};
+    virtual void computeRelativeTransform(Object &obj, const RobotState &robot_state) {throw std::runtime_error("Not implemented");};
+    virtual void computeWorldTransform(Object &obj, const RobotState &robot_state) {throw std::runtime_error("Not implemented");};
     virtual int numCollisionChecks();
     // Additional methods for future functionalities can be added here
     virtual ~PlanInstance() = default;

@@ -67,6 +67,8 @@ public:
     virtual void resetScene(bool reset_sim) override;
     virtual void setPadding(double padding) override;
 
+    virtual void computeRelativeTransform(Object &obj, const RobotState &robot_state) override;
+    virtual void computeWorldTransform(Object &obj, const RobotState &robot_state) override;
     virtual bool setCollision(const std::string& obj_name, const std::string& link_name, bool allow) override;
     virtual void printKnownObjects() const override;
     virtual void setState(const State &state) override;

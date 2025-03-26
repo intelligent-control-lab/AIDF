@@ -215,7 +215,9 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                 // update the state of the object
                 if (obj->name == brick_name) {
                     obj->parent_link = robot_->end_effector_link;
+                    obj->robot_id = robot_->robot_id;
                     obj->state = Object::State::Attached;
+                    instance_->computeRelativeTransform(*obj, robot_goal_state);
                     std::dynamic_pointer_cast<LegoBrick>(obj)->in_storage = false;
                     break;
                 }
@@ -277,6 +279,18 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             std::vector<RobotState> handover_goals;
             calculateHandoverPoses(robot_->robot_id, handover_goals, receive_q);
             robot_goal_state = handover_goals[0];
+
+            // find the env state objects with the same name as current object
+            for (auto &obj : env_state.objects) {
+                // update the state of the object
+                if (obj->name == brick_name) {
+                    obj->parent_link = robot_->end_effector_link;
+                    obj->robot_id = robot_->robot_id;
+                    obj->state = Object::State::Attached;
+                    instance_->computeRelativeTransform(*obj, robot_goal_state);
+                    break;
+                }
+            }
         }
         if (meta_skill_type == "pickhandoverplace" && skill_seq == 7) {
             // go to pre place up pose
@@ -515,6 +529,17 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
     }
     else {
         throw std::runtime_error("Unknown skill type: " + std::to_string(int(type)));
+    }
+
+
+    // find the env state objects with the same name as current object
+    for (auto &obj : env_state.objects) {
+        // update the state of the object
+        if (obj->name == brick_name && obj->state == Object::State::Attached
+                && obj->robot_id == robot_goal_state.robot_id) {
+            instance_->computeWorldTransform(*obj, robot_goal_state);
+            break;
+        }
     }
 
     return true;

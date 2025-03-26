@@ -3,9 +3,9 @@
     "object": "none",
     "robot": 0,
     "target_location": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
+        "x": 24,
+        "y": 26,
+        "z": 9,
         "ori": 0
     },
     "command_id": 1742947193892
