@@ -224,8 +224,8 @@ def run_target_task():
         if skill == "PickAndPlaceRealRobot":
             # TODO: Chaitanya - incorporate the folllowing command into the skill graph
             log_file = open("moveit.log", "w")
-            command = f'exec bash -i -c "exec roslaunch yk_launch moveit.launch namespace:=yk_destroyer"'
-            moveit_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
+            # command = f'exec bash -i -c "exec roslaunch yk_launch moveit.launch namespace:=yk_destroyer"'
+            # moveit_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
             command = f'exec bash -i -c "exec roslaunch gp4_lego task_planning_chaitanya_node.launch namespace:=yk_destroyer"'
             task_planning_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
             

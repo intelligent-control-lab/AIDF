@@ -1,6 +1,0 @@
-#request
-sensor_msgs/JointState state #Goal target of End Effector
----
-
-#response
-sensor_msgs/JointState state

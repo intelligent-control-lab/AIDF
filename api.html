@@ -45,6 +45,15 @@
             font-family: monospace;
         }
 
+        .camera-container {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            height: 400px;
+            font-family: monospace;
+        }
+
         .section-title {
             font-weight: bold;
             margin-bottom: 5px;
@@ -163,7 +172,7 @@
 
         <h2>Camera Feed</h2>
         <div id="Camera Feed">
-            <div class="json-box">
+            <div class="camera-container">
                 <img id="camera-feed" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" 
                      alt="Waiting for video feed..." style="max-width: 100%; border: 1px solid #ddd; margin-bottom: 10px;">
             </div>

@@ -210,8 +210,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "tower",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/tower.json",
+        "name": "none",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/none.json",
         "assemble": "true"
     }
 }

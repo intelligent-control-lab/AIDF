@@ -1,5 +1,5 @@
 {
-    "skill": "PlaceWithSupport",
+    "skill": "PickAndPlaceRealRobot",
     "object": "none",
     "robot": 0,
     "target_location": {
@@ -8,5 +8,5 @@
         "z": 0,
         "ori": 0
     },
-    "command_id": 1742680479850
+    "command_id": 1742947193892
 }
