@@ -74,6 +74,7 @@ void Logger::log(const std::string& message, LogLevel level) {
             // Do nothing
             break;
     }
+    tmp_msg = message;
 }
 
 void Logger::log(const skillgraph::RobotState& pose, LogLevel level) {
@@ -102,6 +103,11 @@ void Logger::log(const skillgraph::RobotTrajectory& traj, LogLevel level) {
         message += "\n";
     }
     log(message, level);
+}
+
+void Logger::getLog(std::string& msg) {
+    std::lock_guard<std::mutex> lock(mtx);
+    msg = tmp_msg;
 }
 
 Logger::Logger() : method(LogMethod::COUT), logLevel(LogLevel::INFO) {}
@@ -177,4 +183,8 @@ void logProgressFileAppend(const std::string &filename, const std::string &start
         ofs << start_pose << "," << goal_pose << ",," << makespan_pre << ",," << makespan_post << "," << plan_time << ",,,,,,,,,,,,,,,,,,,," << std::endl;
         ofs.close();
     }
+}
+
+void getPastLog(std::string& msg) {
+    Logger::getInstance().getLog(msg);
 }

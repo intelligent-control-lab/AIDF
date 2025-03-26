@@ -1041,6 +1041,7 @@ bool MoveitControl::move(TaskParamPtr post_condition) {
         instance_->updateScene();
         return true;
     }
+    return true;
 
 }
 

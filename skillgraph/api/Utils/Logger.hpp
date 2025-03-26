@@ -39,6 +39,7 @@ public:
     void log(const std::string& message, LogLevel level);
     void log(const skillgraph::RobotState& pose, LogLevel level);
     void log(const skillgraph::RobotTrajectory& traj, LogLevel level);
+    void getLog(std::string& msg);
 
 private:
     LogMethod method;
@@ -47,6 +48,7 @@ private:
 
     std::ofstream fileStream;
     std::mutex mtx; // For thread safety
+    std::string tmp_msg;
 
     // Private constructor for singleton
     Logger();
@@ -76,3 +78,5 @@ void logProgressFileAppend(const std::string &filename, const std::string& task,
 void logProgressFileAppend(const std::string &filename, const std::string &start_pose, const std::string& goal_pose, double makespan_pre, double makespan_post);
 
 void logProgressFileAppend(const std::string &filename, const std::string &start_pose, const std::string& goal_pose, double plan_time, double makespan_pre, double makespan_post);
+
+void getPastLog(std::string& msg);

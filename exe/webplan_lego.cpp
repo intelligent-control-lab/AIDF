@@ -170,10 +170,14 @@ int main(int argc, char* argv[]) {
                 // Execute the skill
                 success = skill->executor->execute(state);
                 if (!success) {
-                    std::cerr << "error: execute skill failled, id: " << web_json["command_id"].asUInt64() << std::endl;
+                    std::string msg;
+                    getPastLog(msg);
+                    std::cerr << "error: not feasible, id: " << web_json["command_id"].asUInt64() << ", reason: " << "execution failed" << std::endl;
                 }
             } else {
-                std::cerr << "error: not feasible, id: " << web_json["command_id"].asUInt64() << std::endl;
+                std::string msg;
+                getPastLog(msg);
+                std::cerr << "error: not feasible, id: " << web_json["command_id"].asUInt64() << ", reason: " << msg << std::endl;
             }
 
         };

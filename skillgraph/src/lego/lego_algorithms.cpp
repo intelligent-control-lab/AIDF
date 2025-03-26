@@ -99,6 +99,8 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
 bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
          State &goal_state) {
     
+    log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
+        + std::to_string(robot_->robot_id), LogLevel::INFO);
     RobotState &robot_goal_state = goal_state.robot_states[robot_->robot_id];
     EnvState &env_state = goal_state.env_state;
     robot_goal_state = instance_->initRobotState(robot_->robot_id);
@@ -280,17 +282,6 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             calculateHandoverPoses(robot_->robot_id, handover_goals, receive_q);
             robot_goal_state = handover_goals[0];
 
-            // find the env state objects with the same name as current object
-            for (auto &obj : env_state.objects) {
-                // update the state of the object
-                if (obj->name == brick_name) {
-                    obj->parent_link = robot_->end_effector_link;
-                    obj->robot_id = robot_->robot_id;
-                    obj->state = Object::State::Attached;
-                    instance_->computeRelativeTransform(*obj, robot_goal_state);
-                    break;
-                }
-            }
         }
         if (meta_skill_type == "pickhandoverplace" && skill_seq == 7) {
             // go to pre place up pose
@@ -522,6 +513,18 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         std::vector<RobotState> handover_goals;
         calculateHandoverPoses(robot_->robot_id, handover_goals, receive_q);
         robot_goal_state = handover_goals[2];
+
+        // find the env state objects with the same name as current object
+        for (auto &obj : env_state.objects) {
+            // update the state of the object
+            if (obj->name == brick_name) {
+                obj->parent_link = robot_->end_effector_link;
+                obj->robot_id = robot_->robot_id;
+                obj->state = Object::State::Attached;
+                instance_->computeRelativeTransform(*obj, robot_goal_state);
+                break;
+            }
+        }
     }
     else if (type == Skill::Type::PlaceWithSupport || type == Skill::Type::PickAndPlace 
         || type == Skill::Type::PickAndPlaceWithSupport || type == Skill::Type::PickHandoverAndPlace) {
