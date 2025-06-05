@@ -79,6 +79,11 @@ namespace skillgraph {
 
     class MetaSkill : public Skill {
     public:
+        enum ComposeType {
+            Temporal = 1, // sequential execution
+            Functional = 2, // parallel execution
+            Spatial = 3 // spatial execution
+        };
         /*
         Class definition of MetaSkill, which contains a collection of atomic skills
         */
@@ -94,7 +99,9 @@ namespace skillgraph {
         bool set_object(ObjPtr obj);
         // Set executor;
         bool set_executor(std::shared_ptr<MetaSkillExecutor> executor);
-        
+
+        //set the composition type
+        bool set_compose_type(const std::string &type);
 
         std::vector<Skill::Type> get_atomic_skill_types();
 
@@ -118,6 +125,7 @@ namespace skillgraph {
         std::vector<AtomicSkillPtr> atomic_skills;
         std::vector<RobotPtr> robots;
         std::vector<ObjPtr> objects;
+        ComposeType compose_type = Temporal; // default composition type
     };
     typedef std::shared_ptr<MetaSkill> MetaSkillPtr;
 
@@ -161,13 +169,16 @@ namespace skillgraph {
         */
         public:
             MetaSkillExecutor() = default;
-            MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills);
+            MetaSkillExecutor(Skill::Type type, MetaSkill::ComposeType compose_type, const std::vector<AtomicSkillPtr> &atomic_skills);
             
             virtual bool execute(State &current_state) override;
 
             void add_atomic_executor(std::shared_ptr<SkillExecutor> atomic_executor);
 
             std::vector<SkillExecutorPtr> atomic_executors;
+        
+        protected:
+            MetaSkill::ComposeType compose_type;
     };
     typedef std::shared_ptr<MetaSkillExecutor> MetaSkillExecutorPtr;
     

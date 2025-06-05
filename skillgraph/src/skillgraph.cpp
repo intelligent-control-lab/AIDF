@@ -23,8 +23,8 @@ void SkillGraph::parse_skills(const Json::Value &root) {
 
                 // parse parameters
                 const Json::Value& skill_config = robot_skills[skill_name];
-                if (skill_config.isMember("param")) {
-                    skill->set_param(skill_config["param"]);
+                if (skill_config.isMember("default_params")) {
+                    skill->set_param(skill_config["default_params"]);
                 }
             }
 
@@ -63,6 +63,8 @@ void SkillGraph::parse_skills(const Json::Value &root) {
                     robot_ids.push_back(id.asInt());
                 }
                 auto meta_skill = std::make_shared<MetaSkill>(meta_skill_name, atomic_skills, num_robot, robot_ids);
+                std::string type = meta_skill_config["type"];
+                meta_skill->set_compose_type(type);
 
                 
                 skill_map_[meta_skill->type] = meta_skill;

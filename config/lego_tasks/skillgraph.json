@@ -78,40 +78,40 @@
     "skills": {
         "gp4": {
             "Transit": {
-                "params": {
+                "default_params": {
                     "speed": 1.0
                 }
             },
             "Pick": {
-                "params": {
+                "default_params": {
                     "twist_deg": 15,
                     "force_threshold": 5
                 }
             },
             "Place-Down": {
-                "params": {
+                "default_params": {
                     "twist_deg": 15,
                     "force_threshold": 5
                 }
             },
             "Place-Up": {
-                "params": {
+                "default_params": {
                     "twist_deg": 15,
                     "force_threshold": 5
                 }
             },
             "Support-Top": {
-                "params": {
+                "default_params": {
                     "force_threshold": 5
                 }
             },
             "Support-Bottom": {
-                "params": {
+                "default_params": {
                     "force_threshold": 5
                 }
             },
             "Handover": {
-                "params": {
+                "default_params": {
                     "twist_deg": 18,
                     "force_threshold": 5
                 }

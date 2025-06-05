@@ -323,7 +323,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         gs->set_robot({robots[ri], robots[sup_ri]});
                     }
                     gs->set_object(obj);
-                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+                    auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, MetaSkill::ComposeType::Temporal, gs->atomic_skills);
                     gs->set_executor(meta_executor);
 
                     // set the task parameters

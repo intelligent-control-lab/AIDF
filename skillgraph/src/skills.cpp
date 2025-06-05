@@ -114,13 +114,27 @@ bool MetaSkill::set_executor(std::shared_ptr<MetaSkillExecutor> executor) {
     return true;
 }
 
+bool MetaSkill::set_compose_type(const std::string &type) {
+    if (type == "temporal") {
+        compose_type = Temporal;
+    } else if (type == "functional") {
+        compose_type = Functional;
+    } else if (type == "spatial") {
+        compose_type = Spatial;
+    } else {
+        log("Invalid composition type: " + type, LogLevel::ERROR);
+        return false;
+    }
+    return true;
+}
+
 
 SkillExecutor::SkillExecutor(Skill::Type type) {
     // To be implemented
 }
 
-MetaSkillExecutor::MetaSkillExecutor(Skill::Type type, const std::vector<AtomicSkillPtr> &atomic_skills){
-
+MetaSkillExecutor::MetaSkillExecutor(Skill::Type type, MetaSkill::ComposeType compose_type, const std::vector<AtomicSkillPtr> &atomic_skills){
+    this->compose_type = compose_type;
 }
 
 void MetaSkillExecutor::add_atomic_executor(std::shared_ptr<SkillExecutor> atomic_executor) {
@@ -128,10 +142,30 @@ void MetaSkillExecutor::add_atomic_executor(std::shared_ptr<SkillExecutor> atomi
 }
 
 bool MetaSkillExecutor::execute(State &current_state) {
-    for (const auto &atomic_executor : atomic_executors) {
-        if (!atomic_executor->execute(current_state)) {
-            log("Failed to execute atomic skill", LogLevel::ERROR);
-            return false;
+    if (compose_type == MetaSkill::ComposeType::Temporal) {
+        for (const auto &atomic_executor : atomic_executors) {
+            if (!atomic_executor->execute(current_state)) {
+                log("Failed to execute atomic skill", LogLevel::ERROR);
+                return false;
+            }
+        }
+    }
+    else if (compose_type == MetaSkill::ComposeType::Functional) {
+        
+    }
+    else if (compose_type == MetaSkill::ComposeType::Spatial) {
+        // execute all the skills concurrently
+        std::vector<std::future<bool>> futures;
+        for (const auto &atomic_executor : atomic_executors) {
+            futures.push_back(std::async(std::launch::async, [atomic_executor, &current_state]() {
+                return atomic_executor->execute(current_state);
+            }));
+        }
+        for (auto &future : futures) {
+            if (!future.get()) {
+                log("Failed to execute atomic skill in spatial composition", LogLevel::ERROR);
+                return false;
+            }
         }
     }
     return true;
