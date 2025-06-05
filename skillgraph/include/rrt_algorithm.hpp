@@ -27,8 +27,8 @@ class RRTConnect : public PlanningAlgorithm {
         RRTConnect(robot_model::RobotModelPtr robot_model,
                    std::shared_ptr<skillgraph::PlanInstance> instance);
         
-        virtual bool plan(const skillgraph::RobotState &start, const skillgraph::RobotState &goal,
-                          skillgraph::MRTrajectory &traj);
+        virtual bool plan(const skillgraph::State &start, const skillgraph::State &goal,
+                          skillgraph::RobotTrajectory &traj);
     private:
         robot_model::RobotModelPtr robot_model_;
         std::shared_ptr<skillgraph::PlanInstance> instance_;

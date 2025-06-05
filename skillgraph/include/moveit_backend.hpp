@@ -101,7 +101,7 @@ class MoveitControl : public ControlAlgorithm {
 public: 
     MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move);
 
-    bool move(TaskParamPtr post_condition);
+    bool move(TaskParamPtr post_condition, const RobotTrajectory &trajectory);
 
 private:
     std::shared_ptr<MoveitInstance> instance_;

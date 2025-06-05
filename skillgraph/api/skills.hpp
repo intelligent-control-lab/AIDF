@@ -145,10 +145,13 @@ namespace skillgraph {
             // set the same post conditions for meta skill and all atomic skills
             void set_post_condition(TaskParamPtr post_condition);
 
+            virtual void set_planned_trajectory(const RobotTrajectory &planned_trajectory);
+
             // properties
             TaskParamPtr pre_condition;
             TaskParamPtr post_condition;
             Skill::Type skill_type; // corresponding skill
+            RobotTrajectory planned_trajectory_;
     };
     typedef std::shared_ptr<SkillExecutor> SkillExecutorPtr;
 

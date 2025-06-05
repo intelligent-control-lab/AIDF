@@ -1035,12 +1035,20 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 
 }
 
-bool MoveitControl::move(TaskParamPtr post_condition) {
+bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
     if (fake_move_) {
         instance_->setState(post_condition->target_state);
         instance_->updateScene();
         return true;
     }
+
+    // check if the trajectory is valid
+    if (trajectory.trajectory.empty()) {
+        log("Trajectory is empty", LogLevel::ERROR);
+        return false;
+    }
+    
+
     return true;
 
 }

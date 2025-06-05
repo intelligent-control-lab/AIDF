@@ -18,7 +18,7 @@ bool LegoSkillExecutor::execute(State &current_state) {
         return false;
     }
 
-    bool success = controller_->move(post_condition);
+    bool success = controller_->move(post_condition, planned_trajectory_);
     current_state.robot_states = post_condition->target_state.robot_states;
     current_state.env_state = post_condition->target_state.env_state;
     // sleep for 1 second

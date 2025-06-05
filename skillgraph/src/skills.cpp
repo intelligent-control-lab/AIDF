@@ -156,4 +156,8 @@ void SkillExecutor::set_post_condition(TaskParamPtr post_condition) {
     this->post_condition = std::make_shared<TaskParam>(*post_condition);
 }
 
+void SkillExecutor::set_planned_trajectory(const RobotTrajectory &planned_trajectory) {
+    this->planned_trajectory_ = planned_trajectory;
+}
+
 }

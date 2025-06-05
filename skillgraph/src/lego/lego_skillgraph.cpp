@@ -344,6 +344,13 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         atomic_executor->set_post_condition(task->post_condition);
                         meta_executor->add_atomic_executor(atomic_executor);
 
+                        if (atomic_skill->type == Skill::Type::Handover) {
+                            // add handover constraints
+                            if (atomic_skill->param.isMember("receive_q")) {
+                                task->post_condition->constraints_json["receive_q"] = atomic_skill->param["receive_q"];
+                            }
+                        }
+
                         //log("Generating grasp pose for atomic skill " + std::to_string(i) + " " + atomic_skill->to_string(), LogLevel::INFO);
                         // generate the grasp pose
                         TaskParamPtr task_param = atomic_executor->post_condition;
@@ -354,6 +361,16 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                             skill_feasible = false;
                             break;
                         }
+
+                        RobotTrajectory robot_traj;
+                        if (atomic_skill->type == Skill::Type::Transit) {
+
+                        }
+                        else {
+                            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
+                            planner->plan_skill(end_state_i, *task_param, atomic_skill->type, robot_traj);
+                        }
+                        atomic_executor->set_planned_trajectory(robot_traj);
                         end_state_i = task_param->target_state;
                     }
                     

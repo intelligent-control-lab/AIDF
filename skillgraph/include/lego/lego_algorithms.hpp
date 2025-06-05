@@ -62,24 +62,41 @@ class LegoPlan : public PlanningAlgorithm {
 public:
     LegoPlan(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
                     std::shared_ptr<skillgraph::PlanInstance> instance,
-                    const LegoPolicyCfg &config);
+                    const LegoPolicyCfg &config,
+                    RobotPtr robot, 
+                    ObjPtr object);
+
+    virtual bool plan_skill(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, Skill::Type type, skillgraph::RobotTrajectory &traj);
     
-    virtual bool plan_pick(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_pick(const skillgraph::State &current_state,const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
-    virtual bool plan_place(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_placedown(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
-    virtual bool plan_support(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_placeup(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
-    virtual bool plan_pressdown(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_support(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
-    virtual bool plan_align(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_pressdown(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
-    virtual bool plan_transfer(const skillgraph::TaskParam &task_param, skillgraph::MRTrajectory &traj);
+    virtual bool plan_handover(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
+
 
 protected:
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
     std::shared_ptr<skillgraph::PlanInstance> instance_;
     LegoPolicyCfg config_;
+
+    RobotPtr robot_;
+    ObjPtr object_;
+
+    //helper functions
+    void calculateIKforLegoPlan(const Eigen::MatrixXd& T_target_pose, const Eigen::MatrixXd & seed_q_deg, 
+                                 int robot_id, int fk_type_for_ik, bool check_collision, 
+                                 lego_manipulation::math::VectorJd &joint_q_deg_out, 
+                                 RobotState &robot_state_rad_out, bool &IK_status_out);
+
+    void interpolate_segment(const RobotState& start_pose_rad, const RobotState& end_pose_rad, 
+                               skillgraph::RobotTrajectory &traj);
 
 };
 
