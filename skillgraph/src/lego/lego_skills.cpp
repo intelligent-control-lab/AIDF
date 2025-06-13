@@ -28,6 +28,7 @@ bool LegoSkillExecutor::execute(State &current_state) {
     }
 
     if (skill_type == Skill::Type::TranslateWithRotation) {
+#ifdef HAVE_YK_TASKS
         // Use actionlib for TranslateWithRotation skill
         yk_msgs::ExecuteCartesianTrajectory goal;
         std::vector<geometry_msgs::Pose> poses;
@@ -98,7 +99,8 @@ bool LegoSkillExecutor::execute(State &current_state) {
             return false;
         }
         log("YK action server finished successfully", LogLevel::INFO);
-        
+#endif // HAVE_YK_TASKS
+
     } else {
         // Use MoveitControl for other skills
         bool success = controller_->move(post_condition, planned_trajectory_);

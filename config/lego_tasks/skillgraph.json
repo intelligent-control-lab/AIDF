@@ -113,7 +113,15 @@
             "Handover": {
                 "default_params": {
                     "twist_deg": 18,
-                    "force_threshold": 5
+                    "force_threshold": 5,
+                    "receive_q": [
+                        0.0,
+                        16.7789455793732,
+                        -37.9907697775332,
+                        0.0,
+                        54.7697153569065,
+                        180
+                    ]
                 }
             },
             "Translate": {

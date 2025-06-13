@@ -39,7 +39,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   actionlib
 
-  yk_msgs # For the yk robot and gp4-lego-assembly repo - 
   geometry_msgs
   cv_bridge
   image_transport

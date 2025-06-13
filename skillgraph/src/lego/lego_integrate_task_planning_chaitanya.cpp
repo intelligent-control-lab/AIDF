@@ -16,7 +16,9 @@
 // HEADER FILES FOR SERVICE INTERFACE WITH YK ROBOT
 // #include "geometry_msgs/Pose.h"
 // #include "gp4_lego/SetPose.h"
+#ifdef HAVE_YK_TASKS
 #include "yk_msgs/SetPose.h"
+#endif
 
 // HEADER FILES FOR API INTERFACE WITH YK ROBOT
 // #include "yk_api/yk_interface.h"
@@ -50,6 +52,7 @@ float place_offset_theta_record = 0.0;
 
 void make_a_move_client(ros::NodeHandle nh, geometry_msgs::Pose pose)
 {
+#ifdef HAVE_YK_TASKS
     ROS_INFO_STREAM("Calling SetPose service");
     geometry_msgs::Pose requestPose = pose;
     // requestPose.position.x = .210;      //.362019;
@@ -69,6 +72,7 @@ void make_a_move_client(ros::NodeHandle nh, geometry_msgs::Pose pose)
     {
         ROS_INFO_STREAM("Pose: "<<srv.response.pose);
     }
+#endif
 }
 
 
@@ -243,8 +247,10 @@ int main(int argc, char **argv)
         /** TODO: USE SERVICE INTERFACE TO SEND GOAL TO ROBOT
          *  Requires service server node, i.e., yk_tasks/yk_tasks, to be running
          */
+#ifdef HAVE_YK_TASKS
         ros::ServiceClient client = nh.serviceClient<yk_msgs::SetPose>("yk_set_pose");
         yk_msgs::SetPose srv;
+#endif
 
         /** TODO: USE YK_API TO SEND GOAL TO ROBOT
          *  Requires CMakeLists.txt to be modified to include yk_api
@@ -702,6 +708,7 @@ int main(int argc, char **argv)
                         motion_start = high_resolution_clock::now();
                     }
 
+#ifdef HAVE_YK_TASKS
                     srv.request.base_frame = "base_link";
                     srv.request.pose = goal_pose;
                     srv.request.max_velocity_scaling_factor = 0.5;
@@ -714,6 +721,7 @@ int main(int argc, char **argv)
                         auto duration = duration_cast<microseconds>(motion_end - motion_start);
                         ROS_INFO_STREAM("Motion Execution time: " << duration.count() / 1000000.0 << " s");
                     }
+#endif
                 }
             }
             
