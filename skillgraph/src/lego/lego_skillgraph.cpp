@@ -53,6 +53,7 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
 
         std::string root_pwd = env_config["rootPwd"].asString();
         auto calib_config = env_config["calibration"];
+        std::cout << "Root path for calibration: " << root_pwd << std::endl;
 
         // read calibration
         std::string r1_DH_fname = root_pwd + calib_config["r1"]["DH"].asString();
@@ -104,7 +105,8 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
                     r2_DH_tool_handover_assemble_fname, r2_robot_base_fname,
                     set_state_client_);
     
-        // initialize the task sequence
+        // initialize the task sequenceSkill is feasible: Meta Skill: TranslateWithRotation robot: left_arm
+
         task_seq_ = std::make_shared<skillgraph::LegoAssemblySeq>(lego_ptr_, task_fname);
 
         // add the existing lego objects to the initial state of the environment
@@ -461,7 +463,7 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         }
 
         // set executor
-        auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, gs->atomic_skills);
+        auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, MetaSkill::ComposeType::Temporal, gs->atomic_skills);
         gs->set_executor(meta_executor);
 
 
@@ -538,6 +540,58 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             }
             end_state_i = task_param->target_state;
         }
+    }
+    else if (skill_type == Skill::Type::TranslateWithRotation) {
+
+        // create grounded skill and set its executor, 
+        auto base_skill = std::dynamic_pointer_cast<MetaSkill>(get_skill(skillname));
+        MetaSkillPtr gs = std::make_shared<MetaSkill>(*base_skill);        
+        
+        // add meta executor (just wraps one atomic skill for implementation)
+        auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, MetaSkill::ComposeType::Spatial, gs->atomic_skills);
+        gs->set_executor(meta_executor);
+
+        // set the return type
+        gs_base = gs;
+
+        // set robot
+        int rid = skill_config["robot"].asInt();
+        RobotPtr robot = robots[rid];
+        gs->set_robot({robot});
+        
+
+        // set postcondition
+        TaskParamPtr post_condition = std::make_shared<TaskParam>();
+        auto &config = post_condition->constraints_json;
+        config = skill_config["skill_parameters"];
+        // print all the member of config
+        std::cout << config << std::endl;
+        // check if skill_config has a member named translate 
+        if (!config.isMember("Translate")) {
+            log("Translate skill config is missing", LogLevel::ERROR);
+            return false;
+        }
+        if (!config.isMember("Rotate")) {
+            log("Rotate skill config is missing", LogLevel::ERROR);
+            return false;
+        }
+        // check if translate has speed, offset, rotate has speed and angle
+        if (!config["Translate"].isMember("speed") || !config["Translate"].isMember("offset")) {
+            log("Translate skill config is missing speed or offset", LogLevel::ERROR);
+            return false;
+        }
+        if (!config["Rotate"].isMember("speed") || !config["Rotate"].isMember("angle")) {
+            log("Rotate skill config is missing speed or angle", LogLevel::ERROR);
+            return false;
+        }
+        
+        // add atomic executor
+        auto atomic_executor = std::make_shared<LegoSkillExecutor>(skill_type, env_->backend_);
+        atomic_executor->set_post_condition(post_condition);
+        meta_executor->add_atomic_executor(atomic_executor);
+        std::cout << "Added executor for skill " << gs->to_string() << std::endl;
+
+        return true;
     }
     else {
         log("Unsupported skill type yet " + skillname, LogLevel::ERROR);

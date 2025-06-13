@@ -25,6 +25,9 @@ Skill::Type Skill::from_string(const std::string &name) {
     if (name == "PickAndPlace") return Skill::Type::PickAndPlace;
     if (name == "PickAndPlaceWithSupport") return Skill::Type::PickAndPlaceWithSupport;
     if (name == "PickHandoverAndPlace") return Skill::Type::PickHandoverAndPlace;
+    if (name == "Translate") return Skill::Type::Translate;
+    if (name == "Rotate") return Skill::Type::Rotate;
+    if (name == "TranslateWithRotation") return Skill::Type::TranslateWithRotation;
     
     // otherwise, we have an unknown skill
     throw std::runtime_error("Unknown skill type: " + name);
@@ -130,11 +133,13 @@ bool MetaSkill::set_compose_type(const std::string &type) {
 
 
 SkillExecutor::SkillExecutor(Skill::Type type) {
+    this->skill_type = type;
     // To be implemented
 }
 
 MetaSkillExecutor::MetaSkillExecutor(Skill::Type type, MetaSkill::ComposeType compose_type, const std::vector<AtomicSkillPtr> &atomic_skills){
     this->compose_type = compose_type;
+    this->skill_type = type;
 }
 
 void MetaSkillExecutor::add_atomic_executor(std::shared_ptr<SkillExecutor> atomic_executor) {
@@ -142,6 +147,8 @@ void MetaSkillExecutor::add_atomic_executor(std::shared_ptr<SkillExecutor> atomi
 }
 
 bool MetaSkillExecutor::execute(State &current_state) {
+    log("Executing meta skill of composition type " + 
+        std::to_string(static_cast<int>(compose_type)), LogLevel::INFO);
     if (compose_type == MetaSkill::ComposeType::Temporal) {
         for (const auto &atomic_executor : atomic_executors) {
             if (!atomic_executor->execute(current_state)) {
@@ -154,19 +161,11 @@ bool MetaSkillExecutor::execute(State &current_state) {
         
     }
     else if (compose_type == MetaSkill::ComposeType::Spatial) {
-        // execute all the skills concurrently
-        std::vector<std::future<bool>> futures;
-        for (const auto &atomic_executor : atomic_executors) {
-            futures.push_back(std::async(std::launch::async, [atomic_executor, &current_state]() {
-                return atomic_executor->execute(current_state);
-            }));
+        if (atomic_executors.size() < 1) {
+            log("Spatial composition requires at least one atomic executor", LogLevel::ERROR);
+            return false;
         }
-        for (auto &future : futures) {
-            if (!future.get()) {
-                log("Failed to execute atomic skill in spatial composition", LogLevel::ERROR);
-                return false;
-            }
-        }
+        return atomic_executors[0]->execute(current_state);
     }
     return true;
 }

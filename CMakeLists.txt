@@ -45,7 +45,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
-find_package(yk_tasks QUIET)
+find_package(yk_msgs QUIET)
 
 add_service_files(
   FILES
@@ -101,7 +101,7 @@ add_library(${PROJECT_NAME} SHARED ${src_files})
 
 
 # Conditionally define a macro if yk_tasks is found
-if(yk_tasks_FOUND)
+if(yk_msgs_FOUND)
   message(STATUS "yk_tasks found, defining HAVE_YK_TASKS")
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_YK_TASKS)
 else()

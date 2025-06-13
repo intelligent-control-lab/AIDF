@@ -63,7 +63,7 @@ void SkillGraph::parse_skills(const Json::Value &root) {
                     robot_ids.push_back(id.asInt());
                 }
                 auto meta_skill = std::make_shared<MetaSkill>(meta_skill_name, atomic_skills, num_robot, robot_ids);
-                std::string type = meta_skill_config["type"];
+                std::string type = meta_skill_config["type"].asString();
                 meta_skill->set_compose_type(type);
 
                 
@@ -96,7 +96,7 @@ void SkillGraph::initialize() {
     std::cout << "Parsing Environment" << std::endl;
     parse_env(root);
     std::cout << "Parsing Tasks" << std::endl;
-    parse_tasks(root);
+    //parse_tasks(root);
 }
 
 void SkillGraph::parse_robots(const Json::Value &root) {

@@ -36,26 +36,31 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     io.run();
 
     // Wait a bit for the process to start
+    log("MoveitInstance: Waiting for MoveIt package " + moveit_pkg_name + " process to start...", LogLevel::INFO);
     sleep(10);
 
     // Check if process is running
     if (!move_group_process_.running()) {
         throw std::runtime_error("Failed to start MoveIt move_group process");
     }
+    log("MoveitInstance: MoveIt move_group process started successfully", LogLevel::INFO);
 
     // create moveit and ROS backend
     int argc = 0;
     char **argv = NULL;
+    log("MoveitInstance: Initializing a ROS1 node lego_skillgraph", LogLevel::INFO);
     ros::init(argc, argv, "lego_skillgraph");
     nh_ = std::make_shared<ros::NodeHandle>();
 
     // load the robot model
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
     robot_model_ = robot_model_loader.getModel();
+    log("MoveitInstance: Robot model loaded successfully", LogLevel::INFO);
 
     // create move group interface
-    move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
-    joint_group_name_ = move_group_->getName();
+    // move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
+    // joint_group_name_ = move_group_->getName();
+    log("MoveitInstance: Move group interface created for group " + move_group_name, LogLevel::INFO);
 
     // create planning scene interface
     //std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_ = 
@@ -76,7 +81,7 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
 
     // marker_publisher
     marker_pub_ = nh_->advertise<visualization_msgs::MarkerArray>("visualization_marker", 10);
-
+    log("MoveitInstance: MoveIt instance initialized successfully", LogLevel::INFO);
 }
 
 MoveitInstance::~MoveitInstance() {

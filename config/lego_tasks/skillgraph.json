@@ -40,7 +40,7 @@
     "environment": {
         "name": "mfi_testbed",
         "type": "Lego",
-        "rootPwd": "/home/philip/catkin_ws/src/AIDF/",
+        "rootPwd": "/home/mfi/repos/ros1_ws/src/philip/aidf/",
         "stateForm": "LegoEnvState",
         "backend": {
             "type": "moveit",
@@ -115,12 +115,23 @@
                     "twist_deg": 18,
                     "force_threshold": 5
                 }
+            },
+            "Translate": {
+                "default_params": {
+                    "speed": 1.0
+                }
+            },
+            "Rotate": {
+                "default_params": {
+                    "speed": 1.0
+                }
             }
         }
     },
     "metaskills": {
         "gp4": {
             "PlaceWithSupport": {
+                "type": "temporal",
                 "numRobot": 2,
                 "atomicSkills": [
                     "Support-Bottom",
@@ -132,6 +143,7 @@
                 ]
             },
             "PickAndPlace": {
+                "type": "temporal",
                 "numRobot": 1,
                 "atomicSkills": [
                     "Transit",
@@ -149,6 +161,7 @@
                 ]
             },
             "PickAndPlaceWithSupport": {
+                "type": "temporal",
                 "numRobot": 2,
                 "atomicSkills": [
                     "Transit",
@@ -174,6 +187,7 @@
                 ]
             },
             "PickHandoverAndPlace": {
+                "type": "temporal",
                 "numRobot": 2,
                 "atomicSkills": [
                     "Transit",
@@ -205,13 +219,43 @@
                     0,
                     1
                 ]
+            },
+            "TranslateWithRotation": {
+                "type": "spatial",
+                "numRobot": 1,
+                "atomicSkills": [
+                    "Translate",
+                    "Rotate"
+                ],
+                "robotId": [
+                    0,
+                    0
+                ],
+                "skill_parameters": {
+                    "Translate": {
+                        "speed": {
+                            "type": "float"
+                        },
+                        "offset": {
+                            "type": "list"
+                        }
+                    },
+                    "Rotate": {
+                        "speed": {
+                            "type": "float"
+                        },
+                        "angle": {
+                            "type": "float"
+                        }
+                    }
+                }
             }
         }
     },
     "tasks": {
         "type": "Lego",
-        "name": "stairs",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs.json",
+        "name": "none",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/none.json",
         "assemble": "true"
     }
 }

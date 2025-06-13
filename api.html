@@ -99,19 +99,7 @@
 
             <label for="skill">Choose MetaSkill:</label>
             <select id="skill">
-                <!-- <option value="Pick">Pick</option>
-                <option value="PlaceTop">PlaceTop</option>
-                <option value="PlaceBottom">PlaceBottom</option>
-                <option value="SupportBottom">SupportBottom</option>
-                <option value="SupportTop">SupportTop</option>
-                <option value="Handover">HandOver</option>
-                <option value="Transit">Transit</option>
-                <option value="Align">Align</option> -->
-                <option value="PlaceWithSupport">PlaceWithSupport</option>
-                <option value="PickAndPlace">PickAndPlace</option>
-                <option value="PickAndPlaceWithSupport">PickAndPlaceWithSupport</option>
-                <option value="PickHandoverAndPlace">PickHandoverAndPlace</option>
-                <option value="Align">Align</option>
+                <option value="none">None</option>
             </select>
 
             <label for="object">Choose Object:</label>
@@ -144,6 +132,11 @@
                     <label for="target-ori">Orientation:</label>
                     <input type="text" id="target-ori" placeholder="Ori">
                 </div>
+            </div>
+            
+            <div id="skill-parameters-container">
+                <h3>Skill Parameters</h3>
+                <div id="skill-parameters"></div>
             </div>
 
             <button onclick="runSimulation()">Run Simulation</button>
@@ -206,6 +199,18 @@
 
 <script>
     let currentPid = null;
+    // Global variable to store skillgraph data
+    let skillGraphData = null;
+
+    document.getElementById('skill').addEventListener('change', function () {
+        const selectedSkill = this.value;
+        if (selectedSkill !== "none") {
+            ShowSkillDetails(selectedSkill);
+            showSkillParameters(selectedSkill); // Show skill parameters
+        } else {
+            document.getElementById('skill-parameters').innerHTML = ''; // Clear parameters
+        }
+    });
 
     document.getElementById('task').addEventListener('click', function() {
         const selectedTask = this.value;
@@ -217,12 +222,117 @@
     document.getElementById('skill').addEventListener('click', function () {
         const selectedSkill = this.value;
         if (selectedSkill!="base") {
-            fetchSkillGraph(selectedSkill);
+            ShowSkillDetails(selectedSkill);
         }
         else {
             showSkillBase();
         }
     });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Load skillgraph.json once and store it
+        fetchSkillGraphData();
+    });
+
+    function showSkillParameters(skill) {
+        if (!skillGraphData) {
+            console.error('SkillGraph data is not loaded yet.');
+            return;
+        }
+
+        const robot = document.getElementById('robot').value;
+        const metaSkills = skillGraphData.metaskills[robot];
+
+        if (!metaSkills || !metaSkills[skill]) {
+            document.getElementById('debug-output').innerText += `\n❌ No MetaSkill found for ${skill} on ${robot}!`;
+            return;
+        }
+
+        const skillParameters = metaSkills[skill].skill_parameters;
+        const container = document.getElementById('skill-parameters');
+        container.innerHTML = ''; // Clear existing content
+
+        if (!skillParameters) {
+            container.innerHTML = '<p>No skill parameters available for this skill.</p>';
+            return;
+        }
+
+        // Dynamically create input fields for each skill parameter
+        Object.keys(skillParameters).forEach((key) => {
+            const paramGroup = skillParameters[key];
+            const groupDiv = document.createElement('div');
+            groupDiv.style.marginBottom = '15px';
+
+            // Add a label for the skill group
+            const groupLabel = document.createElement('label');
+            groupLabel.textContent = `Skill ${key}:`;
+            groupDiv.appendChild(groupLabel);
+
+            // Add input fields for each parameter in the group
+            Object.keys(paramGroup).forEach((param) => {
+                const paramDiv = document.createElement('div');
+                paramDiv.style.marginTop = '5px';
+
+                const paramLabel = document.createElement('label');
+                paramLabel.textContent = `${param}: `;
+                paramDiv.appendChild(paramLabel);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = paramGroup[param].type; // Use the type as the placeholder
+                input.name = `${key}-${param}`; // Unique name for each input
+                paramDiv.appendChild(input);
+
+                groupDiv.appendChild(paramDiv);
+            });
+
+            container.appendChild(groupDiv);
+        });
+    }
+
+    function fetchSkillGraphData() {
+        fetch('./config/lego_tasks/skillgraph.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                skillGraphData = data; // Store the data globally
+                populateMetaSkills(); // Populate the dropdown after loading the data
+            })
+            .catch(error => {
+                console.error('Error fetching skillgraph.json:', error);
+            });
+    }
+
+    function populateMetaSkills() {
+        if (!skillGraphData) {
+            console.error('SkillGraph data is not loaded yet.');
+            return;
+        }
+
+        const skillDropdown = document.getElementById('skill');
+        skillDropdown.innerHTML = ''; // Clear existing options
+
+        // Add a default "None" option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = 'none';
+        defaultOption.textContent = 'None';
+        skillDropdown.appendChild(defaultOption);
+
+        // Extract MetaSkills for the selected robot type
+        const robot = document.getElementById('robot').value; // Get the selected robot type
+        const metaSkills = skillGraphData.metaskills[robot] || {};
+
+        Object.keys(metaSkills).forEach(metaSkill => {
+            const option = document.createElement('option');
+            option.value = metaSkill;
+            option.textContent = metaSkill;
+            skillDropdown.appendChild(option);
+        });
+    }
 
     function fetchEnvSetup(task) {
         document.getElementById('debug-output').innerText = "Fetching JSON for task: ${task}...";
@@ -378,36 +488,27 @@
         });
     }
 
-    function fetchSkillGraph(skill) {
-        document.getElementById('debug-output').innerText = "Fetching skillgraph.json for skill: ${skill}...";
+    function ShowSkillDetails(skill) {
+        if (!skillGraphData) {
+            console.error('SkillGraph data is not loaded yet.');
+            return;
+        }
 
         const robot = document.getElementById('robot').value;
-        
-        fetch(`./config/lego_tasks/skillgraph.json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('debug-output').innerText += "\nSkillgraph JSON fetched successfully:\n";
-            showAtomicSkills(data, skill, robot);
-        })
-        .catch(error => {
-            document.getElementById('debug-output').innerText += `\n❌ Fetch error: ${error}`;
-        });
-        
-    }
+        const metaSkills = skillGraphData.metaskills[robot];
 
-    function showAtomicSkills(data, skill, robot) {
-        const atomicSkills = data["metaskills"][robot][skill];
-        if (!atomicSkills || atomicSkills.length === 0) {
+        if (!metaSkills || !metaSkills[skill]) {
+            document.getElementById('debug-output').innerText += `\n❌ No MetaSkill found for ${skill} on ${robot}!`;
+            return;
+        }
+
+        const atomicSkills = metaSkills[skill];
+        if (!atomicSkills || !atomicSkills.atomicSkills) {
             document.getElementById('debug-output').innerText += `\n❌ No atomic skills found for ${skill} on ${robot}!`;
             return;
         }
 
-        // Format the output in a cleaner way
+        // Format the output
         const formattedOutput = 
 `<b>MetaSkill:</b> ${skill}
 <b>NumRobot:</b> ${atomicSkills.numRobot}
@@ -416,6 +517,9 @@
 
         // Display formatted output in skill-output
         document.getElementById('skill-output').innerHTML = formattedOutput;
+
+        // Log success in debug output
+        document.getElementById('debug-output').innerText += `\n✅ Successfully fetched and displayed details for skill: ${skill}`;
     }
 
 
@@ -430,6 +534,48 @@
             currentPid = data.pid;
             document.getElementById('task-controls').style.display = 'block';
         });
+    }
+
+    // to collect skill parameters from the webpage
+    function collectSkillParameters() {
+        const skillParameters = {};
+        const skillParameterContainer = document.getElementById('skill-parameters');
+
+        // Iterate through each skill parameter group
+        Array.from(skillParameterContainer.children).forEach((groupDiv) => {
+            const groupLabel = groupDiv.querySelector('label');
+            if (!groupLabel) {
+                console.error('Missing label for skill parameter group.');
+                return;
+            }
+
+            const skillName = groupLabel.textContent.split(' ')[1]?.replace(':', '').trim();
+            if (!skillName) {
+                console.error('Invalid or missing skill name in label:', groupLabel.textContent);
+                return;
+            }
+
+            const params = {};
+
+            // Collect all input fields within the group
+            Array.from(groupDiv.querySelectorAll('input')).forEach((input) => {
+                const paramName = input.name.split('-')[1]; // Extract parameter name
+                let value = input.value || input.placeholder; // Use input value or placeholder
+
+                // Check if the value is a list of numbers (comma-separated)
+                if (value.includes(',')) {
+                    value = value.split(',').map(num => parseFloat(num.trim())); // Convert to a list of numbers
+                } else {
+                    value = isNaN(value) ? value : parseFloat(value); // Convert to a number if applicable
+                }
+
+                params[paramName] = value;
+            });
+
+            skillParameters[skillName] = params;
+        });
+
+        return skillParameters;
     }
 
     function runSimulation() {
@@ -457,6 +603,7 @@
             object: document.getElementById('object').value,
             robot_id: robot_id, // Now this will be a number, not a string
             target: target, // Using target_location instead of target to match your JSON example
+            skill_parameters: collectSkillParameters(), // Collect skill parameters dynamically
             pid: currentPid
         };
         
@@ -483,6 +630,7 @@
             object: document.getElementById('object').value,
             robot_id: robot_id, // Now this will be a number, not a string
             target: target, // Using target_location instead of target to match your JSON example
+            skill_parameters: collectSkillParameters(), // Collect skill parameters dynamically
             pid: currentPid
         };
         

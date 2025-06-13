@@ -117,8 +117,9 @@ int main(int argc, char* argv[]) {
         std::signal(SIGSEGV, signal_handler);
 
         // Default path
-        std::string config_path = "/home/philip/catkin_ws/src/AIDF/config/lego_tasks/skillgraph.json";
-        
+        std::string config_path = "/home/mfi/repos/ros1_ws/src/philip/aidf/config/lego_tasks/skillgraph.json";
+        std::string web_msg_json_path = "/home/mfi/repos/ros1_ws/src/philip/aidf/config/web_message.json";
+
         // Parse command-line arguments
         if (argc > 1) {
             config_path = argv[1];
@@ -135,7 +136,6 @@ int main(int argc, char* argv[]) {
         State state = sg->get_initial_state();
 
         // Define a callback function to process the file when it changes
-        std::string web_msg_json_path = "/home/philip/catkin_ws/src/AIDF/config/web_message.json";
         auto processJsonFile = [&sg, &state, web_msg_json_path]() {
             std::ifstream file(web_msg_json_path);
             if (!file.is_open()) {

@@ -21,11 +21,14 @@ namespace skillgraph {
             Handover = 6,
             Transit = 7,
             align = 8,
+            Translate = 9,
+            Rotate = 10,
             PlaceWithSupport = 101,
             PickAndPlace = 102,
             PickAndPlaceWithSupport = 103,
             PickHandoverAndPlace = 104,
             PickAndPlaceRealRobot = 105, // TODO: Chaitanya - correct this
+            TranslateWithRotation = 106,
         };
 
         static bool isAtomic(Type type);

@@ -63,6 +63,9 @@ public:
     virtual void setPlanningSceneDiffClient(ros::ServiceClient &client) {
         planning_scene_diff_client_ = client;
     }
+    virtual planning_scene::PlanningScenePtr getPlanningScene() const {
+        return planning_scene_;
+    }
     virtual void updateScene() override;
     virtual void resetScene(bool reset_sim) override;
     virtual void setPadding(double padding) override;

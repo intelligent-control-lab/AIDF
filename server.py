@@ -142,6 +142,7 @@ def start_simulator():
     logging.info(f"skillgraph.json updated successfully!")
 
     skillgraph_abspath = os.path.abspath(skillgraph_path)
+    logging.info(skillgraph_abspath)
 
     # Prepare the command to run the simulation
     # command = f'exec bash -i -c "echo "test"'
@@ -183,6 +184,7 @@ def run_simulation():
     obj = data.get("object")
     skill = data.get("skill")
     target = data.get("target")
+    skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     # Update the web_message.json file with the extracted data
     web_message_path = './config/web_message.json'
@@ -194,6 +196,7 @@ def run_simulation():
         web_message['object'] = obj
         web_message['robot'] = robot_id
         web_message['target_location'] = target
+        web_message['skill_parameters'] = skill_parameters  # Update skill_parameters
         web_message['command_id'] = command_id
 
         with open(web_message_path, 'w') as file:
@@ -258,6 +261,7 @@ def run_real_robot():
     obj = data.get("object")
     skill = data.get("skill")
     target = data.get("target")
+    skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     if skill != "base":
         input_file = './processed_cliff_meta_skills.json'
