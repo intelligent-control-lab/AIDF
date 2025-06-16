@@ -76,6 +76,12 @@ public:
     virtual void printKnownObjects() const override;
     virtual void setState(const State &state) override;
 
+
+    //get the last state, added by Yijie to avoid sudden movements
+    State MoveitInstance::getLastState() const {
+        return last_state_;
+    }
+
 private:
     // ros 
     std::shared_ptr<ros::NodeHandle> nh_;
@@ -98,6 +104,10 @@ private:
     // random number generator
     std::mt19937 rng_;
 
+
+    // Store the last state to avoid sudden movements
+    State last_state_;
+
 };
 
 class MoveitControl : public ControlAlgorithm {
@@ -108,7 +118,14 @@ public:
 
 private:
     std::shared_ptr<MoveitInstance> instance_;
+
+    
+    
     bool fake_move_;
+
+    // Help function written by Yijie to set state interpolation to avoid sudden movements
+    void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
+
 };
 
 }

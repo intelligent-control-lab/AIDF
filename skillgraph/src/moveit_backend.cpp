@@ -890,6 +890,9 @@ void MoveitInstance::setState(const State &state) {
 
     planning_scene_->usePlanningSceneMsg(planning_scene);
     planning_scene_diff_ = planning_scene;
+
+    // update the last state added by Yijie Liao
+    last_state_ = state;
 }
 
 void MoveitInstance::printKnownObjects() const {
@@ -1042,6 +1045,15 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 
 bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
     if (fake_move_) {
+
+
+        // Add interpolation to avoid sudden move
+        //Added by Yijie Liao
+        State start_state = instance_->getLastState();
+        State target_state = post_condition->target_state;        
+        instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
+  //
+  
         instance_->setState(post_condition->target_state);
         instance_->updateScene();
         return true;
@@ -1057,6 +1069,45 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
     return true;
 
 }
+
+
+
+
+
+//Help function written by Yijie
+ void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec){
+    for (int step =1; step <=steps; ++step){
+        State interp;
+        for (int i = 0; i < start.robot_states.size(); ++i) {
+            const auto &s = start.robot_states[i];
+            const auto &g = goal.robot_states[i];
+            RobotPose r;
+            r.robot_id = s.robot_id;
+
+            // joint_values 插值
+            for (int j = 0; j < s.joint_values.size(); ++j) {
+                double val = s.joint_values[j] + (g.joint_values[j] - s.joint_values[j]) * ((double)step / steps);
+                r.joint_values.push_back(val);
+            }
+
+            // hand_values 插值
+            for (int j = 0; j < s.hand_values.size(); ++j) {
+                double val = s.hand_values[j] + (g.hand_values[j] - s.hand_values[j]) * ((double)step / steps);
+                r.hand_values.push_back(val);
+            }
+
+            interp.robot_states.push_back(r);
+        }
+
+        interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
+
+        setState(interp);
+        instance_->updateScene();
+        // Sleep for the specified delay
+        ros::Duration(delay_sec).sleep();
+    }
+ }
+
 
 
 
