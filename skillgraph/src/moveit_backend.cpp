@@ -1162,11 +1162,58 @@ void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_
     obj.qw = rot.w();
 }
 
+
+
+
+
+//Help function written by Yijie
+ void MoveitInstance:: setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec){
+    for (int step =1; step <=steps; ++step){
+        State interp;
+        for (int i = 0; i < start.robot_states.size(); ++i) {
+            const auto &s = start.robot_states[i];
+            const auto &g = goal.robot_states[i];
+            RobotState r;
+            r.robot_id = s.robot_id;
+
+            // joint_values 插值
+            for (int j = 0; j < s.joint_values.size(); ++j) {
+                double val = s.joint_values[j] + (g.joint_values[j] - s.joint_values[j]) * ((double)step / steps);
+                r.joint_values.push_back(val);
+            }
+
+            // hand_values 插值
+            for (int j = 0; j < s.hand_values.size(); ++j) {
+                double val = s.hand_values[j] + (g.hand_values[j] - s.hand_values[j]) * ((double)step / steps);
+                r.hand_values.push_back(val);
+            }
+
+            interp.robot_states.push_back(r);
+        }
+
+        interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
+
+        setState(interp);
+        updateScene();
+        // Sleep for the specified delay
+        ros::Duration(delay_sec).sleep();
+    }
+ }
+
+
+
+
+
 MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move) 
         : instance_(instance), fake_move_(fake_move) {
     // initialize the moveit instance
 
 }
+
+
+
+
+
 
 bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
     if (fake_move_) {
@@ -1198,40 +1245,6 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
 
 
 
-
-//Help function written by Yijie
- void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec){
-    for (int step =1; step <=steps; ++step){
-        State interp;
-        for (int i = 0; i < start.robot_states.size(); ++i) {
-            const auto &s = start.robot_states[i];
-            const auto &g = goal.robot_states[i];
-            RobotPose r;
-            r.robot_id = s.robot_id;
-
-            // joint_values 插值
-            for (int j = 0; j < s.joint_values.size(); ++j) {
-                double val = s.joint_values[j] + (g.joint_values[j] - s.joint_values[j]) * ((double)step / steps);
-                r.joint_values.push_back(val);
-            }
-
-            // hand_values 插值
-            for (int j = 0; j < s.hand_values.size(); ++j) {
-                double val = s.hand_values[j] + (g.hand_values[j] - s.hand_values[j]) * ((double)step / steps);
-                r.hand_values.push_back(val);
-            }
-
-            interp.robot_states.push_back(r);
-        }
-
-        interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
-
-        setState(interp);
-        instance_->updateScene();
-        // Sleep for the specified delay
-        ros::Duration(delay_sec).sleep();
-    }
- }
 
 
 

@@ -262,8 +262,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "faucet",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/faucet.json",
+        "name": "stairs",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs.json",
         "assemble": "true"
     }
 }

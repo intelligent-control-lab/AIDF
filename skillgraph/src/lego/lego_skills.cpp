@@ -112,7 +112,8 @@ bool LegoSkillExecutor::execute(State &current_state) {
         }
         log("YK action server finished successfully", LogLevel::INFO);
 #endif // HAVE_YK_TASKS
-
+    //I don't know ,just make it work    
+    return true;
     } else {
         // Use MoveitControl for other skills
         bool success = controller_->move(post_condition, planned_trajectory_);

@@ -89,9 +89,13 @@ public:
 
 
     //get the last state, added by Yijie to avoid sudden movements
-    State MoveitInstance::getLastState() const {
+    State getLastState() const {
         return last_state_;
     }
+     // Help function written by Yijie to set state interpolation to avoid sudden movements
+    void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
+
+
 
 private:
     // ros 
@@ -125,7 +129,7 @@ private:
 
     // Store the last state to avoid sudden movements
     State last_state_;
-
+    
 };
 
 class MoveitControl : public ControlAlgorithm {
@@ -137,13 +141,9 @@ public:
 private:
     std::shared_ptr<MoveitInstance> instance_;
 
-    
-    
     bool fake_move_;
 
-    // Help function written by Yijie to set state interpolation to avoid sudden movements
-    void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
-
+   
 };
 
 }

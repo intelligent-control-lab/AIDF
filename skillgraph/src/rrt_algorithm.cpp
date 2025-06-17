@@ -32,6 +32,8 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
         log("RRTConnect::plan: Invalid robot_id in start state.", LogLevel::ERROR);
         return false;
     }
+
+    return false;
     // std::string group_name_to_plan = instance_->getRobotNames()[robot_id_to_plan];
 
     // // 1. Set the start state in the planning scene
