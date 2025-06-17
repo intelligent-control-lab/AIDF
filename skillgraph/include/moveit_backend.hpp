@@ -28,6 +28,8 @@
 
 #include <ros/ros.h>
 
+#include "ros_compat/node.hpp"
+#include "ros_compat/launch.hpp"
 #include "backend.hpp"
 #include "robots.hpp"
 #include "tasks.hpp"
@@ -88,11 +90,11 @@ public:
     virtual void setState(const State &state) override;
 
 private:
-    // ros 
-    std::shared_ptr<ros::NodeHandle> nh_;
+    // ROS abstraction layer
+    std::shared_ptr<skillgraph::ros_compat::NodeHandle> ros_node_;
 
     // moveit move_group and planning_scene_interface pointers
-    boost::process::child move_group_process_;
+    std::unique_ptr<skillgraph::ros_compat::LaunchProcess> move_group_process_handle_;
 
     // Static tracking for emergency cleanup
     static std::vector<MoveitInstance*> active_instances_;

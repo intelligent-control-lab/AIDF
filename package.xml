@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>aidf</name>
   <version>0.0.0</version>
   <description>The AIDF planner package</description>
@@ -8,35 +8,51 @@
 
   <license>TODO</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>std_msgs</depend>
+  <!-- Conditional build tools based on ROS version -->
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+
+  <!-- Common dependencies -->
+  <depend>eigen3</depend>
+  <depend>boost</depend>
+
+  <!-- ROS1 specific dependencies -->
+  <depend condition="$ROS_VERSION == 1">roscpp</depend>
+  <depend condition="$ROS_VERSION == 1">rospy</depend>
+  <depend condition="$ROS_VERSION == 1">std_msgs</depend>
+  <depend condition="$ROS_VERSION == 1">message_generation</depend>
+  <exec_depend condition="$ROS_VERSION == 1">message_runtime</exec_depend>
+
+  <!-- ROS2 specific dependencies -->
+  <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+  <depend condition="$ROS_VERSION == 2">rclpy</depend>
+  <depend condition="$ROS_VERSION == 2">std_msgs</depend>
+  <depend condition="$ROS_VERSION == 2">rosidl_default_generators</depend>
+  <exec_depend condition="$ROS_VERSION == 2">rosidl_default_runtime</exec_depend>
+
+  <!-- MoveIt dependencies - both versions -->
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_planning_interface</depend>
-  <depend>eigen</depend>
-  <depend>boost</depend>
-  <depend>message_generation</depend>
   <depend>moveit_visual_tools</depend>
-  <depend>rviz_visual_tools</depend>
-  <depend>tf2_geometry_msgs </depend>
+  <depend>tf2_geometry_msgs</depend>
 
+  <!-- ROS1 specific MoveIt dependencies -->
+  <depend condition="$ROS_VERSION == 1">rviz_visual_tools</depend>
 
-  <exec_depend>message_runtime</exec_depend>
+  <!-- Execution dependencies -->
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>xacro</exec_depend>
-  <exec_depend>rviz</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 1">rviz</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 2">rviz2</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
 
   <!-- From GP4-Lego -->
-
   <depend>yk_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
   </export>
 </package>

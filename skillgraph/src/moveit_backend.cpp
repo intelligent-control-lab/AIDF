@@ -1,5 +1,7 @@
 #include "moveit_backend.hpp"
 #include "Utils/Logger.hpp"
+#include "ros_compat/node.hpp"
+#include "ros_compat/launch.hpp"
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -86,44 +88,34 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     }
     
     // launch the move_group node for the robot, based on the moveitConfigPkg, 
-    // i.e. roslaunch moveitConfigPkg move_group.launch
+    // i.e. roslaunch moveitConfigPkg move_group.launch (ROS1) or ros2 launch moveitConfigPkg move_group.launch.py (ROS2)
     // launch it in the background (create a new process)
     
-    namespace bp = boost::process;
-    std::vector<std::string> args = {
-        moveit_pkg_name,
-        "demo.launch",
-        "use_rviz:=true"
-    };
-    boost::asio::io_context io;
-    bp::environment env = boost::this_process::environment();
-    env["LIBGL_ALWAYS_SOFTWARE"] = "1";
+    using namespace skillgraph::ros_compat;
     
-    // Create the process in its own process group for easier cleanup
-    move_group_process_ = bp::child("/opt/ros/noetic/bin/roslaunch", 
-            bp::args(args), 
-            env,
-            bp::start_dir("/tmp"),
-            io
-        );
-    io.run();
+    auto launcher = LauncherFactory::createLauncher();
+    std::vector<std::string> args = {"use_rviz:=true"};
+    
+    // Launch MoveIt demo with abstracted launcher
+    move_group_process_handle_ = launcher->launch(moveit_pkg_name, "demo.launch", args);
 
     // Wait a bit for the process to start
     log("MoveitInstance: Waiting for MoveIt package " + moveit_pkg_name + " process to start...", LogLevel::INFO);
     sleep(10);
 
     // Check if process is running
-    if (!move_group_process_.running()) {
+    if (!move_group_process_handle_->running()) {
         throw std::runtime_error("Failed to start MoveIt move_group process");
     }
     log("MoveitInstance: MoveIt move_group process started successfully", LogLevel::INFO);
 
-    // create moveit and ROS backend
+    // create moveit and ROS backend using abstraction layer
     int argc = 0;
     char **argv = NULL;
-    log("MoveitInstance: Initializing a ROS1 node lego_skillgraph", LogLevel::INFO);
-    ros::init(argc, argv, "lego_skillgraph");
-    nh_ = std::make_shared<ros::NodeHandle>();
+    log("MoveitInstance: Initializing ROS node lego_skillgraph", LogLevel::INFO);
+    
+    NodeFactory::init(argc, argv, "lego_skillgraph");
+    ros_node_ = NodeFactory::createNode("lego_skillgraph");
 
     // load the robot model
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
@@ -173,42 +165,32 @@ MoveitInstance::~MoveitInstance() {
 
 void MoveitInstance::cleanupProcesses() {
     // Shutdown ROS node handle first to close connections
-    if (nh_) {
+    if (ros_node_) {
         log("MoveitInstance: Shutting down ROS node handle", LogLevel::INFO);
-        nh_->shutdown();
-        nh_.reset();
+        ros_node_->shutdown();
+        ros_node_.reset();
     }
 
     // Ensure the spawned move_group process and all associated ROS processes are terminated
-    if (move_group_process_.valid() && move_group_process_.running()) {
+    if (move_group_process_handle_ && move_group_process_handle_->running()) {
         log("MoveitInstance: Terminating move_group process and all ROS processes", LogLevel::INFO);
         
-        // Get the process group ID to kill all child processes
-        pid_t pgid = getpgid(move_group_process_.id());
+        // Try graceful termination first
+        move_group_process_handle_->terminate();
         
-        // First try graceful termination of the entire process group
-        if (pgid > 0) {
-            log("MoveitInstance: Sending SIGTERM to process group " + std::to_string(pgid), LogLevel::INFO);
-            killpg(pgid, SIGTERM);
-            
-            // Wait a bit for graceful shutdown
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            
-            // If still running, force kill the process group
-            if (move_group_process_.running()) {
-                log("MoveitInstance: Force killing process group with SIGKILL", LogLevel::INFO);
-                killpg(pgid, SIGKILL);
-            }
-        }
+        // Wait a bit for graceful shutdown
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         
-        // Terminate the main process if still running
-        if (move_group_process_.running()) {
-            move_group_process_.terminate();
+        // If still running, force kill
+        if (move_group_process_handle_->running()) {
+            log("MoveitInstance: Force killing process", LogLevel::INFO);
+            move_group_process_handle_->kill();
         }
         
         // Wait for process to finish
-        move_group_process_.wait();
+        move_group_process_handle_->wait_for(5.0);
         log("MoveitInstance: Move_group process terminated", LogLevel::INFO);
+        move_group_process_handle_.reset();
     }
 }
 
