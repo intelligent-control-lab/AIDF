@@ -4,6 +4,13 @@
 #include <memory>
 #include <string>
 
+// Conditional includes for ROS1/ROS2 compatibility
+#ifdef ROS2_BUILD
+#include <rclcpp/rclcpp.hpp>
+#else
+#include <ros/ros.h>
+#endif
+
 /**
  * @file service_client.hpp
  * @brief ROS-agnostic service client implementations
@@ -15,8 +22,6 @@ namespace skillgraph {
 namespace ros_compat {
 
 #ifdef ROS2_BUILD
-#include <rclcpp/rclcpp.hpp>
-
 /**
  * @brief ROS2 service client implementation
  */
@@ -60,8 +65,6 @@ private:
 };
 
 #else // ROS1_BUILD
-
-#include <ros/ros.h>
 
 /**
  * @brief ROS1 service client implementation

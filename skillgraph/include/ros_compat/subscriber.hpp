@@ -5,6 +5,13 @@
 #include <string>
 #include <functional>
 
+// Conditional includes for ROS1/ROS2 compatibility
+#ifdef ROS2_BUILD
+#include <rclcpp/rclcpp.hpp>
+#else
+#include <ros/ros.h>
+#endif
+
 /**
  * @file subscriber.hpp
  * @brief ROS-agnostic subscriber implementations
@@ -16,8 +23,6 @@ namespace skillgraph {
 namespace ros_compat {
 
 #ifdef ROS2_BUILD
-#include <rclcpp/rclcpp.hpp>
-
 /**
  * @brief ROS2 subscriber implementation
  */
@@ -51,8 +56,6 @@ private:
 };
 
 #else // ROS1_BUILD
-
-#include <ros/ros.h>
 
 /**
  * @brief ROS1 subscriber implementation
