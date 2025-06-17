@@ -1,37 +1,36 @@
 <?xml version="1.0"?>
-<package format="3">
+<package format="2">
   <name>aidf</name>
   <version>0.0.0</version>
-  <description>The AIDF planner package - ROS2 compatible</description>
+  <description>The AIDF planner package - ROS1 compatible</description>
 
   <maintainer email="yizhouhu@andrew.cmu.edu">ruic</maintainer>
 
   <license>TODO</license>
 
-  <!-- ROS2 Build tools -->
-  <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <!-- ROS1 Build tools -->
+  <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- Core dependencies -->
+  <!-- Core ROS1 dependencies -->
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>rclcpp</depend>
-  <depend>rclpy</depend>
-  
-  <!-- Interface generation -->
-  <depend>rosidl_default_generators</depend>
-  <exec_depend>rosidl_default_runtime</exec_depend>
+  <depend>message_generation</depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <!-- MoveIt dependencies -->
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_visual_tools</depend>
+  <depend>rviz_visual_tools</depend>
   <depend>tf2_geometry_msgs</depend>
 
   <!-- Additional dependencies -->
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
+  <depend>actionlib</depend>
   
   <!-- External dependencies -->
   <depend>eigen3</depend>
@@ -40,7 +39,7 @@
   <!-- Execution dependencies -->
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>xacro</exec_depend>
-  <exec_depend>rviz2</exec_depend>
+  <exec_depend>rviz</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
 
@@ -48,8 +47,6 @@
   <depend>yk_msgs</depend>
 
   <export>
-    <build_type>ament_cmake</build_type>
-    <member_of_group>rosidl_interface_packages</member_of_group>
+    <!-- Other tools can request additional information be placed here -->
   </export>
-</package>
 </package>

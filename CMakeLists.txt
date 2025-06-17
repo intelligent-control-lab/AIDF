@@ -74,11 +74,17 @@ if(ROS_VERSION EQUAL 2)
     find_package(cv_bridge REQUIRED)
     find_package(image_transport REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
+    find_package(rosidl_default_runtime REQUIRED)
     
     # ROS2 service generation
-    rosidl_generate_interfaces(${PROJECT_NAME}
+    set(srv_files
         "srv/StabilityScore.srv"
+    )
+    
+    rosidl_generate_interfaces(${PROJECT_NAME}
+        ${srv_files}
         DEPENDENCIES geometry_msgs std_msgs
+        ADD_LINTER_TESTS
     )
 else()
     # ROS1 dependencies
@@ -350,19 +356,22 @@ if(ROS_VERSION EQUAL 2)
     ament_export_dependencies(
         rclcpp
         std_msgs
+        geometry_msgs
         moveit_core
         moveit_ros_planning
         moveit_ros_planning_interface
         moveit_visual_tools
         tf2_geometry_msgs
-        geometry_msgs
         cv_bridge
         image_transport
+        rosidl_default_runtime
     )
     
-    # ROS2 service interface export
-    rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-    target_link_libraries(${PROJECT_NAME} "${cpp_typesupport_target}")
+    # ROS2 service interface dependencies
+    if(TARGET ${PROJECT_NAME})
+        rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        target_link_libraries(${PROJECT_NAME} "${cpp_typesupport_target}")
+    endif()
     
     ament_package()
 endif()

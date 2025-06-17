@@ -61,6 +61,9 @@ The AIDF workspace has been successfully migrated to support both ROS1 and ROS2 
 source /opt/ros/noetic/setup.bash
 export AIDF_ROOT_DIR=/path/to/catkin_ws/src/AIDF
 cd /path/to/catkin_ws
+
+# Switch to ROS1 package.xml
+cp package_ros1.xml package.xml
 catkin_make
 ```
 
@@ -69,7 +72,17 @@ catkin_make
 source /opt/ros/humble/setup.bash
 export AIDF_ROOT_DIR=/path/to/ros2_ws/src/AIDF
 cd /path/to/ros2_ws
+
+# Ensure ROS2 package.xml (default configuration)
 colcon build --packages-select aidf
+```
+
+### Quick Switch Helper
+```bash
+# Switch configurations easily
+./switch_ros_version.sh ros1  # Switch to ROS1
+./switch_ros_version.sh ros2  # Switch to ROS2
+./switch_ros_version.sh status # Show current config
 ```
 
 ## 🔍 Architecture Overview

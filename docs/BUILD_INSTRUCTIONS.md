@@ -20,11 +20,29 @@ AIDF now supports both ROS1 (Noetic) and ROS2 (Humble/Iron/Jazzy) through an abs
 
 ## Building
 
+### Important: Package.xml Configuration
+
+Due to limitations in dual ROS support, you need to use the appropriate package.xml for your ROS version:
+
+- **ROS2 build**: The default `package.xml` is configured for ROS2
+- **ROS1 build**: Copy `package_ros1.xml` to `package.xml` before building
+
+```bash
+# For ROS1 build
+cp package_ros1.xml package.xml
+
+# For ROS2 build  
+# Use the default package.xml (already ROS2 configured)
+```
+
 ### ROS1 Build (Traditional Catkin)
 
 ```bash
 # Set up ROS1 environment
 source /opt/ros/noetic/setup.bash
+
+# Use ROS1 package.xml
+cp package_ros1.xml package.xml
 
 # Set AIDF root directory (important for path resolution)
 export AIDF_ROOT_DIR=/path/to/your/catkin_ws/src/AIDF
@@ -45,6 +63,9 @@ catkin build aidf
 ```bash
 # Set up ROS2 environment  
 source /opt/ros/humble/setup.bash  # or iron/jazzy
+
+# Ensure ROS2 package.xml is used (default)
+# The default package.xml is already configured for ROS2
 
 # Set AIDF root directory (important for path resolution)
 export AIDF_ROOT_DIR=/path/to/your/ros2_ws/src/AIDF
@@ -131,6 +152,20 @@ sudo apt install ros-humble-moveit  # or iron/jazzy
 
 ### Issue: Path resolution failures
 **Solution:** Ensure `AIDF_ROOT_DIR` is set correctly and `setup_env.sh` is sourced
+
+### Issue: "more than one build type" warning in ROS2
+**Solution:** This is expected behavior due to dual compatibility - the warning can be ignored
+
+### Issue: Interface generation errors in ROS2
+**Solution:** Ensure `package.xml` has the correct ROS2 configuration:
+```xml
+<member_of_group>rosidl_interface_packages</member_of_group>
+```
+
+### Issue: Package.xml format errors
+**Solution:** Make sure you're using the correct package.xml for your ROS version:
+- ROS2: Use default `package.xml`
+- ROS1: Copy `package_ros1.xml` to `package.xml`
 
 ## Architecture Notes
 
