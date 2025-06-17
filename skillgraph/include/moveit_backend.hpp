@@ -23,6 +23,8 @@
 #include <boost/asio.hpp>
 #include <sys/prctl.h>
 #include <signal.h>
+#include <vector>
+#include <mutex>
 
 #include <ros/ros.h>
 
@@ -33,6 +35,9 @@
 
 namespace skillgraph {
 
+// Forward declaration for signal handling
+class MoveitInstance;
+
 // Concrete implementation using MoveIt
 class MoveitInstance : public PlanInstance {
 public:
@@ -41,6 +46,12 @@ public:
                    planning_scene::PlanningScenePtr planning_scene);
     MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name);
     ~MoveitInstance();
+
+    // Static cleanup function for signal handling
+    static void emergencyCleanup();
+    
+    // Static signal handler
+    static void signalHandler(int signal);
     virtual bool checkCollision(const std::vector<skillgraph::RobotState> &poses, bool self, bool debug=false) override;
     virtual double computeDistance(const skillgraph::RobotState& a, const skillgraph::RobotState &b) const override;
     virtual double computeDistance(const skillgraph::RobotState& a, const skillgraph::RobotState &b, int dof) const override;
@@ -82,6 +93,13 @@ private:
 
     // moveit move_group and planning_scene_interface pointers
     boost::process::child move_group_process_;
+
+    // Static tracking for emergency cleanup
+    static std::vector<MoveitInstance*> active_instances_;
+    static std::mutex instances_mutex_;
+    
+    // Instance cleanup method
+    void cleanupProcesses();
 
     std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
     robot_model::RobotModelPtr robot_model_;

@@ -7,12 +7,29 @@
 
 namespace skillgraph {
 
+/**
+ * @brief Construct a LegoGraspGenerator for Lego manipulation tasks.
+ * @param lego_ptr Shared pointer to Lego object.
+ * @param instance Shared pointer to PlanInstance.
+ * @param config Lego policy configuration.
+ * @param robot Robot pointer.
+ * @param object Object pointer.
+ */
 LegoGraspGenerator::LegoGraspGenerator(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
     std::shared_ptr<skillgraph::PlanInstance> instance,
     const LegoPolicyCfg &config, RobotPtr robot, ObjPtr object) 
     : lego_ptr_(lego_ptr), instance_(instance), config_(config), robot_(robot), object_(object) {
 }
 
+/**
+ * @brief Calculate handover poses for the support arm robot.
+ *
+ * This method computes the handover pose for the specified robot and updates the goal and receive_q.
+ * @param robot_id The ID of the robot.
+ * @param handover_goal Output vector of handover goal states.
+ * @param receive_q Output matrix for receiving joint configuration.
+ * @return True if calculation is successful.
+ */
 bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotState> &handover_goal, Eigen::MatrixXd &receive_q) {
     // calculate handover pose for the support arm robot id
     lego_manipulation::math::VectorJd r_transfer_up_goal, r_transfer_down_goal, r_transfer_twist_goal, r_transfer_twist_up_goal;

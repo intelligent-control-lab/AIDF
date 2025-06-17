@@ -7,64 +7,73 @@ namespace lego_manipulation
 {
 namespace lego
 {
+/**
+ * @brief Data structure representing a Lego brick (legacy version).
+ */
 struct lego_brick{
-    std::string brick_name;
-    int height;
-    int width;
-    double x;
-    double y;
-    double z;
-    double quat_x;
-    double quat_y;
-    double quat_z;
-    double quat_w;
-    double cur_x;
-    double cur_y;
-    double cur_z;
-    int press_side;
-    Eigen::Quaterniond cur_quat;
-    bool in_stock;
-    std::map<std::string, std::string> top_connect;
-    std::map<std::string, std::string> bottom_connect;
+    std::string brick_name; ///< Name of the brick
+    int height; ///< Height of the brick
+    int width; ///< Width of the brick
+    double x; ///< X position
+    double y; ///< Y position
+    double z; ///< Z position
+    double quat_x; ///< Quaternion X
+    double quat_y; ///< Quaternion Y
+    double quat_z; ///< Quaternion Z
+    double quat_w; ///< Quaternion W
+    double cur_x; ///< Current X position
+    double cur_y; ///< Current Y position
+    double cur_z; ///< Current Z position
+    int press_side; ///< Side to press
+    Eigen::Quaterniond cur_quat; ///< Current orientation as quaternion
+    bool in_stock; ///< Whether the brick is in stock
+    std::map<std::string, std::string> top_connect; ///< Top connections
+    std::map<std::string, std::string> bottom_connect; ///< Bottom connections
 };
 
+/**
+ * @brief Data structure representing a Lego plate (legacy version).
+ */
 struct lego_plate{
-    int height;
-    int width;
-    double x;
-    double y;
-    double z;
-    double roll;
-    double pitch;
-    double yaw;
-    Eigen::Quaterniond quat;
-    Eigen::Matrix4d pose;
+    int height; ///< Height of the plate
+    int width; ///< Width of the plate
+    double x; ///< X position
+    double y; ///< Y position
+    double z; ///< Z position
+    double roll; ///< Roll angle
+    double pitch; ///< Pitch angle
+    double yaw; ///< Yaw angle
+    Eigen::Quaterniond quat; ///< Orientation as quaternion
+    Eigen::Matrix4d pose; ///< Pose matrix
 };
 
+/**
+ * @brief Legacy class for Lego manipulation and environment setup.
+ */
 class Lego_old
 {
     /* -------------------------------------------------------------------------- */
     /*                                   pointer                                  */
     /* -------------------------------------------------------------------------- */
     public:
-        typedef std::shared_ptr<Lego_old> Ptr;
-        typedef std::shared_ptr<Lego_old const> ConstPtr;
+        typedef std::shared_ptr<Lego_old> Ptr; ///< Shared pointer type
+        typedef std::shared_ptr<Lego_old const> ConstPtr; ///< Const shared pointer type
 
     /* -------------------------------------------------------------------------- */
     /*                                  variables                                 */
     /* -------------------------------------------------------------------------- */
     private:
-        std::map<std::string, lego_brick> brick_map_;
-        ros::ServiceClient client_; 
-        gazebo_msgs::SetModelState setmodelstate_;
-        double brick_height_m_ = 0.0096;
-        double brick_len_offset_ = 0.0002;
-        double P_len_ = 0.008;
-        double EPS_ = 0.00001;
-        double knob_height_ = 0.0017;
-        lego_plate assemble_plate_;
-        lego_plate storage_plate_;
-        int robot_dof_ = 6;
+        std::map<std::string, lego_brick> brick_map_; ///< Map of bricks
+        ros::ServiceClient client_; ///< ROS service client
+        gazebo_msgs::SetModelState setmodelstate_; ///< Model state message
+        double brick_height_m_ = 0.0096; ///< Brick height in meters
+        double brick_len_offset_ = 0.0002; ///< Brick length offset
+        double P_len_ = 0.008; ///< Parameter length
+        double EPS_ = 0.00001; ///< Epsilon value for calculations
+        double knob_height_ = 0.0017; ///< Knob height
+        lego_plate assemble_plate_; ///< Assembly plate
+        lego_plate storage_plate_; ///< Storage plate
+        int robot_dof_ = 6; ///< Robot degrees of freedom
 
         Eigen::MatrixXd DH_; // size = [n_joint + n_ee, 4]
         Eigen::Matrix4d ee_inv_, tool_inv_, tool_assemble_inv_, tool_disassemble_inv_;

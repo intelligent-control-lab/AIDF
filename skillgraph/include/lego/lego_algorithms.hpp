@@ -17,21 +17,37 @@
 
 namespace skillgraph {
 
+/**
+ * @brief Configuration parameters for Lego policy and manipulation.
+ */
 struct LegoPolicyCfg {
-    double twist_rad = 0.244346; // degree for twisting the brick
-    double twist_rad_handover = 0.314159; // degree for twisting the brick during handover
-    double z_force_threshold = -15; // for pick and drop
-    double z_force_thresh_w_sup = -5; // for drop with support
-    double x_force_threshold = 15; // for place up
-    double handover_force_threshold = -10; // for handover
-    double dt = 0.1; // discretization threshold for trajectory
-    double velocity = 1.0; // maximum L1 velocity for one robot arm's trajectory
-    double sup_force_tol = 0.03; // force tolerance for touching the object to support
-    double pre_support_z_offset = -0.001; // z offset for pre-support pose
+    double twist_rad = 0.244346; ///< Degree for twisting the brick
+    double twist_rad_handover = 0.314159; ///< Degree for twisting the brick during handover
+    double z_force_threshold = -15; ///< For pick and drop
+    double z_force_thresh_w_sup = -5; ///< For drop with support
+    double x_force_threshold = 15; ///< For place up
+    double handover_force_threshold = -10; ///< For handover
+    double dt = 0.1; ///< Discretization threshold for trajectory
+    double velocity = 1.0; ///< Maximum L1 velocity for one robot arm's trajectory
+    double sup_force_tol = 0.03; ///< Force tolerance for touching the object to support
+    double pre_support_z_offset = -0.001; ///< Z offset for pre-support pose
 };
 
+/**
+ * @brief Grasp generator for Lego manipulation tasks.
+ *
+ * Inherits from PlanningAlgorithm and generates grasp strategies for Lego bricks.
+ */
 class LegoGraspGenerator : public PlanningAlgorithm {
 public:
+    /**
+     * @brief Constructor for LegoGraspGenerator.
+     * @param lego_ptr Shared pointer to Lego object.
+     * @param instance Shared pointer to PlanInstance.
+     * @param config Lego policy configuration.
+     * @param robot Robot pointer.
+     * @param object Object pointer.
+     */
     LegoGraspGenerator(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
                     std::shared_ptr<skillgraph::PlanInstance> instance,
                     const LegoPolicyCfg &config,

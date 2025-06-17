@@ -7,42 +7,51 @@ namespace lego_manipulation
 {
 namespace lego
 {
+/**
+ * @brief Data structure representing a Lego brick.
+ */
 struct lego_brick{
-    std::string brick_name;
-    int height;
-    int width;
-    double x;
-    double y;
-    double z;
-    double quat_x;
-    double quat_y;
-    double quat_z;
-    double quat_w;
-    double cur_x;
-    double cur_y;
-    double cur_z;
-    int press_side;
-    int press_offset;
-    bool fixed;
-    Eigen::Quaterniond cur_quat;
-    bool in_stock;
-    std::map<std::string, std::string> top_connect;
-    std::map<std::string, std::string> bottom_connect;
+    std::string brick_name; ///< Name of the brick
+    int height; ///< Height of the brick
+    int width; ///< Width of the brick
+    double x; ///< X position
+    double y; ///< Y position
+    double z; ///< Z position
+    double quat_x; ///< Quaternion X
+    double quat_y; ///< Quaternion Y
+    double quat_z; ///< Quaternion Z
+    double quat_w; ///< Quaternion W
+    double cur_x; ///< Current X position
+    double cur_y; ///< Current Y position
+    double cur_z; ///< Current Z position
+    int press_side; ///< Side to press
+    int press_offset; ///< Offset for pressing
+    bool fixed; ///< Whether the brick is fixed
+    Eigen::Quaterniond cur_quat; ///< Current orientation as quaternion
+    bool in_stock; ///< Whether the brick is in stock
+    std::map<std::string, std::string> top_connect; ///< Top connections
+    std::map<std::string, std::string> bottom_connect; ///< Bottom connections
 };
 
+/**
+ * @brief Data structure representing a Lego plate.
+ */
 struct lego_plate{
-    int height;
-    int width;
-    double x;
-    double y;
-    double z;
-    double roll;
-    double pitch;
-    double yaw;
-    Eigen::Quaterniond quat;
-    Eigen::Matrix4d pose;
+    int height; ///< Height of the plate
+    int width; ///< Width of the plate
+    double x; ///< X position
+    double y; ///< Y position
+    double z; ///< Z position
+    double roll; ///< Roll angle
+    double pitch; ///< Pitch angle
+    double yaw; ///< Yaw angle
+    Eigen::Quaterniond quat; ///< Orientation as quaternion
+    Eigen::Matrix4d pose; ///< Pose matrix
 };
 
+/**
+ * @brief Main class for Lego manipulation and environment setup.
+ */
 class Lego
 {
     /* -------------------------------------------------------------------------- */

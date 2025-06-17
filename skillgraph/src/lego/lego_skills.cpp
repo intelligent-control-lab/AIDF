@@ -3,6 +3,11 @@
 
 namespace skillgraph {
 
+/**
+ * @brief Construct a LegoSkillExecutor for a specific skill type and backend.
+ * @param type The skill type.
+ * @param backend Shared pointer to the PlanInstance backend.
+ */
 LegoSkillExecutor::LegoSkillExecutor(Skill::Type type, std::shared_ptr<PlanInstance> backend) 
     : SkillExecutor(type), backend_(backend) {
     
@@ -20,6 +25,13 @@ LegoSkillExecutor::LegoSkillExecutor(Skill::Type type, std::shared_ptr<PlanInsta
 #endif
 }
 
+/**
+ * @brief Execute the Lego skill on the current state.
+ *
+ * This method executes the skill logic, including MoveIt or YK tasks if available.
+ * @param current_state The current state to execute on.
+ * @return True if execution was successful, false otherwise.
+ */
 bool LegoSkillExecutor::execute(State &current_state) {
     // To be implemented
     if (post_condition == nullptr) {

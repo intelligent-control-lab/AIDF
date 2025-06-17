@@ -4,10 +4,42 @@ namespace lego_manipulation
 {
 namespace lego
 {
+
+/**
+ * @brief Construct a Lego object for manipulation and environment setup.
+ */
 Lego::Lego()
 {
 }
         
+/**
+ * @brief Setup the Lego environment, library, calibration, and robot parameters.
+ *
+ * This method loads configuration files, initializes robot and brick parameters, and sets up the environment for Lego manipulation.
+ * @param env_setup_fname Filename for environment setup.
+ * @param lego_lib_fname Filename for Lego library.
+ * @param plate_calib_fname Filename for plate calibration.
+ * @param assemble Whether to assemble.
+ * @param task_json JSON value for the task.
+ * @param world_base_fname Filename for world base.
+ * @param r1_DH_fname Filename for robot 1 DH parameters.
+ * @param r1_DH_tool_fname Filename for robot 1 tool DH parameters.
+ * @param r1_DH_tool_disassemble_fname Filename for robot 1 tool disassemble DH parameters.
+ * @param r1_DH_tool_assemble_fname Filename for robot 1 tool assemble DH parameters.
+ * @param r1_DH_tool_alt_fname Filename for robot 1 alternate tool DH parameters.
+ * @param r1_DH_tool_alt_assemble_fname Filename for robot 1 alternate tool assemble DH parameters.
+ * @param r1_DH_tool_handover_assemble_fname Filename for robot 1 handover assemble DH parameters.
+ * @param r1_base_fname Filename for robot 1 base.
+ * @param r2_DH_fname Filename for robot 2 DH parameters.
+ * @param r2_DH_tool_fname Filename for robot 2 tool DH parameters.
+ * @param r2_DH_tool_disassemble_fname Filename for robot 2 tool disassemble DH parameters.
+ * @param r2_DH_tool_assemble_fname Filename for robot 2 tool assemble DH parameters.
+ * @param r2_DH_tool_alt_fname Filename for robot 2 alternate tool DH parameters.
+ * @param r2_DH_tool_alt_assemble_fname Filename for robot 2 alternate tool assemble DH parameters.
+ * @param r2_DH_tool_handover_assemble_fname Filename for robot 2 handover assemble DH parameters.
+ * @param r2_base_fname Filename for robot 2 base.
+ * @param cli ROS service client.
+ */
 void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib_fname, const std::string &plate_calib_fname, const bool& assemble, const Json::Value& task_json, const std::string& world_base_fname,
                    const std::string& r1_DH_fname, const std::string& r1_DH_tool_fname, const std::string& r1_DH_tool_disassemble_fname, 
                    const std::string& r1_DH_tool_assemble_fname, const std::string& r1_DH_tool_alt_fname, 
@@ -238,6 +270,13 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
     usleep(1000 * 1000); 
 }
 
+/**
+ * @brief Get the brick dimensions from its name using the Lego library.
+ *
+ * @param b_name Name of the brick.
+ * @param height Output height of the brick.
+ * @param width Output width of the brick.
+ */
 void Lego::brick_dimension_from_name(const std::string& b_name, int& height, int& width)
 {
     auto dash_id = b_name.find("_");
