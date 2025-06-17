@@ -73,19 +73,19 @@ if(ROS_VERSION EQUAL 2)
     find_package(geometry_msgs REQUIRED)
     find_package(cv_bridge REQUIRED)
     find_package(image_transport REQUIRED)
-    find_package(rosidl_default_generators REQUIRED)
-    find_package(rosidl_default_runtime REQUIRED)
-    
-    # ROS2 service generation
-    set(srv_files
-        "srv/StabilityScore.srv"
-    )
-    
-    rosidl_generate_interfaces(${PROJECT_NAME}
-        ${srv_files}
-        DEPENDENCIES geometry_msgs std_msgs
-        ADD_LINTER_TESTS
-    )
+    #find_package(rosidl_default_generators REQUIRED)
+    #find_package(rosidl_default_runtime REQUIRED)
+
+    ## ROS2 service generation
+    #set(srv_files
+    #    "srv/StabilityScore.srv"
+    #)
+
+    #rosidl_generate_interfaces(${PROJECT_NAME}
+    #    ${srv_files}
+    #    DEPENDENCIES geometry_msgs std_msgs
+    #    ADD_LINTER_TESTS
+    #)
 else()
     # ROS1 dependencies
     find_package(catkin REQUIRED COMPONENTS
@@ -104,13 +104,13 @@ else()
       cv_bridge
       image_transport
     )
-    
+
     # ROS1 service generation
     add_service_files(
       FILES
       StabilityScore.srv
     )
-    
+
     generate_messages(
       DEPENDENCIES
       std_msgs
@@ -135,7 +135,7 @@ else()
         moveit_core
         moveit_visual_tools
         moveit_ros_planning_interface
-        tf2_geometry_msgs 
+        tf2_geometry_msgs
         message_runtime
         yk_msgs
       DEPENDS
@@ -150,18 +150,18 @@ endif()
 # Conditional include directories
 if(ROS_VERSION EQUAL 2)
     include_directories(
-      SYSTEM 
+      SYSTEM
       ${OpenCV_INCLUDE_DIRS}
-      ${Boost_INCLUDE_DIR} 
+      ${Boost_INCLUDE_DIR}
       ${EIGEN3_INCLUDE_DIRS}
     )
     # ROS2 include directories will be handled by ament_target_dependencies
 else()
     include_directories(
-      SYSTEM 
+      SYSTEM
       ${OpenCV_INCLUDE_DIRS}
-      ${catkin_INCLUDE_DIRS} 
-      ${Boost_INCLUDE_DIR} 
+      ${catkin_INCLUDE_DIRS}
+      ${Boost_INCLUDE_DIR}
       ${EIGEN3_INCLUDE_DIRS}
     )
 endif()
@@ -169,20 +169,33 @@ endif()
 # /* -------------------------------------------------------------------------- */
 # /*                               Create Library                               */
 # /* -------------------------------------------------------------------------- */
-file(GLOB src_files 
-     skillgraph/src/*.cpp 
-     skillgraph/src/lego/*.cpp
-     skillgraph/src/Utils/*.cpp 
-     skillgraph/src/ros_compat/*.cpp
-     planner/src/*.cpp)
 
-add_library(${PROJECT_NAME} SHARED ${src_files})
+# Conditionally include source files based on ROS version
+if(ROS_VERSION EQUAL 2)
+    # ROS2 build - exclude lego files that have ROS1 dependencies
+    file(GLOB src_files
+         skillgraph/src/*.cpp
+         skillgraph/src/Utils/*.cpp
+         skillgraph/src/ros_compat/*.cpp
+         planner/src/*.cpp)
+    message(STATUS "ROS2 build: Excluding lego/ directory from build")
+else()
+    # ROS1 build - include all files
+    file(GLOB src_files
+         skillgraph/src/*.cpp
+         skillgraph/src/lego/*.cpp
+         skillgraph/src/Utils/*.cpp
+         skillgraph/src/ros_compat/*.cpp
+         planner/src/*.cpp)
+    message(STATUS "ROS1 build: Including all source files")
+endif()
 
+# Build core shared library under a unique name to avoid clashes
+add_library(${PROJECT_NAME}_lib SHARED ${src_files})
 
 # Conditionally define a macro if yk_tasks is found
 if(yk_msgs_FOUND)
-  message(STATUS "yk_tasks found, defining HAVE_YK_TASKS")
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_YK_TASKS)
+  target_compile_definitions(${PROJECT_NAME}_lib PRIVATE HAVE_YK_TASKS)
 else()
   message(WARNING "yk_tasks not found, excluding related code")
 endif()
@@ -190,7 +203,7 @@ endif()
 
 # Conditional linking based on ROS version
 if(ROS_VERSION EQUAL 2)
-    target_link_libraries(${PROJECT_NAME}
+    target_link_libraries(${PROJECT_NAME}_lib
       Eigen3::Eigen
       ${OMPL_LIBRARIES}
       ${Boost_LIBRARIES}
@@ -198,9 +211,9 @@ if(ROS_VERSION EQUAL 2)
       yaml-cpp
       jsoncpp
     )
-    
+
     # ROS2 ament dependencies
-    ament_target_dependencies(${PROJECT_NAME}
+    ament_target_dependencies(${PROJECT_NAME}_lib
       rclcpp
       std_msgs
       moveit_core
@@ -213,7 +226,7 @@ if(ROS_VERSION EQUAL 2)
       image_transport
     )
 else()
-    target_link_libraries(${PROJECT_NAME}
+    target_link_libraries(${PROJECT_NAME}_lib
       Eigen3::Eigen
       ${catkin_LIBRARIES}
       ${OMPL_LIBRARIES}
@@ -225,17 +238,17 @@ else()
 endif()
 
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
+    target_link_libraries(${PROJECT_NAME}_lib OpenMP::OpenMP_CXX)
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME}_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/api>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/planner/include>
   $<INSTALL_INTERFACE:include>
   PRIVATE src)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
+set_target_properties(${PROJECT_NAME}_lib PROPERTIES
   VERSION ${PROJECT_VERSION}
   SOVERSION 1)
 
@@ -243,16 +256,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # /* -------------------------------------------------------------------------- */
 # /*                             Testing Executables                            */
 # /* -------------------------------------------------------------------------- */
- 
+
 add_executable(plan_lego
   exe/plan_lego.cpp
 )
 
 if(ROS_VERSION EQUAL 2)
     target_link_libraries(plan_lego
-      ${PROJECT_NAME}
+      ${PROJECT_NAME}_lib
     )
-    
+
     ament_target_dependencies(plan_lego
       rclcpp
       std_msgs
@@ -261,7 +274,7 @@ if(ROS_VERSION EQUAL 2)
     )
 else()
     target_link_libraries(plan_lego
-      ${PROJECT_NAME}
+      ${PROJECT_NAME}_lib
       ${catkin_LIBRARIES}
     )
 endif()
@@ -283,9 +296,9 @@ add_executable(webplan_lego
 
 if(ROS_VERSION EQUAL 2)
     target_link_libraries(webplan_lego
-      ${PROJECT_NAME}
+      ${PROJECT_NAME}_lib
     )
-    
+
     ament_target_dependencies(webplan_lego
       rclcpp
       std_msgs
@@ -294,7 +307,7 @@ if(ROS_VERSION EQUAL 2)
     )
 else()
     target_link_libraries(webplan_lego
-      ${PROJECT_NAME}
+      ${PROJECT_NAME}_lib
       ${catkin_LIBRARIES}
     )
 endif()
@@ -312,47 +325,32 @@ endif()
 
 
 
-
-add_executable(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  skillgraph/src/lego/lego_integrate_task_planning_chaitanya.cpp
-)
-
-add_dependencies(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
-
 # /* -------------------------------------------------------------------------- */
 # /*                            Final ROS2 Configuration                        */
 # /* -------------------------------------------------------------------------- */
 if(ROS_VERSION EQUAL 2)
     # ROS2 installations
-    install(TARGETS ${PROJECT_NAME}
-        EXPORT export_${PROJECT_NAME}
+    install(TARGETS ${PROJECT_NAME}_lib
+        EXPORT export_${PROJECT_NAME}_lib
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
     )
-    
+
     install(TARGETS plan_lego webplan_lego
-        DESTINATION lib/${PROJECT_NAME}
+        DESTINATION lib/${PROJECT_NAME}_lib
     )
-    
+
     install(DIRECTORY skillgraph/api skillgraph/include planner/include
         DESTINATION include
     )
-    
+
     install(DIRECTORY launch config
-        DESTINATION share/${PROJECT_NAME}
+        DESTINATION share/${PROJECT_NAME}_lib
     )
-    
+
     # Export dependencies
-    ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+    ament_export_targets(export_${PROJECT_NAME}_lib HAS_LIBRARY_TARGET)
     ament_export_dependencies(
         rclcpp
         std_msgs
@@ -364,14 +362,9 @@ if(ROS_VERSION EQUAL 2)
         tf2_geometry_msgs
         cv_bridge
         image_transport
-        rosidl_default_runtime
+        #rosidl_default_runtime
     )
-    
-    # ROS2 service interface dependencies
-    if(TARGET ${PROJECT_NAME})
-        rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-        target_link_libraries(${PROJECT_NAME} "${cpp_typesupport_target}")
-    endif()
-    
+
+
     ament_package()
 endif()

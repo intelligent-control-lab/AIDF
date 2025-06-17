@@ -54,11 +54,23 @@ This notice must appear in all copies of this file and its derivatives.
 #include <queue>
 #include <any>
 
-#include "ros/ros.h"
-#include <ros/package.h>
-#include "std_msgs/Float32MultiArray.h"
-#include "std_msgs/Float64.h"
-#include "std_msgs/Int64.h"
-#include "gazebo_msgs/SetModelState.h"
+// Conditional ROS includes based on ROS version
+#ifdef ROS2_BUILD
+    // ROS2 includes
+    #include <rclcpp/rclcpp.hpp>
+    #include <std_msgs/msg/float32_multi_array.hpp>
+    #include <std_msgs/msg/float64.hpp>
+    #include <std_msgs/msg/int64.hpp>
+    // Note: gazebo_msgs for ROS2 are deferred - only needed for lego functionality
+    // #include <gazebo_msgs/srv/set_entity_state.hpp>
+#else
+    // ROS1 includes
+    #include "ros/ros.h"
+    #include <ros/package.h>
+    #include "std_msgs/Float32MultiArray.h"
+    #include "std_msgs/Float64.h"
+    #include "std_msgs/Int64.h"
+    #include "gazebo_msgs/SetModelState.h"
+#endif
 
 using namespace std::chrono;

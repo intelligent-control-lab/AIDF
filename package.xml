@@ -10,17 +10,17 @@
 
   <!-- ROS2 Build tools -->
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <!-- <buildtool_depend>rosidl_default_generators</buildtool_depend> --> <!-- Disabled: ROS1 lego service only -->
 
   <!-- Core dependencies -->
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
-  
-  <!-- Interface generation -->
-  <depend>rosidl_default_generators</depend>
-  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <!-- Interface generation - Disabled for now (ROS1 lego service only) -->
+  <!-- <depend>rosidl_default_generators</depend> -->
+  <!-- <exec_depend>rosidl_default_runtime</exec_depend> -->
 
   <!-- MoveIt dependencies -->
   <depend>moveit_core</depend>
@@ -49,7 +49,5 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <member_of_group>rosidl_interface_packages</member_of_group>
   </export>
-</package>
 </package>

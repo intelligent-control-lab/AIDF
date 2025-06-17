@@ -4,7 +4,14 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit_msgs/MoveItErrorCodes.h>
+
+// Conditional MoveIt message includes
+#ifdef ROS2_BUILD
+    #include <moveit_msgs/msg/move_it_error_codes.hpp>
+#else
+    #include <moveit_msgs/MoveItErrorCodes.h>
+#endif
+
 #include <moveit/robot_state/conversions.h>
 #include "Utils/Logger.hpp" // For skillgraph::log
 

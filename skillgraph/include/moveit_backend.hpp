@@ -5,19 +5,35 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <actionlib/client/simple_action_client.h>
-#include <moveit_msgs/ExecuteTrajectoryAction.h>
-#include <moveit_msgs/ExecuteKnownTrajectory.h>
-#include <moveit_msgs/PlanningScene.h>
-#include <moveit_msgs/AttachedCollisionObject.h>
-#include <moveit_msgs/ApplyPlanningScene.h>
+
+// Conditional ROS-specific includes
+#ifdef ROS2_BUILD
+    // ROS2 MoveIt includes
+    #include <rclcpp_action/rclcpp_action.hpp>
+    #include <moveit_msgs/action/execute_trajectory.hpp>
+    #include <moveit_msgs/srv/execute_known_trajectory.hpp>
+    #include <moveit_msgs/msg/planning_scene.hpp>
+    #include <moveit_msgs/msg/attached_collision_object.hpp>
+    #include <moveit_msgs/srv/apply_planning_scene.hpp>
+    #include <visualization_msgs/msg/marker.hpp>
+    #include <visualization_msgs/msg/marker_array.hpp>
+#else
+    // ROS1 MoveIt includes
+    #include <actionlib/client/simple_action_client.h>
+    #include <moveit_msgs/ExecuteTrajectoryAction.h>
+    #include <moveit_msgs/ExecuteKnownTrajectory.h>
+    #include <moveit_msgs/PlanningScene.h>
+    #include <moveit_msgs/AttachedCollisionObject.h>
+    #include <moveit_msgs/ApplyPlanningScene.h>
+    #include <visualization_msgs/Marker.h>
+    #include <visualization_msgs/MarkerArray.h>
+#endif
+
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_interface.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
 
 #include <boost/process.hpp>
 #include <boost/asio.hpp>

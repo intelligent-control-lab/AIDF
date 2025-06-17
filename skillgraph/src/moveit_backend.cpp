@@ -2,6 +2,7 @@
 #include "Utils/Logger.hpp"
 #include "ros_compat/node.hpp"
 #include "ros_compat/launch.hpp"
+#include "ros_compat/time.hpp"
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -11,6 +12,26 @@
 #include <vector>
 #include <mutex>
 #include <algorithm>
+
+// Conditional includes for ROS1/ROS2 compatibility
+#ifdef ROS2_BUILD
+    #include <rclcpp/rclcpp.hpp>
+#endif
+
+// Conditional type aliases for ROS1/ROS2 compatibility
+#ifdef ROS2_BUILD
+    // ROS2 message type aliases
+    namespace moveit_msgs_compat = moveit_msgs_compat::msg;
+    namespace visualization_msgs_compat = visualization_msgs_compat::msg;
+    namespace geometry_msgs_compat = geometry_msgs::msg;
+    using ApplyPlanningSceneService = moveit_msgs_compat::srv::ApplyPlanningScene;
+#else
+    // ROS1 message type aliases
+    namespace moveit_msgs_compat = moveit_msgs;
+    namespace visualization_msgs_compat = visualization_msgs;
+    namespace geometry_msgs_compat = geometry_msgs;
+    using ApplyPlanningSceneService = moveit_msgs_compat::ApplyPlanningScene;
+#endif
 
 namespace skillgraph {
 
@@ -134,18 +155,18 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     // create a copy of robot kinematic
     kinematic_state_ = std::make_shared<robot_state::RobotState>(robot_model_);
     kinematic_state_->setToDefaultValues();
-    ros::Duration(0.3).sleep();
+    skillgraph::ros_compat::Time::sleep(0.3);
     // create planning scene
     planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
 
     // create a planning scene diff client
-    planning_scene_diff_client_ = nh_->serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+    planning_scene_diff_client_ = nh_->serviceClient<ApplyPlanningSceneService>("apply_planning_scene");
     planning_scene_diff_client_.waitForExistence();
 
     planning_scene_->getPlanningSceneMsg(original_scene_);
 
     // marker_publisher
-    marker_pub_ = nh_->advertise<visualization_msgs::MarkerArray>("visualization_marker", 10);
+    marker_pub_ = nh_->advertise<visualization_msgs_compat::MarkerArray>("visualization_marker", 10);
     log("MoveitInstance: MoveIt instance initialized successfully", LogLevel::INFO);
 }
 
@@ -504,9 +525,9 @@ void MoveitInstance::addMoveableObject(const Object& obj) {
         return;
     }
     log("Adding object " + obj.name + " to the scene", LogLevel::DEBUG);
-    moveit_msgs::CollisionObject co;
+    moveit_msgs_compat::CollisionObject co;
     co.header.frame_id = obj.parent_link;
-    co.header.stamp = ros::Time::now();
+    co.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
     co.id = obj.name;
 
     objects_[obj.name] = obj;
@@ -525,7 +546,7 @@ void MoveitInstance::addMoveableObject(const Object& obj) {
         primitive.dimensions[primitive.CYLINDER_HEIGHT] = obj.length;
         primitive.dimensions[primitive.CYLINDER_RADIUS] = obj.radius;
     }
-    geometry_msgs::Pose world_pose;
+    geometry_msgs_compat::Pose world_pose;
     world_pose.position.x = obj.x;
     world_pose.position.y = obj.y;
     world_pose.position.z = obj.z ;
@@ -538,7 +559,7 @@ void MoveitInstance::addMoveableObject(const Object& obj) {
     co.primitive_poses.push_back(world_pose);
     co.operation = co.ADD;
  
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = true;
 
@@ -552,19 +573,19 @@ void MoveitInstance::setObjectColor(const std::string &name, double r, double g,
         return;
     }
 
-    moveit_msgs::ObjectColor oc;
+    moveit_msgs_compat::ObjectColor oc;
     oc.id = name;
     oc.color.r = r;
     oc.color.g = g;
     oc.color.b = b;
     oc.color.a = a;
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.object_colors.push_back(oc);
     planning_scene.is_diff = true;
 
     planning_scene_->usePlanningSceneMsg(planning_scene);
-    moveit_msgs::ApplyPlanningScene srv;
+    moveit_msgs_compat::ApplyPlanningScene srv;
     srv.request.scene = planning_scene;
     planning_scene_diff_client_.call(srv);
 }
@@ -575,9 +596,9 @@ void MoveitInstance::moveObject(const Object& obj) {
         return;
     }
 
-    moveit_msgs::CollisionObject co;
+    moveit_msgs_compat::CollisionObject co;
     co.header.frame_id = obj.parent_link;
-    co.header.stamp = ros::Time::now();
+    co.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
     co.id = obj.name;
     
     co.pose.position.x = obj.x;
@@ -590,7 +611,7 @@ void MoveitInstance::moveObject(const Object& obj) {
 
     co.operation = co.MOVE;
  
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = true;
 
@@ -613,11 +634,11 @@ void MoveitInstance::removeObject(const std::string &name)
     }
 
     // remove the object from the scene
-    moveit_msgs::CollisionObject co;
+    moveit_msgs_compat::CollisionObject co;
     co.id = name;
     co.operation = co.REMOVE;
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = true;
 
@@ -626,10 +647,10 @@ void MoveitInstance::removeObject(const std::string &name)
 }
 
 void MoveitInstance::moveRobot(int robot_id, const RobotState& pose) {
-    moveit_msgs::PlanningScene cur_scene;
+    moveit_msgs_compat::PlanningScene cur_scene;
     planning_scene_->getPlanningSceneMsg(cur_scene);
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.is_diff = true;
     auto joint_names = planning_scene_->getRobotModel()->getJointModelGroup(robot_names_[robot_id])->getActiveJointModelNames();
     for (int i = 0; i < pose.joint_values.size(); i++) {
@@ -675,10 +696,10 @@ void MoveitInstance::attachObjectToRobot(const std::string &name, int robot_id, 
     // obj.z_attach = 0.07;
 
     // update in moveit
-    moveit_msgs::AttachedCollisionObject co;
+    moveit_msgs_compat::AttachedCollisionObject co;
     co.link_name = obj.parent_link;
     co.object.header.frame_id = obj.parent_link;
-    co.object.header.stamp = ros::Time::now();
+    co.object.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
     co.object.id = name;
     co.object.operation = co.object.ADD;
 
@@ -703,16 +724,16 @@ void MoveitInstance::attachObjectToRobot(const std::string &name, int robot_id, 
     // co.object.primitives.push_back(primitive);
     // co.object.primitive_poses.push_back(relative_pose);
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.is_diff = true;
     // if (old_parent_link == "base") {
-    //     moveit_msgs::CollisionObject co_remove;
+    //     moveit_msgs_compat::CollisionObject co_remove;
     //     co_remove.id = obj.name;
     //     co_remove.header.frame_id = old_parent_link;
     //     co_remove.operation = co_remove.REMOVE;
     //     planning_scene.world.collision_objects.push_back(co_remove);
     // } else {
-    //     moveit_msgs::AttachedCollisionObject co_remove;
+    //     moveit_msgs_compat::AttachedCollisionObject co_remove;
     //     co_remove.object.id = obj.name;
     //     co_remove.link_name = old_parent_link;
     //     co_remove.object.operation = co_remove.object.REMOVE;
@@ -757,12 +778,12 @@ void MoveitInstance::detachObjectFromRobot(const std::string& name, const RobotS
     std::string old_parent_link = obj.parent_link;
     obj.parent_link = "base";
 
-    moveit_msgs::AttachedCollisionObject co_remove;
+    moveit_msgs_compat::AttachedCollisionObject co_remove;
     co_remove.object.id = name;
     co_remove.link_name = old_parent_link;
     co_remove.object.operation = co_remove.object.REMOVE;
 
-    // moveit_msgs::CollisionObject co;
+    // moveit_msgs_compat::CollisionObject co;
     // co.id = obj.name;
     // co.header.frame_id = "base";
     // co.operation = co.ADD;
@@ -788,7 +809,7 @@ void MoveitInstance::detachObjectFromRobot(const std::string& name, const RobotS
     // co.object.primitives.push_back(primitive);
     // co.object.primitive_poses.push_back(world_pose);
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.is_diff = true;
     //planning_scene.world.collision_objects.push_back(co);
     planning_scene.robot_state.is_diff = true;
@@ -812,7 +833,7 @@ void MoveitInstance::detachObjectFromRobot(const std::string& name, const RobotS
 }
 
 void MoveitInstance::updateScene() {
-    moveit_msgs::ApplyPlanningScene srv;
+    moveit_msgs_compat::ApplyPlanningScene srv;
     srv.request.scene = planning_scene_diff_;
     bool success = planning_scene_diff_client_.call(srv);
     if (!success || !srv.response.success) {
@@ -843,7 +864,7 @@ void MoveitInstance::resetScene(bool reset_sim) {
 
     planning_scene_->setPlanningSceneMsg(original_scene_);
     if (reset_sim) {
-        moveit_msgs::ApplyPlanningScene srv;
+        moveit_msgs_compat::ApplyPlanningScene srv;
         srv.request.scene = original_scene_;
         planning_scene_diff_client_.call(srv);
     }
@@ -856,7 +877,7 @@ void MoveitInstance::setState(const State &state) {
 
     // move the robot state
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
 
     // set the robot state
     for (int i = 0; i < robot_states.size(); i++) {
@@ -876,7 +897,7 @@ void MoveitInstance::setState(const State &state) {
     }
 
     // Prepare visualization markers publisher for object labels
-    visualization_msgs::MarkerArray marker_array;
+    visualization_msgs_compat::MarkerArray marker_array;
     int marker_id = 0;
 
     // update the object state
@@ -886,10 +907,10 @@ void MoveitInstance::setState(const State &state) {
         
         if (obj->state == Object::State::Attached) {
             // attach the object
-            moveit_msgs::AttachedCollisionObject co;
+            moveit_msgs_compat::AttachedCollisionObject co;
             co.link_name = obj->parent_link;
             co.object.header.frame_id = obj->parent_link;
-            co.object.header.stamp = ros::Time::now();
+            co.object.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
             co.object.id = obj->name;
             co.object.operation = co.object.ADD;
 
@@ -910,7 +931,7 @@ void MoveitInstance::setState(const State &state) {
             // object world pose is obj.x, obj.y, obj.z, obj.qx, obj.qy, obj.qz, obj.qw
             // now need to compute this in the robot endeffector frame
 
-            geometry_msgs::Pose relative_pose;
+            geometry_msgs_compat::Pose relative_pose;
             relative_pose.position.x = obj->x_attach;
             relative_pose.position.y = obj->y_attach;
             relative_pose.position.z = obj->z_attach;
@@ -925,9 +946,9 @@ void MoveitInstance::setState(const State &state) {
         }
         else {
             // add a new object
-            moveit_msgs::CollisionObject co;
+            moveit_msgs_compat::CollisionObject co;
             co.header.frame_id = obj->parent_link;
-            co.header.stamp = ros::Time::now();
+            co.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
             co.id = obj->name;
 
             shape_msgs::SolidPrimitive primitive;
@@ -944,7 +965,7 @@ void MoveitInstance::setState(const State &state) {
                 primitive.dimensions[primitive.CYLINDER_HEIGHT] = obj->length;
                 primitive.dimensions[primitive.CYLINDER_RADIUS] = obj->radius;
             }
-            geometry_msgs::Pose world_pose;
+            geometry_msgs_compat::Pose world_pose;
             world_pose.position.x = obj->x;
             world_pose.position.y = obj->y;
             world_pose.position.z = obj->z ;
@@ -962,13 +983,13 @@ void MoveitInstance::setState(const State &state) {
         objects_[obj->name] = *obj;
 
         // Add text marker for this object
-        visualization_msgs::Marker text_marker;
+        visualization_msgs_compat::Marker text_marker;
         text_marker.header.frame_id = obj->parent_link;
-        text_marker.header.stamp = ros::Time::now();
+        text_marker.header.stamp = skillgraph::ros_compat::Time::getTimeStamp();
         text_marker.ns = "object_labels";
         text_marker.id = marker_id++;
-        text_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-        text_marker.action = visualization_msgs::Marker::ADD;
+        text_marker.type = visualization_msgs_compat::Marker::TEXT_VIEW_FACING;
+        text_marker.action = visualization_msgs_compat::Marker::ADD;
         
         // Position the text slightly above the object
         text_marker.pose.position.x = obj->x;
@@ -983,7 +1004,11 @@ void MoveitInstance::setState(const State &state) {
         text_marker.color.g = 1.0;
         text_marker.color.b = 1.0;
         text_marker.color.a = 1.0;
+#ifdef ROS2_BUILD
+        text_marker.lifetime = rclcpp::Duration(0, 0); // Persistent until removed
+#else
         text_marker.lifetime = ros::Duration(); // Persistent until removed
+#endif
         
         marker_array.markers.push_back(text_marker);
         
@@ -1008,7 +1033,7 @@ bool MoveitInstance::setCollision(const std::string& obj_name, const std::string
     // Get the Allowed Collision Matrix (ACM)
     // Use the PlanningSceneMonitor to get the current planning scene
 
-    moveit_msgs::AllowedCollisionMatrix acm;
+    moveit_msgs_compat::AllowedCollisionMatrix acm;
     planning_scene_->getAllowedCollisionMatrixNonConst().getMessage(acm);
 
     if (std::find(acm.entry_names.begin(), acm.entry_names.end(), obj_name) == acm.entry_names.end()) {
@@ -1029,7 +1054,7 @@ bool MoveitInstance::setCollision(const std::string& obj_name, const std::string
             }
         }
         // add a new row
-        moveit_msgs::AllowedCollisionEntry new_entry;
+        moveit_msgs_compat::AllowedCollisionEntry new_entry;
         for (size_t i = 0; i < acm.entry_names.size(); i++) {
             if (acm.entry_names[i] == link_name) {
                 new_entry.enabled.push_back(allow);
@@ -1057,7 +1082,7 @@ bool MoveitInstance::setCollision(const std::string& obj_name, const std::string
         }
     }
 
-    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs_compat::PlanningScene planning_scene;
     planning_scene.is_diff = true;
     planning_scene.allowed_collision_matrix = acm;
     planning_scene_->usePlanningSceneMsg(planning_scene);

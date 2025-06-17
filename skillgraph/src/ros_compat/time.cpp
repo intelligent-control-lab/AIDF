@@ -4,9 +4,9 @@
 #include <thread>
 
 // Conditional compilation based on ROS version
-#ifdef ROS_VERSION_2
+#ifdef ROS2_BUILD
     #include <rclcpp/rclcpp.hpp>
-#elif defined(ROS_VERSION_1)  
+#else
     #include <ros/ros.h>
 #endif
 
@@ -14,50 +14,37 @@ namespace skillgraph {
 namespace ros_compat {
 
 double Time::now() {
-#ifdef ROS_VERSION_2
+#ifdef ROS2_BUILD
     auto now = rclcpp::Clock().now();
     return now.seconds();
-#elif defined(ROS_VERSION_1)
+#else
     ros::Time now = ros::Time::now();
     return now.toSec();
-#else
-    // Fallback to system time
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto seconds = std::chrono::duration_cast<std::chrono::duration<double>>(duration);
-    return seconds.count();
 #endif
 }
 
 void Time::sleep(double seconds) {
-#ifdef ROS_VERSION_2
+#ifdef ROS2_BUILD
     rclcpp::sleep_for(std::chrono::duration<double>(seconds));
-#elif defined(ROS_VERSION_1)
-    ros::Duration(seconds).sleep();
 #else
-    // Fallback to standard sleep
-    std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
+    ros::Duration(seconds).sleep();
 #endif
 }
 
 auto Time::getTimeStamp() {
-#ifdef ROS_VERSION_2
+#ifdef ROS2_BUILD
     return rclcpp::Clock().now();
-#elif defined(ROS_VERSION_1)
-    return ros::Time::now();
 #else
-    // Return a simple timestamp for non-ROS builds
-    return std::chrono::system_clock::now();
+    return ros::Time::now();
+#endif
 #endif
 }
 
 void Duration::sleep() const {
-#ifdef ROS_VERSION_2
+#ifdef ROS2_BUILD
     rclcpp::sleep_for(std::chrono::duration<double>(seconds_));
-#elif defined(ROS_VERSION_1)
-    ros::Duration(seconds_).sleep();
 #else
-    std::this_thread::sleep_for(std::chrono::duration<double>(seconds_));
+    ros::Duration(seconds_).sleep();
 #endif
 }
 
