@@ -1,7 +1,16 @@
 #include "lego/lego_objects.hpp"
 
 namespace skillgraph {
-    LegoBrick::LegoBrick(lego_manipulation::lego::Lego::Ptr lego_ptr, const Json::Value &node, const std::string &brick_seq) {
+
+/**
+ * @brief Construct a LegoBrick from a Lego pointer, JSON node, and brick sequence.
+ *
+ * Initializes the LegoBrick's properties, pose, and dimensions using the provided Lego object and JSON node.
+ * @param lego_ptr Pointer to the Lego object.
+ * @param node JSON node containing brick data.
+ * @param brick_seq Sequence identifier for the brick.
+ */
+LegoBrick::LegoBrick(lego_manipulation::lego::Lego::Ptr lego_ptr, const Json::Value &node, const std::string &brick_seq) {
         this->type = Object::Type::LegoBrick;
         this->brick_id = node["brick_id"].asInt();
 
@@ -30,4 +39,4 @@ namespace skillgraph {
         this->qw = quat.w();
     }
 
-}
+} // namespace skillgraph

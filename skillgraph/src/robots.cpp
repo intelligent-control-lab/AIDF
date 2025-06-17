@@ -1,9 +1,23 @@
+/**
+ * @file robots.cpp
+ * @brief Implements the Robot class and related methods for the skillgraph framework.
+ */
+
 #include "robots.hpp"
 #include "Utils/Logger.hpp"
 
 namespace skillgraph {
 
-
+/**
+ * @brief Construct a Robot with specified properties.
+ * @param type Type of the robot (string).
+ * @param gripperType Type of the end-effector (string).
+ * @param sensorType Type of the sensor (string).
+ * @param robot_id Robot ID.
+ * @param name Name of the robot.
+ * @param capabilities List of robot capabilities.
+ * @throws std::runtime_error if the robot or gripper type is not supported.
+ */
 Robot::Robot(const std::string &type, const std::string &gripperType, const std::string &sensorType,
         int robot_id, const std::string &name, const std::vector<std::string> &capabilities)
 {
@@ -44,6 +58,10 @@ Robot::Robot(const std::string &type, const std::string &gripperType, const std:
 
 }
 
+/**
+ * @brief Get the robot type as a string.
+ * @return Robot type string.
+ */
 std::string Robot::type_string() const {
     if (type == Type::GP4) {
         return "GP4";
@@ -59,6 +77,10 @@ std::string Robot::type_string() const {
     }
 }
 
+/**
+ * @brief Get the tool (end-effector) type as a string.
+ * @return Tool type string.
+ */
 std::string Robot::tool_string() const {
     if (tool == Tool::LegoTool) {
         return "LegoTool";
@@ -77,6 +99,10 @@ std::string Robot::tool_string() const {
     }
 }
 
+/**
+ * @brief Get a string representation of the robot.
+ * @return String with robot details.
+ */
 std::string Robot::to_string() const {
     std::string str = "Robot: " + robot_name + "\n";
     str += "  Type: " + type_string() + "\n";
@@ -88,6 +114,10 @@ std::string Robot::to_string() const {
     return str;
 }
 
+/**
+ * @brief Get the total degrees of freedom (DOF) of the robot.
+ * @return Total DOF (robot + hand).
+ */
 int Robot::getDOF() const
 {
     return robot_dof + hand_dof;

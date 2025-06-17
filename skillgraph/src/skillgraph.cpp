@@ -96,7 +96,7 @@ void SkillGraph::initialize() {
     std::cout << "Parsing Environment" << std::endl;
     parse_env(root);
     std::cout << "Parsing Tasks" << std::endl;
-    //parse_tasks(root);
+    parse_tasks(root);
 }
 
 void SkillGraph::parse_robots(const Json::Value &root) {

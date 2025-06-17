@@ -1,12 +1,18 @@
+/**
+ * @file webplan_lego.cpp
+ * @brief Entry point for running the Lego Skill Graph planner with web/file monitoring capabilities.
+ *
+ * This executable monitors a file for changes and triggers planning logic accordingly.
+ * ROS processes are now managed by MoveitInstance in moveit_backend.cpp for natural shutdown.
+ */
+
 #include "skillgraph.hpp"
 #include "lego/lego_skillgraph.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/PathUtils.hpp"
 #include "planner.h"
 
-#include <cstdlib> // For std::system
-#include <csignal> // For signal handling
-#include <atomic>
-
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -16,44 +22,15 @@
 
 using namespace skillgraph;
 
-// Use an atomic flag to ensure signal handler and main thread don't race.
+// Control variable for main loop
 std::atomic<bool> program_running(true);
-std::atomic<bool> segfault_occurred(false); // New flag for segfault
 
-// Signal handler
-void signal_handler(int signal) {
-    if (program_running) {
-        program_running = false;
-
-        if (signal == SIGSEGV) {
-            segfault_occurred = true; // Set the segfault flag
-            std::cerr << "\nCaught SIGSEGV (Segmentation fault).  Attempting graceful shutdown...\n";
-             // Attempt a graceful shutdown using pkill -TERM
-            int ret = std::system("pkill -TERM -f ros");
-            // DO NOT call exit() or std::system("pkill -KILL ...") here.
-
-            // Re-raise the signal to terminate the program with a core dump.
-            std::signal(SIGSEGV, SIG_DFL); // Restore default handler
-            std::raise(SIGSEGV);          // Re-raise the signal
-        } else if (signal == SIGINT) {
-            std::cout << "\nCaught SIGINT (Ctrl+C).  Killing ROS processes..." << std::endl;
-            int term_result = std::system("pkill -TERM -f ros");
-            if (term_result != 0) {
-                std::cerr << "pkill -TERM -f roslaunch failed.  Attempting pkill -KILL..." << std::endl;
-                int ret = std::system("pkill -KILL -f ros"); // Safe in SIGINT handler
-            }
-        } else { //For other signals
-             std::cout << "\nSignal " << signal << " received. Killing ROS processes..." << std::endl;
-            int term_result = std::system("pkill -TERM -f ros");
-            if (term_result != 0) {
-                std::cerr << "pkill -TERM -f roslaunch failed.  Attempting pkill -KILL..." << std::endl;
-                int ret = std::system("pkill -KILL -f ros"); // Safe in SIGINT handler
-            }
-        }
-
-    }
-}
-
+/**
+ * @class FileMonitor
+ * @brief Monitors a file for changes and triggers a callback when the file is modified.
+ *
+ * Uses a polling mechanism to check file status at a specified interval.
+ */
 class FileMonitor {
     public:
         FileMonitor(const std::string& filepath, std::function<void()> callback, 
@@ -78,6 +55,9 @@ class FileMonitor {
         }
         
     private:
+        /**
+         * @brief Monitors the file for changes in a separate thread.
+         */
         void monitorFile() {
             struct stat prev_stat = {0};
             struct stat current_stat = {0};
@@ -109,22 +89,27 @@ class FileMonitor {
         std::thread monitor_thread_;
     };
 
-
+/**
+ * @brief Main function for the web-enabled Lego Skill Graph planner executable.
+ *
+ * Registers signal handlers and sets up file monitoring for triggering planning logic.
+ * @param argc Number of command-line arguments.
+ * @param argv Array of command-line arguments.
+ * @return int Exit code.
+ */
 int main(int argc, char* argv[]) {
     try {
-        // Register signal handlers.
-        std::signal(SIGINT, signal_handler);
-        std::signal(SIGSEGV, signal_handler);
-
-        // Default path
-        std::string config_path = "/home/mfi/repos/ros1_ws/src/philip/aidf/config/lego_tasks/skillgraph.json";
-        std::string web_msg_json_path = "/home/mfi/repos/ros1_ws/src/philip/aidf/config/web_message.json";
+        // Default paths using PathResolver
+        std::string config_path = skillgraph::utils::PathResolver::getDefaultSkillgraphConfig();
+        std::string web_msg_json_path = skillgraph::utils::PathResolver::getDefaultWebMessageConfig();
 
         // Parse command-line arguments
-        if (argc > 1) {
+        if (argc > 2) {
             config_path = argv[1];
+            web_msg_json_path = argv[2];
         } else {
             log("Using default config path: " + config_path, LogLevel::INFO);
+            log("Using default web message JSON path: " + web_msg_json_path, LogLevel::INFO);
         }
 
         // Main Logic
@@ -196,25 +181,12 @@ int main(int argc, char* argv[]) {
         // Shutdown Logic (for natural exit)
         std::cout << "Main logic finished.  Shutting down..." << std::endl;
 
-        // Kill any remaining ROS processes.
-        int term_result = std::system("pkill -TERM -f ros");
-        if (term_result != 0) {
-            std::cerr << "pkill -TERM -f roslaunch failed. Attempting pkill -KILL..." << std::endl;
-            int kill_result = std::system("pkill -KILL -f ros");
-                if(kill_result != 0){
-                    std::cerr << "pkill -KILL failed" << std::endl;
-            }
-        }
-
 
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        //Consider setting program_running = false; here to initiate shutdown.
         program_running = false;
+        return 1;
     }
 
-     // If a segfault occurred, the program will have already terminated
-    // due to the re-raised signal.  This code will only be reached
-    // for a normal exit or a handled signal (like SIGINT).
     return 0;
 }

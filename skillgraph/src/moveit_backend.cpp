@@ -1,7 +1,62 @@
 #include "moveit_backend.hpp"
 #include "Utils/Logger.hpp"
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <thread>
+#include <chrono>
+#include <cstdlib>
+#include <vector>
+#include <mutex>
+#include <algorithm>
 
 namespace skillgraph {
+
+// Static member definitions
+std::vector<MoveitInstance*> MoveitInstance::active_instances_;
+std::mutex MoveitInstance::instances_mutex_;
+
+// Signal handler that can cleanup all active instances
+void MoveitInstance::signalHandler(int signal) {
+    const char* signal_name = "";
+    switch(signal) {
+        case SIGSEGV: signal_name = "SIGSEGV"; break;
+        case SIGTERM: signal_name = "SIGTERM"; break;
+        case SIGINT: signal_name = "SIGINT"; break;
+        case SIGABRT: signal_name = "SIGABRT"; break;
+        default: signal_name = "UNKNOWN"; break;
+    }
+    
+    fprintf(stderr, "\nCaught signal %s (%d). Performing emergency cleanup...\n", signal_name, signal);
+    
+    // Emergency cleanup of all active instances
+    emergencyCleanup();
+    
+    // Restore default handler and re-raise for core dump if needed
+    std::signal(signal, SIG_DFL);
+    std::raise(signal);
+}
+
+// Emergency cleanup function
+void MoveitInstance::emergencyCleanup() {
+    std::lock_guard<std::mutex> lock(instances_mutex_);
+    
+    fprintf(stderr, "Emergency cleanup: Found %zu active MoveitInstance(s)\n", active_instances_.size());
+    
+    for (MoveitInstance* instance : active_instances_) {
+        if (instance) {
+            fprintf(stderr, "Emergency cleanup: Cleaning up MoveitInstance...\n");
+            instance->cleanupProcesses();
+        }
+    }
+    
+    // Additional system-wide cleanup
+    // fprintf(stderr, "Emergency cleanup: Killing remaining ROS processes...\n");
+    // int ret1 = std::system("pkill -TERM -f 'ros' 2>/dev/null || true");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    // int ret2 = std::system("pkill -KILL -f 'ros' 2>/dev/null || true");
+    // (void)ret1; (void)ret2; // Suppress warnings
+}
 
 MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
                                const std::string &joint_group_name,
@@ -15,6 +70,21 @@ MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
 
 MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name)
 {
+    // Register this instance for emergency cleanup
+    {
+        std::lock_guard<std::mutex> lock(instances_mutex_);
+        active_instances_.push_back(this);
+        
+        // Setup signal handlers only for the first instance
+        if (active_instances_.size() == 1) {
+            std::signal(SIGSEGV, signalHandler);
+            std::signal(SIGTERM, signalHandler);
+            std::signal(SIGINT, signalHandler);
+            std::signal(SIGABRT, signalHandler);
+            log("MoveitInstance: Signal handlers registered for emergency cleanup", LogLevel::INFO);
+        }
+    }
+    
     // launch the move_group node for the robot, based on the moveitConfigPkg, 
     // i.e. roslaunch moveitConfigPkg move_group.launch
     // launch it in the background (create a new process)
@@ -28,9 +98,12 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     boost::asio::io_context io;
     bp::environment env = boost::this_process::environment();
     env["LIBGL_ALWAYS_SOFTWARE"] = "1";
+    
+    // Create the process in its own process group for easier cleanup
     move_group_process_ = bp::child("/opt/ros/noetic/bin/roslaunch", 
             bp::args(args), 
             env,
+            bp::start_dir("/tmp"),
             io
         );
     io.run();
@@ -85,6 +158,58 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
 }
 
 MoveitInstance::~MoveitInstance() {
+    // Remove this instance from the active instances list
+    {
+        std::lock_guard<std::mutex> lock(instances_mutex_);
+        active_instances_.erase(
+            std::remove(active_instances_.begin(), active_instances_.end(), this),
+            active_instances_.end()
+        );
+    }
+    
+    // Perform cleanup
+    cleanupProcesses();
+}
+
+void MoveitInstance::cleanupProcesses() {
+    // Shutdown ROS node handle first to close connections
+    if (nh_) {
+        log("MoveitInstance: Shutting down ROS node handle", LogLevel::INFO);
+        nh_->shutdown();
+        nh_.reset();
+    }
+
+    // Ensure the spawned move_group process and all associated ROS processes are terminated
+    if (move_group_process_.valid() && move_group_process_.running()) {
+        log("MoveitInstance: Terminating move_group process and all ROS processes", LogLevel::INFO);
+        
+        // Get the process group ID to kill all child processes
+        pid_t pgid = getpgid(move_group_process_.id());
+        
+        // First try graceful termination of the entire process group
+        if (pgid > 0) {
+            log("MoveitInstance: Sending SIGTERM to process group " + std::to_string(pgid), LogLevel::INFO);
+            killpg(pgid, SIGTERM);
+            
+            // Wait a bit for graceful shutdown
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            
+            // If still running, force kill the process group
+            if (move_group_process_.running()) {
+                log("MoveitInstance: Force killing process group with SIGKILL", LogLevel::INFO);
+                killpg(pgid, SIGKILL);
+            }
+        }
+        
+        // Terminate the main process if still running
+        if (move_group_process_.running()) {
+            move_group_process_.terminate();
+        }
+        
+        // Wait for process to finish
+        move_group_process_.wait();
+        log("MoveitInstance: Move_group process terminated", LogLevel::INFO);
+    }
 }
 
 void MoveitInstance::setPadding(double padding) {

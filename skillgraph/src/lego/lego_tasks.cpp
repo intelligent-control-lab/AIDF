@@ -2,6 +2,13 @@
 
 namespace skillgraph {
 
+/**
+ * @brief Construct a LegoAssemblySeq for Lego assembly tasks.
+ *
+ * Reads the task JSON file, initializes the task sequence, and removes the brick sequence.
+ * @param lego_ptr Pointer to the Lego object.
+ * @param task_json_fname Filename of the task JSON.
+ */
 LegoAssemblySeq::LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
                                 const std::string &task_json_fname) {
     lego_ptr_ = lego_ptr;

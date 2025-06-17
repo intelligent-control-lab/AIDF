@@ -1,14 +1,25 @@
 #include "lego/lego_skills.hpp"
 #include "lego/lego_skillgraph.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/PathUtils.hpp"
 #include "moveit_backend.hpp"
 
 namespace skillgraph {
 
+/**
+ * @brief Construct a LegoSkillGraph from a configuration file.
+ * @param config_file Path to the configuration file.
+ */
 LegoSkillGraph::LegoSkillGraph(const std::string &config_file) : SkillGraph(config_file)
 {
 }
 
+/**
+ * @brief Parse the environment configuration for the Lego skill graph.
+ *
+ * This method sets up the backend, MoveIt instance, and robot parameters from the JSON configuration.
+ * @param root_config Root JSON configuration.
+ */
 void LegoSkillGraph::parse_env(const Json::Value &root_config) {
     // first, use the base class implementation
     SkillGraph::parse_env(root_config);
@@ -39,6 +50,12 @@ void LegoSkillGraph::parse_env(const Json::Value &root_config) {
     env_->setBackend(plan_instance_);
 }
 
+/**
+ * @brief Parse the tasks configuration for the Lego skill graph.
+ *
+ * This method reads the environment and task configuration from the JSON root, sets up calibration, and initializes Lego-specific parameters.
+ * @param root_config Root JSON configuration.
+ */
 void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
     // Open the JSON file
     std::cout << "Parsing Lego Task" << std::endl;
@@ -52,6 +69,13 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
         }
 
         std::string root_pwd = env_config["rootPwd"].asString();
+        
+        // Resolve dynamic path placeholders
+        if (root_pwd.find("${AIDF_PROJECT_ROOT}") == 0) {
+            std::string project_root = skillgraph::utils::PathResolver::getProjectRoot();
+            root_pwd = project_root + root_pwd.substr(20); // Remove "${AIDF_PROJECT_ROOT}"
+        }
+        
         auto calib_config = env_config["calibration"];
         std::cout << "Root path for calibration: " << root_pwd << std::endl;
 
