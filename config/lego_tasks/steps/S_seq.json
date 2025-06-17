@@ -127,7 +127,7 @@
         "support_y": -1,
         "support_z": 0,
         "support_ori": -1,
-        "brick_seq": 11,
+        "brick_seq": 12,
         "robot_id": 2,
         "sup_robot_id": 0
     },
@@ -193,7 +193,7 @@
         "support_y": 27,
         "support_z": 9,
         "support_ori": 0,
-        "brick_seq": 16,
+        "brick_seq": 14,
         "robot_id": 2,
         "sup_robot_id": 1
     },
@@ -215,7 +215,7 @@
         "support_y": 27,
         "support_z": 9,
         "support_ori": 0,
-        "brick_seq": 12,
+        "brick_seq": 11,
         "robot_id": 2,
         "sup_robot_id": 1
     },
@@ -237,7 +237,7 @@
         "support_y": 27,
         "support_z": 9,
         "support_ori": 0,
-        "brick_seq": 15,
+        "brick_seq": 16,
         "robot_id": 2,
         "sup_robot_id": 1
     },
@@ -281,7 +281,7 @@
         "support_y": 21,
         "support_z": 16,
         "support_ori": 0,
-        "brick_seq": 14,
+        "brick_seq": 15,
         "robot_id": 1,
         "sup_robot_id": 2
     }

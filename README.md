@@ -2,7 +2,7 @@
 
 This is the code repository repo for AIDF project. The goal of this repo is to provide the software implementation for the skillgraph and planner, based on our ontological layout. 
 
-## 📦 Build Instruction
+## 📦 Build Instruction For ROS1
 Download and build the codebase using standard ROS1 ```catkin_tools```
 To enable our ROS Noetic backend (tested on Ubuntu 20.04), you may need to install some system dependencies
 - [ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)
@@ -15,8 +15,20 @@ Follow the ros tutorial to create a workspace [tutorial](https://wiki.ros.org/RO
 For building code, I use catkin tools, which are documented [here](https://catkin-tools.readthedocs.io/en/latest/)
 
 Once you have download ros, and other system deps, under your catkin_ws/src, download the GP4-Lego simulator and environment setup to your workspace
-- [gp4 digital twin](https://github.com/intelligent-control-lab/Robot_Digital_Twin.git). checkout to the ``dual_arm_gp4`` branch!
+- [gp4 digital twin](https://github.com/intelligent-control-lab/Robot_Digital_Twin.git). checkout to the ``dual_arm_gen3`` branch!
 - this repo
+
+## Run Lego Assembly Insturction for ROS1
+To start the frontend of the webpage, run
+```
+run_frontend.sh
+```
+and visit [localhost:8000/api.html](http://localhost:8000/api.html) for the web visualization.
+
+To start the backend of the webpage (that connects to the C++ skillgraph implementation), run
+```
+run_backend.sh
+```
 
 
 ## 🚀 Webpage On The Way!
@@ -59,6 +71,7 @@ Given that everyone's execution environment differs, we encourage you to check a
 
 ## 🚀 Current Implementation Status
 - [x] Class Definition in Header Files
+- [x] Basic web interface
 - [ ] Lego Skills
 - [ ] Integration with ROS2 backend
 - [ ] Naive Planner

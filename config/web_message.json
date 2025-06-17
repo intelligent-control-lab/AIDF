@@ -1,26 +1,13 @@
 {
-    "skill": "TranslateWithRotation",
-    "object": "none",
+    "skill": "PickAndPlace",
+    "object": "b2_15",
     "robot": 0,
     "target_location": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
+        "x": 20,
+        "y": 10,
+        "z": 10,
         "ori": 0
     },
-    "skill_parameters": {
-        "Translate": {
-            "speed": 1,
-            "offset": [
-                0,
-                0.2,
-                0
-            ]
-        },
-        "Rotate": {
-            "speed": 1,
-            "angle": 1
-        }
-    },
-    "command_id": 1749778921812
+    "skill_parameters": {},
+    "command_id": 1750189035436
 }
