@@ -5,6 +5,7 @@
 #pragma once
 #include "algorithms.hpp"
 #include "moveit_backend.hpp"
+#include <moveit/robot_model/robot_model.h>
 
 namespace skillgraph {
 
@@ -41,7 +42,7 @@ class RRTConnect : public PlanningAlgorithm {
          * @param robot_model Robot model pointer.
          * @param instance Shared pointer to PlanInstance backend.
          */
-        RRTConnect(robot_model::RobotModelPtr robot_model,
+        RRTConnect(moveit::core::RobotModelPtr robot_model,
                    std::shared_ptr<skillgraph::PlanInstance> instance);
         /**
          * @brief Plan a trajectory from start to goal state.
@@ -53,7 +54,7 @@ class RRTConnect : public PlanningAlgorithm {
         virtual bool plan(const skillgraph::State &start, const skillgraph::State &goal,
                           skillgraph::RobotTrajectory &traj);
     private:
-        robot_model::RobotModelPtr robot_model_; /**< Robot model pointer */
+        moveit::core::RobotModelPtr robot_model_; /**< Robot model pointer */
         std::shared_ptr<skillgraph::PlanInstance> instance_; /**< Backend instance */
     };
 

@@ -16,13 +16,13 @@ namespace skillgraph {
             // lego specific
 
             /**
-             * @brief ROS node handle.
+             * @brief TODO: Replace with ROS 2 node handle when needed.
              */
-            std::shared_ptr<ros::NodeHandle> nh_;
+            // std::shared_ptr<rclcpp::Node> node_;
             /**
-             * @brief Service client for setting state.
+             * @brief TODO: Replace with ROS 2 service client when needed.
              */
-            ros::ServiceClient set_state_client_;
+            // rclcpp::Client<SomeService>::SharedPtr set_state_client_;
             /**
              * @brief Pointer to the Lego object.
              */

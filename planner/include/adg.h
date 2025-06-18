@@ -70,7 +70,9 @@ namespace tpg {
         virtual void update_joint_states(const std::vector<double> &joint_states, int robot_id) override;
         virtual bool moveit_execute(std::shared_ptr<skillgraph::MoveitInstance> instance, 
             std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group) override;
-        virtual bool moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_names, std::vector<ros::ServiceClient> &clients) override;
+        
+        // TODO: Replace with SkillExecutor-based execution in the future
+        virtual bool multi_robot_execute(const std::vector<std::vector<std::string>> &joint_names) override;
         virtual bool saveToDotFile(const std::string &filename) const override;
         virtual void setPolicy(std::shared_ptr<skillgraph::Algorithm> policy) {policy_ = policy;}
         virtual void setExecStartAct(int robot_id, int act_id);

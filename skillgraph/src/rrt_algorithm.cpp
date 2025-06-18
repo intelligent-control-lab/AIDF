@@ -6,18 +6,14 @@
 #include <moveit/kinematic_constraints/utils.h>
 
 // Conditional MoveIt message includes
-#ifdef ROS2_BUILD
-    #include <moveit_msgs/msg/move_it_error_codes.hpp>
-#else
-    #include <moveit_msgs/MoveItErrorCodes.h>
-#endif
+#include <moveit_msgs/msg/move_it_error_codes.hpp>
 
 #include <moveit/robot_state/conversions.h>
 #include "Utils/Logger.hpp" // For skillgraph::log
 
 namespace skillgraph {
 
-RRTConnect::RRTConnect(robot_model::RobotModelPtr robot_model,
+RRTConnect::RRTConnect(moveit::core::RobotModelPtr robot_model,
                        std::shared_ptr<skillgraph::PlanInstance> instance)
     : robot_model_(robot_model), instance_(instance) {
     // If PlannerOptions were a member, you would initialize it here.

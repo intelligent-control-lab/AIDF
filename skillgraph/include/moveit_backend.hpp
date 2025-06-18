@@ -6,28 +6,16 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/planning_scene/planning_scene.h>
 
-// Conditional ROS-specific includes
-#ifdef ROS2_BUILD
-    // ROS2 MoveIt includes
-    #include <rclcpp_action/rclcpp_action.hpp>
-    #include <moveit_msgs/action/execute_trajectory.hpp>
-    #include <moveit_msgs/srv/execute_known_trajectory.hpp>
-    #include <moveit_msgs/msg/planning_scene.hpp>
-    #include <moveit_msgs/msg/attached_collision_object.hpp>
-    #include <moveit_msgs/srv/apply_planning_scene.hpp>
-    #include <visualization_msgs/msg/marker.hpp>
-    #include <visualization_msgs/msg/marker_array.hpp>
-#else
-    // ROS1 MoveIt includes
-    #include <actionlib/client/simple_action_client.h>
-    #include <moveit_msgs/ExecuteTrajectoryAction.h>
-    #include <moveit_msgs/ExecuteKnownTrajectory.h>
-    #include <moveit_msgs/PlanningScene.h>
-    #include <moveit_msgs/AttachedCollisionObject.h>
-    #include <moveit_msgs/ApplyPlanningScene.h>
-    #include <visualization_msgs/Marker.h>
-    #include <visualization_msgs/MarkerArray.h>
-#endif
+// ROS2 includes
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <moveit_msgs/action/execute_trajectory.hpp>
+#include <moveit_msgs/srv/execute_known_trajectory.hpp>
+#include <moveit_msgs/msg/planning_scene.hpp>
+#include <moveit_msgs/msg/attached_collision_object.hpp>
+#include <moveit_msgs/srv/apply_planning_scene.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <moveit/collision_detection_fcl/collision_env_fcl.h>
@@ -35,22 +23,10 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/planning_interface/planning_interface.h>
 
-#include <boost/process.hpp>
-#include <boost/asio.hpp>
-#include <sys/prctl.h>
-#include <signal.h>
 #include <vector>
 #include <mutex>
+#include <memory>
 
-// Conditional ROS includes
-#ifdef ROS2_BUILD
-    #include <rclcpp/rclcpp.hpp>
-#else
-    #include <ros/ros.h>
-#endif
-
-#include "ros_compat/node.hpp"
-#include "ros_compat/launch.hpp"
 #include "backend.hpp"
 #include "robots.hpp"
 #include "tasks.hpp"
@@ -61,10 +37,10 @@ namespace skillgraph {
 // Forward declaration for signal handling
 class MoveitInstance;
 
-// Concrete implementation using MoveIt
+// Concrete implementation using MoveIt for ROS 2
 class MoveitInstance : public PlanInstance {
 public:
-    MoveitInstance(robot_state::RobotStatePtr kinematic_state,
+    MoveitInstance(moveit::core::RobotStatePtr kinematic_state,
                    const std::string &joint_group_name,
                    planning_scene::PlanningScenePtr planning_scene);
     MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name);
@@ -91,10 +67,10 @@ public:
     virtual void attachObjectToRobot(const std::string &name, int robot_id, const std::string &link_name, const skillgraph::RobotState &pose) override;
     virtual void detachObjectFromRobot(const std::string& name, const skillgraph::RobotState &pose) override;
     virtual void setObjectColor(const std::string &name, double r, double g, double b, double a);
-    virtual moveit_msgs::PlanningScene getPlanningSceneDiff() const {
+    virtual moveit_msgs::msg::PlanningScene getPlanningSceneDiff() const {
         return planning_scene_diff_;
     }
-    virtual void setPlanningSceneDiffClient(ros::ServiceClient &client) {
+    virtual void setPlanningSceneDiffClient(rclcpp::Client<moveit_msgs::srv::ApplyPlanningScene>::SharedPtr client) {
         planning_scene_diff_client_ = client;
     }
     virtual planning_scene::PlanningScenePtr getPlanningScene() const {
@@ -111,11 +87,8 @@ public:
     virtual void setState(const State &state) override;
 
 private:
-    // ROS abstraction layer
-    std::shared_ptr<skillgraph::ros_compat::NodeHandle> ros_node_;
-
-    // moveit move_group and planning_scene_interface pointers
-    std::unique_ptr<skillgraph::ros_compat::LaunchProcess> move_group_process_handle_;
+    // ROS 2 node
+    rclcpp::Node::SharedPtr node_;
 
     // Static tracking for emergency cleanup
     static std::vector<MoveitInstance*> active_instances_;
@@ -125,16 +98,16 @@ private:
     void cleanupProcesses();
 
     std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
-    robot_model::RobotModelPtr robot_model_;
+    moveit::core::RobotModelPtr robot_model_;
     std::string joint_group_name_;
-    robot_state::RobotStatePtr kinematic_state_;
+    moveit::core::RobotStatePtr kinematic_state_;
     planning_scene::PlanningScenePtr planning_scene_;
-    moveit_msgs::PlanningScene original_scene_;
+    moveit_msgs::msg::PlanningScene original_scene_;
 
     /* store the planning scene diff temporarily*/
-    moveit_msgs::PlanningScene planning_scene_diff_;
-    ros::ServiceClient planning_scene_diff_client_;
-    ros::Publisher marker_pub_;
+    moveit_msgs::msg::PlanningScene planning_scene_diff_;
+    rclcpp::Client<moveit_msgs::srv::ApplyPlanningScene>::SharedPtr planning_scene_diff_client_;
+    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
 
     // random number generator
     std::mt19937 rng_;

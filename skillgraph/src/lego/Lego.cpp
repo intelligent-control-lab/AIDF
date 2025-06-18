@@ -46,12 +46,13 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
                    const std::string& r1_DH_tool_alt_assemble_fname, const std::string &r1_DH_tool_handover_assemble_fname, const std::string& r1_base_fname, 
                    const std::string& r2_DH_fname, const std::string& r2_DH_tool_fname, const std::string& r2_DH_tool_disassemble_fname, 
                    const std::string& r2_DH_tool_assemble_fname, const std::string& r2_DH_tool_alt_fname, 
-                   const std::string& r2_DH_tool_alt_assemble_fname, const std::string &r2_DH_tool_handover_assemble_fname, const std::string& r2_base_fname, 
-                   const ros::ServiceClient& cli)
+                   const std::string& r2_DH_tool_alt_assemble_fname, const std::string &r2_DH_tool_handover_assemble_fname, const std::string& r2_base_fname)
 {
-    client_ = cli;
+    // TODO: Initialize ROS 2 service client for Gazebo here if needed
+    // client_ = cli;
 
-    gazebo_msgs::ModelState brick_pose;
+    // TODO: Gazebo simulation setup disabled for ROS 2 migration
+    // When Gazebo integration is restored, implement proper ROS 2 service calls
     std::ifstream config_file(env_setup_fname, std::ifstream::binary);
     double x, y, z, roll, pitch, yaw;
     Eigen::Quaterniond quat(Eigen::Matrix3d::Identity(3, 3));
@@ -95,7 +96,9 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
 
     for(auto brick = plate_calib.begin(); brick != plate_calib.end(); brick++)
     {
-        brick_pose.model_name = brick.name();
+        // TODO: Restore Gazebo simulation setup when ROS 2 integration is complete
+        /*
+        std::string brick_name = brick.name();
         if(brick.name().compare("storage_plate") == 0)
         {
             x = (*brick)["x"].asDouble();
@@ -147,20 +150,22 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
         else{
             continue;
         }
-        brick_pose.pose.position.x = x;
-        brick_pose.pose.position.y = y;
-        brick_pose.pose.position.z = z;
-        brick_pose.pose.orientation.x = quat.x();
-        brick_pose.pose.orientation.y = quat.y();
-        brick_pose.pose.orientation.z = quat.z();
-        brick_pose.pose.orientation.w = quat.w();
-        setmodelstate_.request.model_state = brick_pose;
-        client_.call(setmodelstate_);
+        // TODO: Restore Gazebo service calls when ROS 2 integration is complete
+        // brick_pose.pose.position.x = x;
+        // brick_pose.pose.position.y = y; 
+        // brick_pose.pose.position.z = z;
+        // brick_pose.pose.orientation.x = quat.x();
+        // brick_pose.pose.orientation.y = quat.y();
+        // brick_pose.pose.orientation.z = quat.z();
+        // brick_pose.pose.orientation.w = quat.w();
+        // setmodelstate_.request.model_state = brick_pose;
+        // client_.call(setmodelstate_);
+        */
     }
 
     for(auto brick = config_.begin(); brick != config_.end(); brick++)
     {
-        brick_pose.model_name = brick.name();
+        std::string brick_name = brick.name();
         if(brick.name()[0] == 'b')
         {
             lego_brick l_brick;
@@ -197,18 +202,20 @@ void Lego::setup(const std::string& env_setup_fname, const std::string& lego_lib
         }
         else
         {
-            ROS_INFO_STREAM("Unknown brick type: " << brick.name() << " !");
+            // TODO: Replace with ROS 2 logging when available
+            std::cout << "Unknown brick type: " << brick.name() << " !" << std::endl;
             continue;
         }
-        brick_pose.pose.position.x = x;
-        brick_pose.pose.position.y = y;
-        brick_pose.pose.position.z = z;
-        brick_pose.pose.orientation.x = quat.x();
-        brick_pose.pose.orientation.y = quat.y();
-        brick_pose.pose.orientation.z = quat.z();
-        brick_pose.pose.orientation.w = quat.w();
-        setmodelstate_.request.model_state = brick_pose;
-        client_.call(setmodelstate_);
+        // TODO: Restore Gazebo service calls when ROS 2 integration is complete
+        // brick_pose.pose.position.x = x;
+        // brick_pose.pose.position.y = y;
+        // brick_pose.pose.position.z = z;
+        // brick_pose.pose.orientation.x = quat.x();
+        // brick_pose.pose.orientation.y = quat.y();
+        // brick_pose.pose.orientation.z = quat.z();
+        // brick_pose.pose.orientation.w = quat.w();
+        // setmodelstate_.request.model_state = brick_pose;
+        // client_.call(setmodelstate_);
     }
 
     for(int i=1; i<=task_json.size(); i++)

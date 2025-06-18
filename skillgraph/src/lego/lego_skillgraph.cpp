@@ -114,9 +114,9 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
 
         bool assemble = task_config["Start_with_Assemble"].asBool(); 
 
-        // gazebo client for updating the simulation
-        nh_ = std::make_shared<ros::NodeHandle>();
-        set_state_client_ = nh_->serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
+        // TODO: Replace with ROS 2 service client when Gazebo integration is restored
+        // node_ = std::make_shared<rclcpp::Node>("lego_skillgraph");
+        // set_state_client_ = node_->create_client<gazebo_msgs::srv::SetEntityState>("/gazebo/set_entity_state");
 
         // initialize the lego library
         lego_ptr_ = std::make_shared<lego_manipulation::lego::Lego>();
@@ -126,8 +126,9 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
                     r1_DH_tool_handover_assemble_fname, r1_robot_base_fname, 
                     r2_DH_fname, r2_DH_tool_fname, r2_DH_tool_disassemble_fname, r2_DH_tool_assemble_fname,
                     r2_DH_tool_alt_fname, r2_DH_tool_alt_assemble_fname, 
-                    r2_DH_tool_handover_assemble_fname, r2_robot_base_fname,
-                    set_state_client_);
+                    r2_DH_tool_handover_assemble_fname, r2_robot_base_fname);
+                    // TODO: Pass ROS 2 service client when available
+                    // set_state_client_);
     
         // initialize the task sequenceSkill is feasible: Meta Skill: TranslateWithRotation robot: left_arm
 

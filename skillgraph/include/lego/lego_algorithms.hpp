@@ -4,14 +4,16 @@
 #include "lego/Lego.hpp"
 #include "lego/lego_objects.hpp"
 #include "moveit_backend.hpp"
-#include <geometry_msgs/WrenchStamped.h>
+// TODO: Update to ROS 2 message types when needed
+// #include <geometry_msgs/msg/wrench_stamped.hpp>
 
 
 #ifdef HAVE_YK_TASKS
-#include "yk_tasks/GoToJointsAction.h"
-#include "yk_tasks/GoToPoseAction.h"
-#include "yk_msgs/GetPose.h"
-#include "industrial_msgs/RobotStatus.h"
+// TODO: Update these includes to ROS 2 equivalents when YK tasks are migrated
+// #include "yk_tasks/GoToJointsAction.h"
+// #include "yk_tasks/GoToPoseAction.h"
+// #include "yk_msgs/GetPose.h"
+// #include "industrial_msgs/RobotStatus.h"
 #endif
 
 
@@ -139,12 +141,14 @@ private:
     bool placeup(const skillgraph::TaskParam &task_param);
     bool pressdown(const skillgraph::TaskParam &task_param);
     std::vector<double> convertQ(const lego_manipulation::math::VectorJd &q_deg);
-    void setTrajectory(int robot_id, const std::vector<double>&q1, double t0,
-        const std::vector<double> &q2, trajectory_msgs::JointTrajectory &joint_traj);
-    void computeVelAcc(trajectory_msgs::JointTrajectory &joint_traj);
+    // TODO: Update to ROS 2 message types when needed
+    // void setTrajectory(int robot_id, const std::vector<double>&q1, double t0,
+    //     const std::vector<double> &q2, trajectory_msgs::msg::JointTrajectory &joint_traj);
+    // void computeVelAcc(trajectory_msgs::msg::JointTrajectory &joint_traj);
 
-    void wrenchCallbackA(const geometry_msgs::WrenchStamped::ConstPtr &msg);
-    void wrenchCallbackB(const geometry_msgs::WrenchStamped::ConstPtr &msg);
+    // TODO: Update to ROS 2 callback signatures when needed
+    // void wrenchCallbackA(const geometry_msgs::msg::WrenchStamped::SharedPtr msg);
+    // void wrenchCallbackB(const geometry_msgs::msg::WrenchStamped::SharedPtr msg);
     bool checkForce(int robot_id, const skillgraph::TaskParam &task_param, double &force_reading);
     bool stop(int robot_id);
     bool enable(int robot_id);
@@ -152,10 +156,11 @@ private:
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
     std::vector<std::vector<std::string>> joint_names_;
 
-    ros::NodeHandle nh;
-    ros::Subscriber wrench_sub_a_, wrench_sub_b_;
-    ros::Subscriber joint_sub_;
-    geometry_msgs::WrenchStamped wrench_a_, wrench_b_;
+    // TODO: Replace with ROS 2 node and subscriptions when needed
+    // rclcpp::Node::SharedPtr node_;
+    // rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr wrench_sub_a_, wrench_sub_b_;
+    // rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_sub_;
+    // geometry_msgs::msg::WrenchStamped wrench_a_, wrench_b_;
     LegoPolicyCfg config_;
     std::vector<double> r1_joints_;
     std::vector<double> r2_joints_;

@@ -1,7 +1,8 @@
 #pragma once
 #include "Utils/Math.hpp"
 #include "Utils/FileIO.hpp"
-#include "gazebo_msgs/SetModelState.h"
+// TODO: Re-enable when Gazebo ROS 2 integration is needed
+// #include "gazebo_msgs/srv/set_entity_state.hpp"
 
 namespace lego_manipulation
 {
@@ -68,8 +69,9 @@ class Lego
         std::map<std::string, lego_brick> brick_map_;
         Json::Value lego_library_;
         Json::Value config_;
-        ros::ServiceClient client_; 
-        gazebo_msgs::SetModelState setmodelstate_;
+        // TODO: Replace with ROS 2 service client for Gazebo
+        // rclcpp::Client<gazebo_msgs::srv::SetEntityState>::SharedPtr client_; 
+        // gazebo_msgs::srv::SetEntityState::Request setmodelstate_;
         double brick_height_m_ = 0.0096;
         double lever_wall_height_ = 0.0032;
         double brick_len_offset_ = 0.0000;
@@ -131,8 +133,7 @@ class Lego
                    const std::string& r1_DH_tool_alt_assemble_fname, const std::string &r1_DH_tool_handover_assemble_fname, const std::string& r1_base_fname, 
                    const std::string& r2_DH_fname, const std::string& r2_DH_tool_fname, const std::string& r2_DH_tool_disassemble_fname, 
                    const std::string& r2_DH_tool_assemble_fname, const std::string& r2_DH_tool_alt_fname, 
-                   const std::string& r2_DH_tool_alt_assemble_fname, const std::string &r2_DH_tool_handover_assemble_fname, const std::string& r2_base_fname, 
-                   const ros::ServiceClient& cli);
+                   const std::string& r2_DH_tool_alt_assemble_fname, const std::string &r2_DH_tool_handover_assemble_fname, const std::string& r2_base_fname);
         void set_robot_base(const std::string& r1_base_fname, const std::string& r2_base_fname);
         void set_DH(const std::string& r1_DH_fname, const std::string& r2_DH_fname);
         void set_DH_tool(const std::string& r1_DH_tool_fname, const std::string& r2_DH_tool_fname);
@@ -241,10 +242,11 @@ class Lego
         void brick_dimension_from_name(const std::string& b_name, int& height, int& width);
 
         void get_init_brick_xyzo(const std::string& brick_name, int& x, int& y, int& z, int &ori);
-        geometry_msgs::Pose get_init_brick_pose(const std::string& brick_name);
-        geometry_msgs::Pose get_curr_brick_pose(const std::string& brick_name);
+        // TODO: Replace with ROS 2 geometry_msgs::msg::Pose when needed
+        // geometry_msgs::msg::Pose get_init_brick_pose(const std::string& brick_name);
+        // geometry_msgs::msg::Pose get_curr_brick_pose(const std::string& brick_name);
         int get_brick_type(const std::string& brick_name);
-        geometry_msgs::Pose get_table_pose();
+        // geometry_msgs::msg::Pose get_table_pose();
         void get_brick_sizes(const std::string& brick_name, double& x, double& y, double& z);
         void get_table_size(double& x, double& y, double& z);
         bool is_press_pt_in_bound(const std::string& brick_name, int press_side, int press_offset);

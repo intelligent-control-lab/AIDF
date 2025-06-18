@@ -5,8 +5,10 @@
 #include "planner.h"
 #include "metrics.hpp"
 #include "task_graph.h"
+#include <rclcpp/rclcpp.hpp>
 
-typedef actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> TrajectoryClient;
+// TODO: In the future, replace with SkillExecutor-based execution
+// using TrajectoryClient = rclcpp_action::Client<moveit_msgs::action::ExecuteTrajectory>;
 
 namespace tpg {
 
@@ -195,15 +197,18 @@ namespace tpg {
         virtual bool saveToDotFile(const std::string &filename) const;
         virtual bool moveit_execute(std::shared_ptr<skillgraph::MoveitInstance> instance, 
             std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group);
-        virtual bool actionlib_execute(const std::vector<std::string> &joint_names, TrajectoryClient &client);
-        virtual bool moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_names, std::vector<ros::ServiceClient> &clients);
+        
+        // TODO: Replace with SkillExecutor-based execution in the future
+        virtual bool trajectory_execute(const std::vector<std::string> &joint_names);
+        virtual bool multi_robot_execute(const std::vector<std::vector<std::string>> &joint_names);
+        virtual void async_execute_thread(const std::vector<std::string> &joint_names, int robot_id);
         virtual void update_joint_states(const std::vector<double> &joint_states, int robot_id);
         virtual std::string get_r1_inhand_obj_name();
         virtual std::string get_r2_inhand_obj_name();
         virtual Eigen::MatrixXd get_r1_inhand_goal_q();
         virtual Eigen::MatrixXd get_r2_inhand_goal_q();
         virtual void saveStats(const std::string &filename, const std::string &start_pose = "", const std::string &goal_pose = "") const;
-        virtual void setSyncJointTrajectory(trajectory_msgs::JointTrajectory &joint_traj, double &flowtime, double &makespan) const;
+        virtual void setSyncJointTrajectory(trajectory_msgs::msg::JointTrajectory &joint_traj, double &flowtime, double &makespan) const;
         virtual skillgraph::MRTrajectory getSyncJointTrajectory(std::shared_ptr<skillgraph::PlanInstance> instance) const;
         void getSolution(skillgraph::MRTrajectory &solution) const {
             solution = solution_;
@@ -270,7 +275,7 @@ namespace tpg {
         bool bfs(NodePtr ni, std::vector<std::vector<bool>> &visited, bool forward, bool bwd_shiftone=true) const;
         bool hasCycle() const;
         bool repairTPG(std::shared_ptr<skillgraph::PlanInstance> instance, Shortcut &shortcut, const std::vector<std::vector<int>> &earliest_t);
-        virtual void moveit_async_execute_thread(const std::vector<std::string> &joint_names, ros::ServiceClient &clients, int robot_id);
+        // TODO: Replace with SkillExecutor-based execution in the future  
         virtual bool isPolicyNode(NodePtr node) const;
         virtual NodePtr getExecStartNode(int robot_id) const;
         virtual bool executePolicy(const NodePtr &startNode, NodePtr &endNode) {throw std::runtime_error("Not implemented");};

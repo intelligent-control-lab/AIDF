@@ -1,6 +1,8 @@
 #include "tpg.h"
 #include "Utils/Logger.hpp"
 #include "utils.h"
+#include <thread>
+#include <chrono>
 
 using namespace skillgraph;
 
@@ -2231,7 +2233,7 @@ bool TPG::moveit_execute(std::shared_ptr<MoveitInstance> instance,
         std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group) {
     // convert solution to moveit plan and execute
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-    trajectory_msgs::JointTrajectory &joint_traj = my_plan.trajectory_.joint_trajectory;
+    trajectory_msgs::msg::JointTrajectory &joint_traj = my_plan.trajectory_.joint_trajectory;
     joint_traj.joint_names = move_group->getActiveJoints();
     double flowtime, makespan;
     setSyncJointTrajectory(joint_traj, flowtime, makespan);
@@ -2249,34 +2251,25 @@ bool TPG::moveit_execute(std::shared_ptr<MoveitInstance> instance,
     return true;
 }
 
-bool TPG::actionlib_execute(const std::vector<std::string> &joint_names, TrajectoryClient &client) {
-    moveit_msgs::ExecuteTrajectoryGoal goal;
+// TODO: Replace with SkillExecutor-based execution in the future
+bool TPG::trajectory_execute(const std::vector<std::string> &joint_names) {
+    log("TPG::trajectory_execute - TODO: Implement SkillExecutor-based execution", LogLevel::INFO);
     
-    goal.trajectory.joint_trajectory.joint_names = joint_names;
-    double flowtime, makespan;
-    setSyncJointTrajectory(goal.trajectory.joint_trajectory, flowtime, makespan);
-
-    auto doneCb = [](const actionlib::SimpleClientGoalState& state,
-        const moveit_msgs::ExecuteTrajectoryResultConstPtr& result) {
-        log("Trajectory execution action finished: " + state.toString(), LogLevel::INFO);
-    };
-
-    client.sendGoal(goal, doneCb);
-
-    bool finished = client.waitForResult(ros::Duration(30.0));
-    if (finished) {
-        actionlib::SimpleClientGoalState state = client.getState();
-        return true;
-    } else {
-        log("Action did not finish before the time out.", LogLevel::ERROR);
-        return false;
-    }
+    // For now, just log the trajectory execution request
+    log("Executing trajectory for joints: " + std::to_string(joint_names.size()) + " joints", LogLevel::INFO);
+    
+    // TODO: In the future, this should:
+    // 1. Convert TPG solution to SkillExecutor format
+    // 2. Use SkillExecutor to execute the trajectory
+    // 3. Monitor execution status and return success/failure
+    
+    return true; // Placeholder return
 }
 
-MRTrajectory TPG::getSyncJointTrajectory(std::shared_ptr<PlanInstance> instance) const {
-    MRTrajectory traj;
+skillgraph::MRTrajectory TPG::getSyncJointTrajectory(std::shared_ptr<skillgraph::PlanInstance> instance) const {
+    skillgraph::MRTrajectory traj;
     double flowtime, makespan;
-    moveit_msgs::RobotTrajectory joint_traj;
+    moveit_msgs::msg::RobotTrajectory joint_traj;
     int total_dof = 0;
     for (int i = 0; i < num_robots_; i++) {
         total_dof += start_nodes_[i]->pose.joint_values.size();
@@ -2288,7 +2281,7 @@ MRTrajectory TPG::getSyncJointTrajectory(std::shared_ptr<PlanInstance> instance)
     return traj;
 }
 
-void TPG::setSyncJointTrajectory(trajectory_msgs::JointTrajectory &joint_traj, double &flowtime, double &makespan) const {
+void TPG::setSyncJointTrajectory(trajectory_msgs::msg::JointTrajectory &joint_traj, double &flowtime, double &makespan) const {
     std::vector<NodePtr> nodes;
     int total_dof = 0, total_dof_w_hand = 0;
     for (int i = 0; i < num_robots_; i++) {
@@ -2326,11 +2319,13 @@ void TPG::setSyncJointTrajectory(trajectory_msgs::JointTrajectory &joint_traj, d
     bool allReached = false;
     int j = 0;
     while(!allReached) {
-        trajectory_msgs::JointTrajectoryPoint point;
+        trajectory_msgs::msg::JointTrajectoryPoint point;
         point.positions.resize(joint_traj.joint_names.size());
         point.velocities.resize(joint_traj.joint_names.size());
         point.accelerations.resize(joint_traj.joint_names.size());
-        point.time_from_start = ros::Duration(j * dt_);
+        point.time_from_start = builtin_interfaces::msg::Duration();
+        point.time_from_start.sec = static_cast<int32_t>(j * dt_);
+        point.time_from_start.nanosec = static_cast<uint32_t>((j * dt_ - point.time_from_start.sec) * 1e9);
         joint_traj.points.push_back(point);
 
         int dof_s = 0;
@@ -2394,10 +2389,20 @@ NodePtr TPG::getExecStartNode(int robot_id) const {
     return start_nodes_[robot_id];
 }
 
-bool TPG::moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_names, std::vector<ros::ServiceClient> &clients) {
-    // create one thread for each robot
-    std::vector<std::thread> threads;
-
+// TODO: Replace with SkillExecutor-based execution in the future
+bool TPG::multi_robot_execute(const std::vector<std::vector<std::string>> &joint_names) {
+    log("TPG::multi_robot_execute - TODO: Implement SkillExecutor-based execution", LogLevel::INFO);
+    
+    // For now, just log the multi-robot execution request
+    log("Executing multi-robot trajectory for " + std::to_string(joint_names.size()) + " robots", LogLevel::INFO);
+    
+    // TODO: In the future, this should:
+    // 1. Create execution threads for each robot
+    // 2. Convert TPG solution to SkillExecutor format for each robot
+    // 3. Use SkillExecutor to execute trajectories in parallel
+    // 4. Monitor execution status and synchronization
+    
+    // Simulate the threading structure for future compatibility
     executed_steps_.clear();
     for (int i = 0; i < num_robots_; i++) {
         NodePtr start_node = getExecStartNode(i);
@@ -2405,29 +2410,28 @@ bool TPG::moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_n
         executed_steps_.push_back(std::make_unique<std::atomic<int>>(start_t));
     }
 
-    for (int i = 0; i < num_robots_; i++) {
-        threads.emplace_back(&TPG::moveit_async_execute_thread, this, std::ref(joint_names[i]), std::ref(clients[i]), i);
-    }
-
-    log("Waiting for all threads to finish...", LogLevel::INFO);
-    for (auto &thread : threads) {
-        thread.join();
-    }
-
-    return true;
+    // TODO: Create actual execution threads here
+    log("Multi-robot execution completed (placeholder)", LogLevel::INFO);
+    
+    return true; // Placeholder return
 }
 
-void TPG::moveit_async_execute_thread(const std::vector<std::string> &joint_names, ros::ServiceClient &clients, int robot_id) {
+// TODO: Replace with SkillExecutor-based execution in the future
+void TPG::async_execute_thread(const std::vector<std::string> &joint_names, int robot_id) {
+    log("TPG::async_execute_thread - TODO: Implement SkillExecutor-based execution for robot " + std::to_string(robot_id), LogLevel::INFO);
+    
     NodePtr node_i = getExecStartNode(robot_id);
 
-    while (ros::ok()) {
+    // TODO: Replace ros::ok() with ROS 2 equivalent or execution condition
+    bool should_continue = true;
+    while (should_continue) {
         
         if (node_i->Type1Next == nullptr) {
             log("Robot " + std::to_string(robot_id) + " reached the end at step " + std::to_string(node_i->timeStep), LogLevel::INFO);
             return;
         }
 
-        // check if we can execute the current node
+        // Check if we can execute the current node (synchronization logic)
         bool safe = true;
         for (auto edge : node_i->Type1Next->Type2Prev) {
             if (executed_steps_[edge->nodeFrom->robotId]->load() < edge->nodeFrom->timeStep) {
@@ -2435,11 +2439,12 @@ void TPG::moveit_async_execute_thread(const std::vector<std::string> &joint_name
             }
         }
         if (!safe) {
-            ros::Duration(0.03).sleep();
+            // TODO: Replace with ROS 2 sleep/delay mechanism
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
             continue;
         }
 
-        // if we need to execute a policy, execute
+        // If we need to execute a policy, execute
         if (isPolicyNode(node_i->Type1Next)) {
             NodePtr endNode;
             executePolicy(node_i->Type1Next, endNode);
@@ -2447,113 +2452,20 @@ void TPG::moveit_async_execute_thread(const std::vector<std::string> &joint_name
             continue;
         }
         
-        int j = 0;
-
-        moveit_msgs::ExecuteKnownTrajectory srv;
-        srv.request.wait_for_execution = true;
+        // TODO: In the future, this should:
+        // 1. Extract trajectory segment from TPG node
+        // 2. Convert to SkillExecutor format  
+        // 3. Execute using SkillExecutor
+        // 4. Wait for completion and handle errors
         
-        auto &joint_traj = srv.request.trajectory.joint_trajectory;
-        joint_traj.joint_names = joint_names;
-
-        joint_traj.points.clear();
-        bool stop = false;
-        do {
-            trajectory_msgs::JointTrajectoryPoint point;
-            point.time_from_start = ros::Duration(j * dt_);
-            point.positions.resize(joint_names.size());
-            point.velocities.resize(joint_names.size());
-            point.accelerations.resize(joint_names.size());
-
-            for (int d = 0; d < node_i->pose.joint_values.size(); d++) {
-                point.positions[d] = node_i->pose.joint_values[d];
-            }
-            joint_traj.points.push_back(point);
-
-            j++;
-            node_i = node_i->Type1Next;
-            
-            //stop = (node_i->Type1Next == nullptr) || (node_i->Type1Next->Type2Prev.size() > 0) || (node_i->Type2Next.size() > 0);
-            stop = (node_i->Type1Next == nullptr);
-            // check type2 edges
-            if (!stop) {
-                for (auto edge : node_i->Type1Next->Type2Prev) {
-                    if (executed_steps_[edge->nodeFrom->robotId]->load() < edge->nodeFrom->timeStep) {
-                        stop = true;
-                    }
-                }
-            }
-            // check adg policies
-            if (!stop) {
-                if (isPolicyNode(node_i->Type1Next)) {
-                    stop = true;
-                }
-            }
-        } while (!stop);
-        trajectory_msgs::JointTrajectoryPoint point;
-        point.time_from_start = ros::Duration(j * dt_);
-        point.positions.resize(joint_names.size());
-        point.velocities.resize(joint_names.size());
-        point.accelerations.resize(joint_names.size());
-        for (int d = 0; d < node_i->pose.joint_values.size(); d++) {
-            point.positions[d] = node_i->pose.joint_values[d];
-        }
-        joint_traj.points.push_back(point);
-
-        // compute velocities and accelerations with central difference
-        for (int i = 1; i < joint_traj.points.size() - 1; i++) {
-            for (int j = 0; j < joint_names.size(); j++) {
-                joint_traj.points[i].velocities[j] = (joint_traj.points[i+1].positions[j] - joint_traj.points[i-1].positions[j]) / (2 * dt_);
-                joint_traj.points[i].accelerations[j] = (joint_traj.points[i+1].positions[j] - 2 * joint_traj.points[i].positions[j] + joint_traj.points[i-1].positions[j]) / (dt_ * dt_);
-            }
-        }
-
+        log("Executing trajectory segment for robot " + std::to_string(robot_id) + " at step " + std::to_string(node_i->timeStep), LogLevel::INFO);
         
-        // execute the plan now
-        bool retry = true;
-        while (retry) {
-            retry = false;
-            // compute th error of the current joint state vs the start state
-            double error = 0;
-            if (joint_states_.size() > robot_id && joint_states_[robot_id].size() >= joint_traj.points[0].positions.size()) {
-                log("Robot " + std::to_string(robot_id) + " start/current errors ", LogLevel::DEBUG);
-
-                std::string error_str = "Error: ";
-                for (int d = 0; d < joint_states_[robot_id].size(); d++) {
-                    double error_d = std::abs(joint_states_[robot_id][d] - joint_traj.points[0].positions[d]);
-                    error += error_d;
-                    error_str += std::to_string(error_d) + " ";
-                }
-                log(error_str, LogLevel::DEBUG);
-                //TODO: check if this hack that set the joint_states to the start state is still necessary
-                for (int d = 0; d < joint_traj.points[0].positions.size(); d++) {
-                    joint_traj.points[0].positions[d] = joint_states_[robot_id][d];
-                }
-            }
-
-            // Call the service to execute the trajectory
-            bool result = clients.call(srv);
-            if (!result) {
-                log("Failed to call service for robot " + std::to_string(robot_id), LogLevel::ERROR);
-                return;
-            }
-            
-            int error_code = srv.response.error_code.val;
-            log("Robot " + std::to_string(robot_id) + " traj execute service, code " + std::to_string(error_code), LogLevel::DEBUG);
-            if (error_code == moveit_msgs::MoveItErrorCodes::TIMED_OUT) {
-                log("Timeout, retrying...", LogLevel::INFO);
-                retry = true;
-                ros::Duration(0.01).sleep();
-            }
-            else if (error_code < 0) {
-                return;
-            }
-            else {
-                log("Robot " + std::to_string(robot_id) + " segment " + std::to_string(node_i->timeStep)
-                    +" success, moving to the next segment", LogLevel::INFO);
-                //executed_steps_[robot_id]->fetch_add(j); // allow following conflict
-            }
-            
-        }
+        // Simulate execution by advancing to next node
+        executed_steps_[robot_id]->store(node_i->Type1Next->timeStep);
+        node_i = node_i->Type1Next;
+        
+        // TODO: Remove this and implement proper execution completion detection
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 

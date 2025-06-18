@@ -1055,8 +1055,12 @@ bool ADG::moveit_execute(std::shared_ptr<MoveitInstance> instance,
     return TPG::moveit_execute(instance, move_group);
 }
 
-bool ADG::moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_names, std::vector<ros::ServiceClient> &clients) 
+// TODO: Replace with SkillExecutor-based execution in the future
+bool ADG::multi_robot_execute(const std::vector<std::vector<std::string>> &joint_names) 
 {
+    log("ADG::multi_robot_execute - TODO: Implement SkillExecutor-based execution", LogLevel::INFO);
+    
+    // Initialize execution tracking for activities
     for (int i = 0; i < num_robots_; i++) {
         int act_id = exec_start_act_[i];
         executed_acts_.push_back(std::make_unique<std::atomic<int>>(act_id));
@@ -1065,7 +1069,9 @@ bool ADG::moveit_mt_execute(const std::vector<std::vector<std::string>> &joint_n
             executed_acts_[i]->fetch_add(1);
         }
     }
-    return TPG::moveit_mt_execute(joint_names, clients);
+    
+    // Call the parent TPG execution (which is now also placeholder)
+    return TPG::multi_robot_execute(joint_names);
 }
 
 void ADG::initSampler(const std::vector<std::vector<int>> &earliest_t, const std::vector<std::vector<NodePtr>> &timed_nodes) {
