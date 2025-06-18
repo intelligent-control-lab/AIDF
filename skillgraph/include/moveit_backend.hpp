@@ -42,7 +42,12 @@
 #include <vector>
 #include <mutex>
 
-#include <ros/ros.h>
+// Conditional ROS includes
+#ifdef ROS2_BUILD
+    #include <rclcpp/rclcpp.hpp>
+#else
+    #include <ros/ros.h>
+#endif
 
 #include "ros_compat/node.hpp"
 #include "ros_compat/launch.hpp"

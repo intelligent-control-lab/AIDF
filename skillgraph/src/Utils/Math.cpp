@@ -1,5 +1,14 @@
 #include "Utils/Math.hpp"
 
+// Conditional ROS logging includes
+#ifdef ROS2_BUILD
+    #include <rclcpp/rclcpp.hpp>
+    #define ROS_INFO_STREAM(x) RCLCPP_INFO_STREAM(rclcpp::get_logger("math"), x)
+    #define ROS_DEBUG_STREAM(x) RCLCPP_DEBUG_STREAM(rclcpp::get_logger("math"), x)
+#else
+    #include <ros/ros.h>
+#endif
+
 #undef inverse
 
 namespace lego_manipulation

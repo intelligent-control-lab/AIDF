@@ -22,11 +22,11 @@ public:
     ROS2LaunchProcess(bp::child process) : process_(std::move(process)) {}
     
     bool running() const override {
-        return process_.running();
+        return const_cast<bp::child&>(process_).running();
     }
     
     void terminate() override {
-        if (process_.running()) {
+        if (const_cast<bp::child&>(process_).running()) {
             process_.terminate();
         }
     }
@@ -36,16 +36,18 @@ public:
             process_.wait();
             return true;
         } else {
-            return process_.wait_for(std::chrono::duration<double>(timeout_sec)) != std::future_status::timeout;
+            auto status = process_.wait_for(std::chrono::duration<double>(timeout_sec));
+            return status != std::future_status::timeout;
         }
     }
     
     void kill() override {
-        if (process_.running()) {
+        if (const_cast<bp::child&>(process_).running()) {
             process_.terminate();
             
             // Give it a moment to terminate gracefully
-            if (!process_.wait_for(std::chrono::seconds(2))) {
+            auto status = process_.wait_for(std::chrono::seconds(2));
+            if (status == std::future_status::timeout) {
                 // Force kill if it doesn't terminate
                 system(("kill -9 " + std::to_string(process_.id())).c_str());
             }

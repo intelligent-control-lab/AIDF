@@ -25,7 +25,7 @@ double Time::now() {
 
 void Time::sleep(double seconds) {
 #ifdef ROS2_BUILD
-    rclcpp::sleep_for(std::chrono::duration<double>(seconds));
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(seconds)));
 #else
     ros::Duration(seconds).sleep();
 #endif
@@ -37,12 +37,11 @@ auto Time::getTimeStamp() {
 #else
     return ros::Time::now();
 #endif
-#endif
 }
 
 void Duration::sleep() const {
 #ifdef ROS2_BUILD
-    rclcpp::sleep_for(std::chrono::duration<double>(seconds_));
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(seconds_)));
 #else
     ros::Duration(seconds_).sleep();
 #endif
