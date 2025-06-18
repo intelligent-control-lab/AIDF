@@ -32,8 +32,10 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
         log("RRTConnect::plan: Invalid robot_id in start state.", LogLevel::ERROR);
         return false;
     }
+    
 
-    return false;
+    /*
+    written by Phillip
     // std::string group_name_to_plan = instance_->getRobotNames()[robot_id_to_plan];
 
     // // 1. Set the start state in the planning scene
@@ -128,6 +130,91 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
     //     log("RRTConnect::plan: Planning failed. Error code: " + std::to_string(res.error_code_.val), LogLevel::ERROR);
     //     return false;
     // }
+
+    */
+
+
+
+
+    // written by Yijie for RRT-connect planning
+    std::string group_name_to_plan = instance_->getRobotNames()[robot_id_to_plan];
+
+    // set the state into Moveit
+    instance_->setState(start);
+    instance_->updateScene(); // Apply the changes to MoveIt's planning scene
+
+    // Prepare MotionPlanRequest
+    planning_interface::MotionPlanRequest req;
+    req.group_name = group_name_to_plan;
+    req.planner_id = "RRTConnectkConfigDefault"; // Or just "R
+    req.allowed_planning_time = 5.0; // Using a hardcoded planning time. Ideally, this comes from PlannerOptions.
+    req.num_planning_attempts = 1; // Default
+
+    // Set start state from the updated planning scene
+    moveit::core::robotStateToRobotStateMsg(instance_->getPlanningScene()->getCurrentState(), req.start_state);
+    req.start_state.is_diff = false; 
+
+    // Set Goal Constraints
+    const skillgraph::RobotState& goal_robot_pose = goal.robot_states[0]; //
+    robot_state::RobotState goal_state_moveit(robot_model_);
+    const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name_to_plan);
+    if (!joint_model_group) {
+        log("RRTConnect::plan: Could not get JointModelGroup: " + group_name_to_plan, LogLevel::ERROR);
+        return false;
+    }
+    goal_state_moveit.setJointGroupPositions(joint_model_group, goal_robot_pose.joint_values);
+    req.goal_constraints.push_back(kinematic_constraints::constructGoalConstraints(goal_state_moveit, joint_model_group));
+    // Potentially update attached objects for goal state if they differ and affect constraints
+
+
+    //pipeline
+    planning_pipeline::PlanningPipelinePtr planning_pipeline = 
+    std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, *(instance_->getNodeHandle()), "ompl", "request_adapters");
+
+    planning_interface::MotionPlanResponse res;
+    planning_pipeline->generatePlan(instance_->getPlanningScene(), req, res);
+
+    if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS) {
+    log("RRTConnect::plan: Planning successful.", LogLevel::INFO);
+
+    traj.trajectory.clear();
+
+    // const moveit_msgs::RobotTrajectory& moveit_traj_msg = res.trajectory;
+    moveit_msgs::RobotTrajectory moveit_traj_msg;
+    if (res.trajectory_) {
+        res.trajectory_->getRobotTrajectoryMsg(moveit_traj_msg);
+    }
+
+
+
+    for (const auto& point : moveit_traj_msg.joint_trajectory.points) {
+        skillgraph::RobotState sk_rs = instance_->initRobotState(robot_id_to_plan); 
+        
+        if (point.positions.size() != sk_rs.joint_values.size()) {
+            log("RRTConnect::plan: Mismatch in joint count between trajectory point and skillgraph RobotState.", LogLevel::WARN);
+            if(point.positions.size() == sk_rs.joint_values.size()){
+                sk_rs.joint_values = point.positions;
+            } else {
+                log("RRTConnect::plan: Critical joint count mismatch. Cannot convert trajectory.", LogLevel::ERROR);
+                return false;
+            }
+        } else {
+            sk_rs.joint_values = point.positions;
+        }
+
+        sk_rs.hand_values = goal_robot_pose.hand_values;
+
+        traj.trajectory.push_back(sk_rs);
+    }
+        return true;
+    } else {
+        log("RRTConnect::plan: Planning failed. Error code: " + std::to_string(res.error_code_.val), LogLevel::ERROR);
+        return false;
+    }
+
+
+//just a placeholder for now, as the actual planning logic is not implemented yet.
+    // return false;
 }
 
 } // namespace skillgraph

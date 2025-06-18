@@ -94,7 +94,11 @@ public:
     }
      // Help function written by Yijie to set state interpolation to avoid sudden movements
     void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
+    std::shared_ptr<ros::NodeHandle> getNodeHandle() const override {
+        return nh_;
+    }
 
+    
 
 
 private:
@@ -129,6 +133,10 @@ private:
 
     // Store the last state to avoid sudden movements
     State last_state_;
+    //the current scene
+    // planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
+
+
     
 };
 

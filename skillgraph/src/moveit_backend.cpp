@@ -65,6 +65,8 @@ MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
 {
     planning_scene_->getPlanningSceneMsg(original_scene_);
     //planning_scene_->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+    //add nh_
+    nh_ = std::make_shared<ros::NodeHandle>();
 }
 
 
