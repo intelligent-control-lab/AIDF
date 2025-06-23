@@ -917,17 +917,64 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
 
     calculateIKforLegoPlan(target_T_pick_up, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Pick Up", LogLevel::WARN); return overall_reachable; }
+    
+    
+
+    
+    
+    
+    
+    
+    
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+    std::vector<RobotState> check_states;
+
+
+        // add collision check here
+    std::vector<RobotState> check_vec = {state_out_rad};
+    if (instance_->checkCollision(check_vec, false, false)) {
+        log("Pick Up state is in collision", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // --- Pick (at grab pose) ---
     Eigen::Matrix4d target_T_pick = cart_T_grab_base;
     calculateIKforLegoPlan(target_T_pick, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Pick (at grab pose)", LogLevel::WARN); return overall_reachable; }
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+// add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick (grab pose)", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
+
+
+
 
     // --- Pick Twist ---
     Eigen::Matrix4d fk_cart_T_for_twist;
@@ -946,6 +993,15 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick Twist", LogLevel::WARN);
+        return false;
+    }
+
+
+
     // --- Pick Twist Up ---
     Eigen::Matrix4d fk_cart_T_twisted;
      if (robot_id == 0) {
@@ -960,6 +1016,16 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     if (!ik_status) { overall_reachable = false; log("IK failed for Pick Twist Up", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     // prev_interpolated_state_rad = state_out_rad; // Not strictly needed for the last segment
+
+//add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick Twist Up", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     return overall_reachable;
 }
@@ -1030,9 +1096,25 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     
     calculateIKforLegoPlan(target_T_offset, home_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status); // Seed with home
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceDown Offset Goal", LogLevel::WARN); return overall_reachable; }
+    
+    
+    
+    std::vector<RobotState> check_states;
+
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+
+
+    // add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Offset Goal", LogLevel::WARN);
+        return false;
+    }
+
 
     // 2. Drop Up Goal
     Eigen::Matrix4d target_T_drop_up = cart_T_base_drop;
@@ -1050,6 +1132,15 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    // add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Up Goal", LogLevel::WARN);
+        return false;
+    }
+
+
     // 3. Drop Goal (Contact Pose)
     Eigen::Matrix4d target_T_drop = cart_T_base_drop;
     calculateIKforLegoPlan(target_T_drop, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
@@ -1057,6 +1148,15 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+// add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Goal", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // 4. Drop Twist Goal
     Eigen::Matrix3d twist_R_place_mat = Eigen::Matrix3d::Identity();
@@ -1080,6 +1180,14 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Twist Goal", LogLevel::WARN);
+        return false;
+    }
+
+
     // 5. Drop Twist Up Goal
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with assemble tool (fk_type 1)
@@ -1092,6 +1200,13 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     calculateIKforLegoPlan(target_T_drop_twist_up, current_seed_q_deg, robot_id, 1, true, q_out_deg, state_out_rad, ik_status); // fk_type 1 for assemble tool
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceDown Drop Twist Up Goal", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
+
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Twist Up Goal", LogLevel::WARN);
+        return false;
+    }
 
     return overall_reachable;
 }
@@ -1174,6 +1289,16 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+    //add collision check here
+    std::vector<RobotState> check_states;
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down Pre", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // 2. Place Tilt Down
     Eigen::Matrix4d target_T_tilt_down = cart_T_base_placeup;
@@ -1189,6 +1314,17 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    //add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
     // 3. Place Down (Contact)
     Eigen::Matrix4d target_T_place_down = cart_T_base_placeup;
     Eigen::Matrix4d contact_transform = Eigen::Matrix4d::Identity();
@@ -1200,6 +1336,16 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Place Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     
     // 4. Place Up (Retract after contact to base orientation for twist)
     Eigen::Matrix4d target_T_place_up = cart_T_base_placeup; // This is the pose before specific contact offsets
@@ -1208,6 +1354,14 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Place Up", LogLevel::WARN);
+        return false;
+    }
+
+
 
     // 5. Place Twist
     Eigen::Matrix3d twist_R_pick_mat = Eigen::Matrix3d::Identity(); // Same as pick twist
@@ -1228,6 +1382,14 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Twist", LogLevel::WARN);
+        return false;
+    }
+
+
     // 6. Place Twist Down
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with alt_assemble_tool (fk_type 4)
@@ -1243,8 +1405,21 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceUp Twist Down", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Twist Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     return overall_reachable;
 }
+
+
+
+
 
 bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1304,13 +1479,35 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    std::vector<RobotState> check_states;
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pre-Pose", LogLevel::WARN);
+        return false;
+    }
+
     // 2. Support Pose (Contact)
     calculateIKforLegoPlan(sup_T, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Support Pose", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
 
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pose", LogLevel::WARN);
+        return false;
+    }
+
     return overall_reachable;
 }
+
+
+
+
+
+
+
+
+
+
 
 bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1399,13 +1596,59 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    std::vector<RobotState> check_states;
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Up-Pose", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     // 2. Press Down Pose (Contact)
     calculateIKforLegoPlan(press_T, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for PressDown Contact-Pose", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Contact-Pose", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
     return overall_reachable;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1477,6 +1720,15 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    std::vector<RobotState> check_states;
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Up", LogLevel::WARN);
+        return false;
+    }
+
     // 2. Transfer Down (Contact)
     Eigen::Matrix4d target_T_transfer_down = cart_T_handover_base;
     calculateIKforLegoPlan(target_T_transfer_down, current_seed_q_deg, robot_id_handovering, 0, true, q_out_deg, state_out_rad, ik_status); // fk_type 0
@@ -1484,6 +1736,14 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Down", LogLevel::WARN);
+        return false;
+    }
 
     // 3. Transfer Twist
     Eigen::Matrix3d twist_R_handover_mat = Eigen::Matrix3d::Identity();
@@ -1505,6 +1765,15 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Twist", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     // 4. Transfer Twist Up
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with handover_assemble tool (fk_type 1)
@@ -1517,6 +1786,13 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     calculateIKforLegoPlan(target_T_transfer_twist_up, current_seed_q_deg, robot_id_handovering, 1, true, q_out_deg, state_out_rad, ik_status); // fk_type 1
     if (!ik_status) { overall_reachable = false; log("IK failed for Handover Transfer Twist Up", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Twist Up", LogLevel::WARN);
+        return false;
+    }
+
 
     return overall_reachable;
 }
