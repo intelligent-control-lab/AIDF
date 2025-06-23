@@ -932,7 +932,11 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     // interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     // prev_interpolated_state_rad = state_out_rad;
     // current_seed_q_deg = q_out_deg;
-
+    std::vector<RobotState> check_states= {state_out_rad};;
+    if (instance_->checkCollision(check_states, false, false)) {
+        log("Pick Up state is in collision", LogLevel::WARN);
+        return false;
+    }
     // --- Pick Up ---
     double pick_up_lift_z = 0.01; 
     Eigen::Matrix4d target_T_pick_up = cart_T_grab_base;
@@ -954,7 +958,7 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     current_seed_q_deg = q_out_deg;
 
 
-    std::vector<RobotState> check_states;
+    
 
 
         // add collision check here
@@ -1108,6 +1112,12 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     lego_ptr_->calc_brick_grab_pose(brick_name, 1, 0, brick_x, brick_y, brick_z, brick_ori, press_side, press_offset_val, cart_T_base_drop);
 
     // Sequence: r_offset_goal, r_drop_up_goal, r_drop_goal, r_drop_twist_goal, r_drop_twist_up_goal
+    std::vector<RobotState> check_states;
+        check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Offset Goal", LogLevel::WARN);
+        return false;
+    }
 
     // 1. Offset Goal (Approach to Drop Up)
     Eigen::Matrix4d target_T_offset = cart_T_base_drop;
@@ -1122,7 +1132,7 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     
     
     
-    std::vector<RobotState> check_states;
+    
 
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
@@ -1297,7 +1307,12 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     cart_T_base_placeup = cart_T_base_placeup * y_s90 * z_180; // Transform for bottom placement
 
     // Sequence: r_place_tilt_down_pre, r_place_tilt_down, r_place_down, r_place_up, r_twist, r_twist_down
-
+    std::vector<RobotState> check_states;
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down Pre", LogLevel::WARN);
+        return false;
+    }
     // 1. Place Tilt Down Pre
     Eigen::Matrix4d target_T_tilt_down_pre = cart_T_base_placeup;
     Eigen::Matrix4d pre_transform = Eigen::Matrix4d::Identity();
@@ -1313,7 +1328,7 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
     //add collision check here
-    std::vector<RobotState> check_states;
+    
     check_states = { state_out_rad };
     if (instance_->checkCollision(check_states, false)) {
         log("Collision detected at PlaceUp Tilt Down Pre", LogLevel::WARN);
@@ -1484,6 +1499,12 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     Eigen::Matrix4d sup_T = Eigen::Matrix4d::Identity();
     lego_ptr_->support_pose(support_x, support_y, support_z, support_ori, sup_T);
 
+
+    std::vector<RobotState> check_states={state_out_rad};
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pre-Pose", LogLevel::WARN);
+        return false;
+    }
     // 1. Pre-Support Pose
     Eigen::Matrix4d pre_sup_T = sup_T;
     // config_.pre_support_z_offset is -0.001. TaskAssignment uses sup_down_offset = -0.001 for pre-support.
@@ -1502,7 +1523,7 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
-    std::vector<RobotState> check_states;
+    check_states = { state_out_rad };
     if (instance_->checkCollision(check_states, false)) {
         log("Collision detected at Support Pre-Pose", LogLevel::WARN);
         return false;
@@ -1609,6 +1630,14 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     // Adjust Z for pressing tool
     press_T(2, 3) = press_T(2, 3) - lego_ptr_->brick_height() + lego_ptr_->lever_wall_height() + lego_ptr_->knob_height();
 
+
+
+     std::vector<RobotState> check_states;
+     check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Up-Pose", LogLevel::WARN);
+        return false;
+    }
     // 1. Press Up Pose
     Eigen::Matrix4d press_up_T = press_T;
     press_up_T(2, 3) += 0.005; // Lifted by 0.5cm
@@ -1620,7 +1649,7 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     current_seed_q_deg = q_out_deg;
 
 
-    std::vector<RobotState> check_states;
+   
     check_states = { state_out_rad };
     if (instance_->checkCollision(check_states, false)) {
         log("Collision detected at PressDown Up-Pose", LogLevel::WARN);
@@ -1732,6 +1761,13 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
 
     // Sequence: transfer_up, transfer_down, transfer_twist, transfer_twist_up
 
+
+        std::vector<RobotState> check_states;
+        check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Up", LogLevel::WARN);
+        return false;
+    }
     // 1. Transfer Up
     Eigen::Matrix4d target_T_transfer_up = cart_T_handover_base;
     target_T_transfer_up(2,3) += 0.015; // Lift 1.5cm
@@ -1744,7 +1780,7 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     current_seed_q_deg = q_out_deg;
 
 
-    std::vector<RobotState> check_states;
+    
 
     check_states = { state_out_rad };
     if (instance_->checkCollision(check_states, false)) {
