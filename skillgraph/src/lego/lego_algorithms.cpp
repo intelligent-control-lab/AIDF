@@ -722,6 +722,8 @@ void LegoPlan::calculateIKforLegoPlan(const Eigen::MatrixXd& T_target_pose, cons
         }
     }
 
+
+
     if (IK_status_out) {
         joint_q_deg_out = temp_joint_q_deg;
         robot_state_rad_out = instance_->initRobotState(robot_id); // Ensure it's properly sized
@@ -730,6 +732,12 @@ void LegoPlan::calculateIKforLegoPlan(const Eigen::MatrixXd& T_target_pose, cons
         }
 
         if (check_collision) {
+            //check start pose collision
+
+
+
+
+            //check target pose collision
             bool has_collision = instance_->checkCollision({robot_state_rad_out}, false);
             if (has_collision) {
                 IK_status_out = false;
@@ -743,6 +751,21 @@ void LegoPlan::interpolate_segment(const RobotState& start_pose_rad, const Robot
                                    skillgraph::RobotTrajectory &traj) {
     // Basic linear interpolation.
     // Timestamps are calculated based on dt and velocity.
+
+
+
+    if (instance_) {
+        bool start_collision = instance_->checkCollision({start_pose_rad}, false);
+        bool end_collision = instance_->checkCollision({end_pose_rad}, false);
+
+        if (start_collision || end_collision) {
+            if (start_collision)
+                log("Start pose is in collision!", LogLevel::WARN);
+            if (end_collision)
+                log("End pose is in collision!", LogLevel::WARN);
+            return; // Skip interpolation due to collision
+        }
+    }
 
     double total_duration = 0.0;
     if (!traj.times.empty()) {
