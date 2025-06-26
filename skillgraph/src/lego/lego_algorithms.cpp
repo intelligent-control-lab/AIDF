@@ -115,7 +115,7 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
 
 bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
          State &goal_state) {
-    
+    log("hi2",LogLevel::INFO);
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
         + std::to_string(robot_->robot_id), LogLevel::INFO);
     RobotState &robot_goal_state = goal_state.robot_states[robot_->robot_id];
@@ -754,18 +754,18 @@ void LegoPlan::interpolate_segment(const RobotState& start_pose_rad, const Robot
 
 
 
-    if (instance_) {
+    
         bool start_collision = instance_->checkCollision({start_pose_rad}, false);
         bool end_collision = instance_->checkCollision({end_pose_rad}, false);
 
         if (start_collision || end_collision) {
             if (start_collision)
-                log("Start pose is in collision!", LogLevel::WARN);
+                log("Start pose is in collision!", LogLevel::ERROR);
             if (end_collision)
-                log("End pose is in collision!", LogLevel::WARN);
+                log("End pose is in collision!", LogLevel::ERROR);
             return; // Skip interpolation due to collision
         }
-    }
+    
 
     double total_duration = 0.0;
     if (!traj.times.empty()) {

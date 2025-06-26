@@ -289,6 +289,9 @@ bool LegoSkillGraph::at_target(const State &state) {
 
 std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 {
+    //see which one is used
+    // log("[LegoSkillGraph] executeSkill() called", LogLevel::INFO);
+    // log("hi3", LogLevel::INFO);
     std::vector<SkillPtr> feasible_set;
     
     // identify what has been
@@ -455,6 +458,10 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
     std::string skillname = skill_config["skill"].asString();
     Skill::Type skill_type = Skill::from_string(skillname);
 
+    // hi
+    log("hi", LogLevel::INFO);
+
+
     bool skill_feasible = false;
     if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
         || skill_type == Skill::Type::PickHandoverAndPlace) {
@@ -543,6 +550,12 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         meta_executor->set_post_condition(post_condition);
 
         State end_state_i = state;
+
+
+
+
+
+
         skill_feasible = true;
         for (int i = 0; i < gs->atomic_skills.size(); i++) {
             // create atomic skill executor
@@ -557,12 +570,28 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             task_param->target_state = end_state_i;
             // call grasp pose generator
             auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
+            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
+            RobotTrajectory traj;
+            atomic_executor->set_planned_trajectory(traj);
+            skill_feasible = planner->plan_skill(task_param->target_state, *task_param, atomic_skill->type, traj);
+            if(skill_feasible == false) {
+                log("Failed to plan skill " + atomic_skill->to_string(), LogLevel::ERROR);
+                break;
+            }
+            
             if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                 log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::ERROR);
                 skill_feasible = false;
                 break;
             }
+
+
+          
+
             end_state_i = task_param->target_state;
+            
+
+
         }
     }
     else if (skill_type == Skill::Type::TranslateWithRotation) {

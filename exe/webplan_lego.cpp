@@ -149,6 +149,7 @@ int main(int argc, char* argv[]) {
             // }
             
             skillgraph::SkillPtr skill;
+            // skillgraph::RobotTrajectory &traj = skillgraph::RobotTrajectory::get_instance();
             bool success = sg->is_feasible(state, web_json, skill);
             if (success) {
                 std::cout << "Skill is feasible: " << skill->to_string() << std::endl;
