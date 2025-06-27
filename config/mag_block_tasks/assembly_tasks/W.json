@@ -1,0 +1,122 @@
+{
+    "1": {
+        "type": "primitive",
+        "x": 17,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "2": {
+        "type": "primitive",
+        "x": 16,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "3": {
+        "type": "primitive",
+        "x": 15,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "4": {
+        "type": "primitive",
+        "x": 14,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "5": {
+        "type": "primitive",
+        "x": 13,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "6": {
+        "type": "primitive",
+        "x": 12,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "7": {
+        "type": "primitive",
+        "x": 11,
+        "y": 13,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "8": {
+        "type": "primitive",
+        "x": 14,
+        "y": 13,
+        "z": 1,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "9": {
+        "type": "primitive",
+        "x": 14,
+        "y": 13,
+        "z": 2,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "10": {
+        "type": "primitive",
+        "x": 11,
+        "y": 13,
+        "z": 1,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "11": {
+        "type": "primitive",
+        "x": 11,
+        "y": 13,
+        "z": 2,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "12": {
+        "type": "primitive",
+        "x": 11,
+        "y": 13,
+        "z": 3,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "13": {
+        "type": "primitive",
+        "x": 17,
+        "y": 13,
+        "z": 1,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "14": {
+        "type": "primitive",
+        "x": 17,
+        "y": 13,
+        "z": 2,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "15": {
+        "type": "primitive",
+        "x": 17,
+        "y": 13,
+        "z": 3,
+        "gripper_ori": 0,
+        "press_face": 0
+    }
+}

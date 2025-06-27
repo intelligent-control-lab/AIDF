@@ -1,0 +1,114 @@
+{
+    "1": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "2": {
+        "type": "primitive",
+        "x": 14,
+        "y": 12,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "3": {
+        "type": "primitive",
+        "x": 16,
+        "y": 12,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 1
+    },
+    "4": {
+        "type": "primitive",
+        "x": 13,
+        "y": 12,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "5": {
+        "type": "primitive",
+        "x": 17,
+        "y": 12,
+        "z": 0,
+        "gripper_ori": 0,
+        "press_face": 1
+    },
+    "6": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 1,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "7": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 2,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "8": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 3,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "9": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 4,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "10": {
+        "type": "primitive",
+        "x": 15,
+        "y": 12,
+        "z": 5,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "11": {
+        "type": "primitive",
+        "x": 14,
+        "y": 12,
+        "z": 5,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "12": {
+        "type": "primitive",
+        "x": 16,
+        "y": 12,
+        "z": 5,
+        "gripper_ori": 0,
+        "press_face": 1
+    },
+    "13": {
+        "type": "primitive",
+        "x": 13,
+        "y": 12,
+        "z": 5,
+        "gripper_ori": 0,
+        "press_face": 4
+    },
+    "14": {
+        "type": "primitive",
+        "x": 17,
+        "y": 12,
+        "z": 5,
+        "gripper_ori": 0,
+        "press_face": 1
+    }
+}

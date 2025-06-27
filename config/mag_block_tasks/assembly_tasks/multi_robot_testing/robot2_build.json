@@ -1,0 +1,42 @@
+{
+  "1": {
+    "type": "primitive",
+    "x": 26,
+    "y": 21,
+    "z": 0,
+    "gripper_ori": 0,
+    "press_face": 0
+  },
+  "2": {
+    "type": "primitive",
+    "x": 26,
+    "y": 21,
+    "z": 1,
+    "gripper_ori": 0,
+    "press_face": 0
+  },
+  "3": {
+    "type": "primitive",
+    "x": 26,
+    "y": 21,
+    "z": 2,
+    "gripper_ori": 0,
+    "press_face": 0
+  },
+  "4": {
+    "type": "primitive",
+    "x": 26,
+    "y": 21,
+    "z": 3,
+    "gripper_ori": 0,
+    "press_face": 0
+  },
+  "5": {
+    "type": "primitive",
+    "x": 26,
+    "y": 21,
+    "z": 4,
+    "gripper_ori": 0,
+    "press_face": 0
+  }
+}
