@@ -2,7 +2,7 @@
     "metaskills": {
         "gen3": {
             "PickAndPlace": {
-                "atomicSkills": ["Pick", "Transit", "Place"],
+                "atomicSkills": ["Pick", "Transit", "Place-Down"],
                 "numRobot": 1,
                 "robotId": [0],
                 "type": "temporal"
@@ -17,7 +17,7 @@
                     "grip_width": 0.08
                 }
             },
-            "Place": {
+            "Place-Down": {
                 "default_params": {
                     "approach_distance": 0.1,
                     "release_distance": 0.002
@@ -31,10 +31,16 @@
         }
     },
     "robots": {
-        "gen3": {
-            "capabilities": ["Pick", "Place", "Transit"],
-            "id": 0
-        }
+        "numRobot": 1,
+        "names": ["gen3"],
+        "type": ["gen3"],
+        "gripperTypes": ["two_finger"],
+        "sensorTypes": ["none"],
+        "capabilities": [["Pick", "Place-Down", "Transit"]],
+        "ids": [0],
+        "homePoses": [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ]
     },
     "environment": {
         "name": "magblock_assembly",

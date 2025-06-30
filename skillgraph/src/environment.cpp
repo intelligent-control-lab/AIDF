@@ -25,6 +25,10 @@ Environment::Environment(const std::string &name, const std::string &type, const
     {
         this->type = Type::NIST;
     }
+    else if (type == "MagBlock")
+    {
+        this->type = Type::MagBlock;
+    }
     else
     {
         throw std::runtime_error("Unknown environment type: " + type);

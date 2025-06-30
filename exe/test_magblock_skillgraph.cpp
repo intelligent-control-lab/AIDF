@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
     // Path to the skillgraph config and assembly sequence
     std::string config_path = "config/mag_block_tasks/skillgraph.json";
-    std::string assembly_path = "config/mag_block_tasks/assembly/simple_stack.json";
+    std::string assembly_path = "config/mag_block_tasks/assembly_tasks/I.json";
 
     // Initialize the skillgraph
     auto sg = std::make_shared<MagBlockSkillGraph>(config_path);

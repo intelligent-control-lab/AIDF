@@ -25,6 +25,7 @@ namespace skillgraph {
         enum Type {
             Lego = 1,   /**< Lego environment */
             NIST = 2,   /**< NIST environment */
+            MagBlock = 3,   /**< MagBlock environment */
         };
 
         /**

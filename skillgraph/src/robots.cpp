@@ -36,6 +36,12 @@ Robot::Robot(const std::string &type, const std::string &gripperType, const std:
             log("Robot end-effector link name not set", LogLevel::WARN);
         }
     }
+    else if (type == "gen3") {
+        this->type = Robot::Type::Kinova;  // Using proper Kinova type for Gen3
+        this->robot_dof = 7;  // Kinova Gen3 has 7 DOF
+        this->end_effector_link = "end_effector_link";  // Default end-effector link for Gen3
+        log("Gen3 robot initialized with 7 DOF", LogLevel::INFO);
+    }
     else {
         // not supported raise error
         throw std::runtime_error("Robot type not supported");

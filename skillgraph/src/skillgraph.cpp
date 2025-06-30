@@ -172,14 +172,39 @@ void SkillGraph::print_skillgraph() {
     std::cout << "\nMeta Skills:\n";
     for (const auto& [meta_type, atomic_skills] : meta_skills) {
         auto meta_skill = skill_map_[meta_type];
+        if (!meta_skill) {
+            std::cout << "  Warning: Meta skill not found in skill_map\n";
+            continue;
+        }
         std::cout << "  " << meta_skill->name << ":\n";
         std::cout << "    Atomic Skills:\n";
-        const std::vector<int> & robot_ids = std::dynamic_pointer_cast<MetaSkill>(meta_skill)->robot_ids;
+        auto meta_skill_ptr = std::dynamic_pointer_cast<MetaSkill>(meta_skill);
+        if (!meta_skill_ptr) {
+            std::cout << "      Warning: Failed to cast to MetaSkill\n";
+            continue;
+        }
+        
+        const std::vector<int> & robot_ids = meta_skill_ptr->robot_ids;
+        
         for (int i = 0; i < atomic_skills.size(); i++) {
             auto atomic_type = atomic_skills[i];
             auto atomic_skill = skill_map_[atomic_type];
-            int robot_id = robot_ids[i];
-            std::cout << "      - " << atomic_skill->name << " (Robot: " << robots[robot_id]->robot_id << ")\n";
+
+            if (!atomic_skill) {
+                std::cout << "      - Unknown skill (type: " << atomic_type << ")\n";
+                continue;
+            }
+            
+            if (i < robot_ids.size()) {
+                int robot_id = robot_ids[i];
+                if (robot_id < robots.size()) {
+                    std::cout << "      - " << atomic_skill->name << " (Robot: " << robots[robot_id]->robot_id << ")\n";
+                } else {
+                    std::cout << "      - " << atomic_skill->name << " (Robot: " << robot_id << " - invalid)\n";
+                }
+            } else {
+                std::cout << "      - " << atomic_skill->name << " (Robot: unassigned)\n";
+            }
         }
     }
 
