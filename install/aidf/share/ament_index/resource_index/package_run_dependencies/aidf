@@ -1,0 +1,1 @@
+std_msgs;geometry_msgs;rclcpp;rclpy;moveit_core;moveit_ros_planning;moveit_ros_planning_interface;moveit_visual_tools;tf2_geometry_msgs;cv_bridge;image_transport;eigen3;boost;yk_msgs;yaml_cpp_vendor;libjsoncpp-dev;gazebo_ros;xacro;rviz2;joint_state_publisher;robot_state_publisher

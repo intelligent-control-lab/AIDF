@@ -129,6 +129,9 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
     //     log("RRTConnect::plan: Planning failed. Error code: " + std::to_string(res.error_code_.val), LogLevel::ERROR);
     //     return false;
     // }
+    
+    // Placeholder return for now
+    return false;
 }
 
 } // namespace skillgraph

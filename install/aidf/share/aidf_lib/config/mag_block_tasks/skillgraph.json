@@ -1,0 +1,47 @@
+{
+    "metaskills": {
+        "gen3": {
+            "PickAndPlace": {
+                "atomicSkills": ["Pick", "Transit", "Place"],
+                "numRobot": 1,
+                "robotId": [0],
+                "type": "temporal"
+            }
+        }
+    },
+    "skills": {
+        "gen3": {
+            "Pick": {
+                "default_params": {
+                    "approach_distance": 0.1,
+                    "grip_width": 0.08
+                }
+            },
+            "Place": {
+                "default_params": {
+                    "approach_distance": 0.1,
+                    "release_distance": 0.002
+                }
+            },
+            "Transit": {
+                "default_params": {
+                    "speed_scale": 0.5
+                }
+            }
+        }
+    },
+    "robots": {
+        "gen3": {
+            "capabilities": ["Pick", "Place", "Transit"],
+            "id": 0
+        }
+    },
+    "environment": {
+        "name": "magblock_assembly",
+        "type": "MagBlock",
+        "backend": {
+            "type": "moveit",
+            "moveitConfigPkg": "gen3_moveit_config"
+        }
+    }
+}

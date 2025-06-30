@@ -1,0 +1,269 @@
+{
+    "robots": {
+        "numRobot": 2,
+        "names": [
+            "left_arm",
+            "right_arm"
+        ],
+        "type": [
+            "gp4",
+            "gp4"
+        ],
+        "gripperTypes": [
+            "lego",
+            "lego"
+        ],
+        "sensorTypes": [
+            "fts",
+            "fts"
+        ],
+        "stateForm": "RobotArmState",
+        "homePoses": [
+            [
+                0.0,
+                -15.456,
+                -40.357,
+                0,
+                -65.099,
+                0
+            ],
+            [
+                0.0,
+                -15.456,
+                -40.357,
+                0,
+                -65.099,
+                0
+            ]
+        ]
+    },
+    "environment": {
+        "name": "mfi_testbed",
+        "type": "Lego",
+        "rootPwd": "${AIDF_PROJECT_ROOT}/",
+        "stateForm": "LegoEnvState",
+        "backend": {
+            "type": "moveit",
+            "moveitConfigPkg": "dual_gp4_moveit_config",
+            "moveit_group_name": "dual_arms",
+            "l1_vmax": 1.0
+        },
+        "calibration": {
+            "world": "config/lego_tasks/robot_properties/world_base.txt",
+            "plate": "config/lego_tasks/plate_calibration.json",
+            "r1": {
+                "DH_tool": "config/lego_tasks/robot_properties/gp4_tool_DH.txt",
+                "DH_tool_assemble": "config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt",
+                "DH_tool_disassemble": "config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt",
+                "DH_tool_alt": "config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt",
+                "DH_tool_alt_assemble": "config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt",
+                "DH_tool_handover_assemble": "config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt",
+                "robot_base": "config/lego_tasks/robot_properties/r1_base.txt",
+                "DH": "config/lego_tasks/robot_properties/gp4_DH.txt"
+            },
+            "r2": {
+                "DH_tool": "config/lego_tasks/robot_properties/gp4_tool_DH.txt",
+                "DH_tool_assemble": "config/lego_tasks/robot_properties/gp4_tool_assemble_DH.txt",
+                "DH_tool_disassemble": "config/lego_tasks/robot_properties/gp4_tool_disassemble_DH.txt",
+                "DH_tool_alt": "config/lego_tasks/robot_properties/gp4_tool_alt_DH.txt",
+                "DH_tool_alt_assemble": "config/lego_tasks/robot_properties/gp4_tool_alt_assemble_DH.txt",
+                "DH_tool_handover_assemble": "config/lego_tasks/robot_properties/gp4_tool_handover_assemble_DH.txt",
+                "robot_base": "config/lego_tasks/robot_properties/r2_base.txt",
+                "DH": "config/lego_tasks/robot_properties/gp4_DH.txt"
+            }
+        },
+        "lego_library": "config/lego_tasks/lego_library.json",
+        "object_library": "config/lego_tasks/env_setup/env_setup_faucet.json"
+    },
+    "skills": {
+        "gp4": {
+            "Transit": {
+                "default_params": {
+                    "speed": 1.0
+                }
+            },
+            "Pick": {
+                "default_params": {
+                    "twist_deg": 15,
+                    "force_threshold": 5
+                }
+            },
+            "Place-Down": {
+                "default_params": {
+                    "twist_deg": 15,
+                    "force_threshold": 5
+                }
+            },
+            "Place-Up": {
+                "default_params": {
+                    "twist_deg": 15,
+                    "force_threshold": 5
+                }
+            },
+            "Support-Top": {
+                "default_params": {
+                    "force_threshold": 5
+                }
+            },
+            "Support-Bottom": {
+                "default_params": {
+                    "force_threshold": 5
+                }
+            },
+            "Handover": {
+                "default_params": {
+                    "twist_deg": 18,
+                    "force_threshold": 5,
+                    "receive_q": [
+                        0.0,
+                        16.7789455793732,
+                        -37.9907697775332,
+                        0.0,
+                        54.7697153569065,
+                        180
+                    ]
+                }
+            },
+            "Translate": {
+                "default_params": {
+                    "speed": 1.0
+                }
+            },
+            "Rotate": {
+                "default_params": {
+                    "speed": 1.0
+                }
+            }
+        }
+    },
+    "metaskills": {
+        "gp4": {
+            "PlaceWithSupport": {
+                "type": "temporal",
+                "numRobot": 2,
+                "atomicSkills": [
+                    "Support-Bottom",
+                    "Place-Down"
+                ],
+                "robotId": [
+                    0,
+                    1
+                ]
+            },
+            "PickAndPlace": {
+                "type": "temporal",
+                "numRobot": 1,
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Place-Down",
+                    "Transit"
+                ],
+                "robotId": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            },
+            "PickAndPlaceWithSupport": {
+                "type": "temporal",
+                "numRobot": 2,
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Transit",
+                    "Support-Bottom",
+                    "Transit",
+                    "Place-Down",
+                    "Transit",
+                    "Transit"
+                ],
+                "robotId": [
+                    0,
+                    0,
+                    0,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0,
+                    1
+                ]
+            },
+            "PickHandoverAndPlace": {
+                "type": "temporal",
+                "numRobot": 2,
+                "atomicSkills": [
+                    "Transit",
+                    "Pick",
+                    "Transit",
+                    "Transit",
+                    "Transit",
+                    "Handover",
+                    "Transit",
+                    "Transit",
+                    "Transit",
+                    "Support-Top",
+                    "Place-Up",
+                    "Transit",
+                    "Transit"
+                ],
+                "robotId": [
+                    1,
+                    1,
+                    1,
+                    0,
+                    1,
+                    1,
+                    1,
+                    0,
+                    1,
+                    1,
+                    0,
+                    0,
+                    1
+                ]
+            },
+            "TranslateWithRotation": {
+                "type": "spatial",
+                "numRobot": 1,
+                "atomicSkills": [
+                    "Translate",
+                    "Rotate"
+                ],
+                "robotId": [
+                    0,
+                    0
+                ],
+                "skill_parameters": {
+                    "Translate": {
+                        "speed": {
+                            "type": "float"
+                        },
+                        "offset": {
+                            "type": "list"
+                        }
+                    },
+                    "Rotate": {
+                        "speed": {
+                            "type": "float"
+                        },
+                        "angle": {
+                            "type": "float"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tasks": {
+        "type": "Lego",
+        "name": "faucet",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/faucet.json",
+        "assemble": "true"
+    }
+}

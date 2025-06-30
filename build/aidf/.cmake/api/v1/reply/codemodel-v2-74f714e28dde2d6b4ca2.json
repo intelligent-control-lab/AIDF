@@ -1,0 +1,97 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-79b98d78be8d73364b45.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "aidf",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "aidf_lib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-aidf_lib-add05882ce0dc267ff73.json",
+					"name" : "aidf_lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "aidf_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-aidf_uninstall-67e1d16605d73aa7ca5d.json",
+					"name" : "aidf_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_magblock_assembly::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_magblock_assembly-4ad93c5d7e8c83b2ff3e.json",
+					"name" : "test_magblock_assembly",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_magblock_skillgraph::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_magblock_skillgraph-81cd8b277aa95e683af2.json",
+					"name" : "test_magblock_skillgraph",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-a1816892bf61673576f1.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/root/ros2_ws/AIDF/build/aidf",
+		"source" : "/root/ros2_ws/AIDF"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

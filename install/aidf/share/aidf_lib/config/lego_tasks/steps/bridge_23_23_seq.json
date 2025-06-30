@@ -1,0 +1,24 @@
+{
+    "1": {
+        "x": 23,
+        "y": 14,
+        "z": 10,
+        "brick_id": 5,
+        "ori": 0,
+        "press_side": 1,
+        "press_offset": 0,
+        "manipulate_type": 0,
+        "attack_dir": -1,
+        "press_x": 23,
+        "press_y": 14,
+        "press_z": 11,
+        "press_ori": 0,
+        "support_x": 23,
+        "support_y": 14,
+        "support_z": 8,
+        "support_ori": 0,
+        "brick_seq": 20,
+        "robot_id": 2,
+        "sup_robot_id": 1
+    }
+}

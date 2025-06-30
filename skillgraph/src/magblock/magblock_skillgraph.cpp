@@ -22,9 +22,11 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         throw std::runtime_error("Only MoveIt backend is supported for magnetic block assembly");
     }
 
-    // Initialize ROS-related components
-    nh_ = std::make_shared<ros::NodeHandle>();
-    set_state_client_ = nh_->serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
+    // Initialize ROS 2 node if needed
+    if (!rclcpp::ok()) {
+        rclcpp::init(0, nullptr);
+    }
+    node_ = std::make_shared<rclcpp::Node>("magblock_skillgraph");
 }
 
 bool MagBlockSkillGraph::at_target(const State& state) {
@@ -86,7 +88,7 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const skillgraph::State &st
 
                     for (int i = 0; i < gs->atomic_skills.size() && skill_feasible; i++) {
                         auto atomic_skill = gs->atomic_skills[i];
-                        auto atomic_executor = std::make_shared<SkillExecutor>(atomic_skill->type);
+                        auto atomic_executor = std::make_shared<MagBlockSkillExecutor>(atomic_skill->type);
                         atomic_skill->executor = atomic_executor;
                         meta_executor->add_atomic_executor(atomic_executor);
 
@@ -201,4 +203,40 @@ bool MagBlockSkillGraph::is_feasible(const State& state,
     return false;
 }
 
+
+bool MagBlockSkillGraph::loadAssemblySequence(const std::string& assembly_file) {
+    // Create a MagBlockAssemblySeq and parse the file
+    auto assembly_seq = std::make_shared<MagBlockAssemblySeq>();
+    if (!assembly_seq->parse_from_json(assembly_file)) {
+        log("Failed to load assembly sequence from: " + assembly_file, LogLevel::ERROR);
+        return false;
+    }
+    
+    // Set the task sequence (using protected member access)
+    task_seq_ = assembly_seq;
+    log("Successfully loaded assembly sequence with " + std::to_string(assembly_seq->num_tasks()) + " tasks", LogLevel::INFO);
+    return true;
+}
+
+State MagBlockSkillGraph::getInitialState() {
+    State initial_state;
+    initial_state.assembled_steps = 0;
+    // Initialize other state components as needed
+    return initial_state;
+}
+
+bool MagBlockSkillGraph::isGoalState(const State& state) {
+    return at_target(state);
+}
+
+std::shared_ptr<State> MagBlockSkillGraph::getNextState(const State& current_state, SkillPtr skill) {
+    auto next_state = std::make_shared<State>();
+    double cost = 0.0;
+    
+    if (get_next_state(current_state, skill, *next_state, cost)) {
+        return next_state;
+    }
+    
+    return nullptr;
+}
 }

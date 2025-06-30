@@ -1,0 +1,24 @@
+{
+    "1": {
+        "x": 23,
+        "y": 35,
+        "z": 1,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 1,
+        "press_side": 1,
+        "robot_id": 1,
+        "sup_robot_id": 0
+    },
+    "2": {
+        "x": 23,
+        "y": 12,
+        "z": 1,
+        "brick_id": 2,
+        "ori": 0,
+        "brick_seq": 2,
+        "press_side": 4,
+        "robot_id": 2,
+        "sup_robot_id": 0
+    }
+}

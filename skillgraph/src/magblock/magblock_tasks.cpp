@@ -1,8 +1,22 @@
 #include "magblock/magblock_tasks.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/FileIO.hpp"
+#include <fstream>
+#include <jsoncpp/json/json.h>
 
 namespace skillgraph {
+
+// Helper function to load JSON from file
+bool load_json(const std::string &filename, Json::Value &root) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return false;
+    }
+    
+    Json::CharReaderBuilder builder;
+    std::string errors;
+    return Json::parseFromStream(builder, file, &root, &errors);
+}
 
 bool MagBlockAssemblySeq::parse_from_json(const std::string &json_fname) {
     // Load and parse the JSON file

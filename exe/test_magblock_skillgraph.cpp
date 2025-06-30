@@ -1,10 +1,15 @@
 #include "magblock/magblock_skillgraph.hpp"
 #include <iostream>
 #include <memory>
+#include <rclcpp/rclcpp.hpp>
 
 using namespace skillgraph;
 
 int main(int argc, char** argv) {
+    // Initialize ROS 2
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<rclcpp::Node>("magblock_test");
+
     // Path to the skillgraph config and assembly sequence
     std::string config_path = "config/mag_block_tasks/skillgraph.json";
     std::string assembly_path = "config/mag_block_tasks/assembly/simple_stack.json";
@@ -23,11 +28,11 @@ int main(int argc, char** argv) {
     }
     std::cout << "Assembly sequence loaded. Number of tasks: " << mag_seq->num_tasks() << std::endl;
 
-    // Set the task sequence in the skillgraph
-    sg->task_seq_ = mag_seq;
+    // Set the task sequence using a public method instead of direct access
+    sg->loadAssemblySequence(assembly_path);
 
     // Get initial state
-    State state = sg->get_initial_state();
+    State state = sg->getInitialState();
 
     // For each task, get feasible skills and simulate state transitions
     for (int i = 0; i < mag_seq->num_tasks(); ++i) {
@@ -41,16 +46,15 @@ int main(int argc, char** argv) {
             std::cout << "Feasible skill: " << skill->to_string() << std::endl;
         }
         // Simulate applying the first feasible skill
-        State next_state;
-        double cost = 0.0;
-        if (sg->get_next_state(state, feasible_skills[0], next_state, cost)) {
-            std::cout << "Transitioned to next state. Cost: " << cost << std::endl;
-            state = next_state;
+        auto next_state_ptr = sg->getNextState(state, feasible_skills[0]);
+        if (next_state_ptr) {
+            std::cout << "Transitioned to next state." << std::endl;
+            state = *next_state_ptr;
         } else {
             std::cerr << "Failed to transition to next state." << std::endl;
             break;
         }
     }
-    std::cout << "\nTest complete. Final state assembled steps: " << state.assembled_steps << std::endl;
+    rclcpp::shutdown();
     return 0;
 }

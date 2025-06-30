@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     try {
         // Initialize skillgraph
         std::cout << "Initializing SkillGraph from: " << skillgraph_config << std::endl;
-        auto skillgraph = std::make_shared<MagBlockSkillGraph>(skillgraph_config.string());
+        auto skillgraph = std::make_shared<skillgraph::MagBlockSkillGraph>(skillgraph_config.string());
 
         // Load assembly sequence
         std::cout << "Loading assembly sequence from: " << assembly_path << std::endl;
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
             std::cout << "\nProcessing Step " << step << ":" << std::endl;
 
             // Get feasible skills for current state
-            auto feasible_skills = skillgraph->feasibleU(current_state);
+            auto feasible_skills = skillgraph->feasible_u(current_state);
             std::cout << "Found " << feasible_skills.size() << " feasible skills" << std::endl;
 
             if (feasible_skills.empty()) {
@@ -56,13 +56,13 @@ int main(int argc, char** argv) {
 
             // For each feasible skill, check state transition
             for (const auto& skill : feasible_skills) {
-                std::cout << "Testing skill: " << skill->getName() << std::endl;
+                std::cout << "Testing skill: " << skill->to_string() << std::endl;
                 
                 // Get next state
                 auto next_state = skillgraph->getNextState(current_state, skill);
                 if (next_state) {
                     std::cout << "State transition successful" << std::endl;
-                    current_state = next_state;
+                    current_state = *next_state;
                     break;
                 }
             }

@@ -11,6 +11,7 @@ message(STATUS "Building for ROS2")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-D_OS_UNIX)
+add_definitions(-DAIDF_CONFIG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/config")
 # Check if profiling is needed
 option(ENABLE_PROFILING "Enable profiling with gprof" OFF)
 
@@ -28,12 +29,15 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread serialization)
 find_package(ompl REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
 
 # ROS2 dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
@@ -42,8 +46,6 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
-
-find_package(yk_msgs QUIET)
 
 # /* -------------------------------------------------------------------------- */
 # /*                               Include Directories                          */
@@ -56,6 +58,15 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+# Add project directories
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/skillgraph
+  ${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/api
+  ${CMAKE_CURRENT_SOURCE_DIR}/skillgraph/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/planner/include
+)
+
 # /* -------------------------------------------------------------------------- */
 # /*                               Create Library                               */
 # /* -------------------------------------------------------------------------- */
@@ -64,6 +75,7 @@ include_directories(
 file(GLOB src_files
      skillgraph/src/*.cpp
      skillgraph/src/Utils/*.cpp
+     skillgraph/src/magblock/*.cpp
      planner/src/*.cpp)
 
 # Build core shared library
@@ -90,6 +102,7 @@ target_link_libraries(${PROJECT_NAME}_lib
 ament_target_dependencies(${PROJECT_NAME}_lib
   rclcpp
   std_msgs
+  std_srvs
   moveit_core
   moveit_ros_planning
   moveit_ros_planning_interface
