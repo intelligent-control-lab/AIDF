@@ -204,3 +204,24 @@ ament_export_dependencies(
 )
 
 ament_package()
+
+# /* -------------------------------------------------------------------------- */
+# /*                              Test Executables                               */
+# /* -------------------------------------------------------------------------- */
+
+# MagBlock test executables
+add_executable(test_magblock_assembly exe/test_magblock_assembly.cpp)
+target_link_libraries(test_magblock_assembly ${PROJECT_NAME}_lib yaml-cpp)
+ament_target_dependencies(test_magblock_assembly
+  rclcpp
+  moveit_core
+  moveit_ros_planning_interface
+)
+
+add_executable(test_magblock_skillgraph exe/test_magblock_skillgraph.cpp)
+target_link_libraries(test_magblock_skillgraph ${PROJECT_NAME}_lib yaml-cpp)
+ament_target_dependencies(test_magblock_skillgraph
+  rclcpp
+  moveit_core
+  moveit_ros_planning_interface
+)
