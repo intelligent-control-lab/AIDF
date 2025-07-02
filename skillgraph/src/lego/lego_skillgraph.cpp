@@ -463,9 +463,21 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
 
 
     bool skill_feasible = false;
+
+
+
+
     if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
         || skill_type == Skill::Type::PickHandoverAndPlace) {
         
+        
+        // TaskParamPtr pre_condition = std::make_shared<TaskParam>();
+        // pre_condition->pre_or_post = 0; // pre condition
+        // if(!pre_condition->eval_condition()) {
+        //     log("Pre-condition not met for skill " , LogLevel::ERROR);
+        //     return false;
+        // }
+
         // get the skill
         auto base_skill = std::dynamic_pointer_cast<MetaSkill>(get_skill(skillname));
         MetaSkillPtr gs = std::make_shared<MetaSkill>(*base_skill);
@@ -500,6 +512,10 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
 
         // set the task parameters
         TaskParamPtr post_condition = std::make_shared<TaskParam>();
+
+        
+        post_condition->condition_check->pre_or_post=1; // post condition
+        
         auto &config = post_condition->constraints_json;
         config = skill_config["target_location"];
         config["brick_id"] = std::dynamic_pointer_cast<LegoBrick>(obj)->brick_id;
@@ -591,8 +607,12 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             end_state_i = task_param->target_state;
             
 
-
+            if(i == gs->atomic_skills.size()-1 && !task_param->condition_check->eval_condition()){
+                log("post condition not met", LogLevel::ERROR);
+                skill_feasible = false;
+            }
         }
+       
     }
     else if (skill_type == Skill::Type::TranslateWithRotation) {
 

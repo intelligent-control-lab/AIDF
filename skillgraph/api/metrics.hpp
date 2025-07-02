@@ -4,7 +4,7 @@
  */
 #pragma once
 #include "Utils/Common.hpp"
-
+#include "symbolic_state.hpp"
 
 namespace skillgraph {
     /**
@@ -39,6 +39,11 @@ namespace skillgraph {
          * @return True if the condition is met, false otherwise.
          */
         bool eval_condition();
+
+
+        //0 for pre-condition, 1 for post-condition
+        int pre_or_post=-1; /**< Indicates if this is a pre-condition or post-condition */
+        pddl_state_ptr state_;
     };
 
     /**
