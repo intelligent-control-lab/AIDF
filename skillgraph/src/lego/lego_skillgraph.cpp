@@ -465,7 +465,13 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
     bool skill_feasible = false;
 
 
-
+    //pre condition check
+    TaskParamPtr pre_condition = std::make_shared<TaskParam>();
+    pre_condition->condition_check->pre_or_post = 0; // pre condition
+    if(!pre_condition->condition_check->eval_condition()) {
+        log("Pre-condition not met for skill " + skillname, LogLevel::ERROR);
+        return false;
+    }
 
     if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
         || skill_type == Skill::Type::PickHandoverAndPlace) {
