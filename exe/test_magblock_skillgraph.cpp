@@ -21,18 +21,11 @@ int main(int argc, char** argv) {
     sg->print_skillgraph();
 
     // Parse the assembly sequence
-    auto mag_seq = std::make_shared<MagBlockAssemblySeq>();
-    if (!mag_seq->parse_from_json(assembly_path)) {
-        std::cerr << "Failed to parse assembly sequence." << std::endl;
-        return 1;
-    }
+    auto mag_seq = std::make_shared<MagBlockAssemblySeq>(assembly_path);
     std::cout << "Assembly sequence loaded. Number of tasks: " << mag_seq->num_tasks() << std::endl;
 
-    // Set the task sequence using a public method instead of direct access
-    sg->loadAssemblySequence(assembly_path);
-
     // Get initial state
-    State state = sg->getInitialState();
+    State state = sg->get_initial_state();
 
     // For each task, get feasible skills and simulate state transitions
     for (int i = 0; i < mag_seq->num_tasks(); ++i) {
@@ -46,10 +39,11 @@ int main(int argc, char** argv) {
             std::cout << "Feasible skill: " << skill->to_string() << std::endl;
         }
         // Simulate applying the first feasible skill
-        auto next_state_ptr = sg->getNextState(state, feasible_skills[0]);
-        if (next_state_ptr) {
+        State next_state;
+        double cost;
+        if (sg->get_next_state(state, feasible_skills[0], next_state, cost)) {
             std::cout << "Transitioned to next state." << std::endl;
-            state = *next_state_ptr;
+            state = next_state;
         } else {
             std::cerr << "Failed to transition to next state." << std::endl;
             break;

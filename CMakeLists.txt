@@ -198,7 +198,7 @@ install(DIRECTORY skillgraph/api skillgraph/include planner/include
 )
 
 install(DIRECTORY launch config
-    DESTINATION share/${PROJECT_NAME}_lib
+    DESTINATION share/${PROJECT_NAME}
 )
 
 # Export dependencies
@@ -216,13 +216,19 @@ ament_export_dependencies(
     image_transport
 )
 
-ament_package()
-
 # /* -------------------------------------------------------------------------- */
 # /*                              Test Executables                               */
 # /* -------------------------------------------------------------------------- */
 
-# MagBlock test executables
+# MagBlock executables
+add_executable(plan_magblock exe/plan_magblock.cpp)
+target_link_libraries(plan_magblock ${PROJECT_NAME}_lib yaml-cpp)
+ament_target_dependencies(plan_magblock
+  rclcpp
+  moveit_core
+  moveit_ros_planning_interface
+)
+
 add_executable(test_magblock_assembly exe/test_magblock_assembly.cpp)
 target_link_libraries(test_magblock_assembly ${PROJECT_NAME}_lib yaml-cpp)
 ament_target_dependencies(test_magblock_assembly
@@ -238,3 +244,10 @@ ament_target_dependencies(test_magblock_skillgraph
   moveit_core
   moveit_ros_planning_interface
 )
+
+# Install MagBlock executables
+install(TARGETS plan_magblock test_magblock_assembly test_magblock_skillgraph
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_package()

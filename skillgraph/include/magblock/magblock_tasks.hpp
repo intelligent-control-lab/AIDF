@@ -2,35 +2,36 @@
 #include "tasks.hpp"
 
 namespace skillgraph {
+
     /**
-     * @brief Represents a sequence of magnetic block assembly tasks.
+     * @brief Subclass for Magnetic Block Assembly Tasks specifically.
+     *
+     * Inherits from AssemblySeq and provides additional functionality for magblock assembly tasks,
+     * exactly mirroring the LEGO implementation approach.
      */
     class MagBlockAssemblySeq : public AssemblySeq {
-    public:
-        MagBlockAssemblySeq() = default;
-        virtual ~MagBlockAssemblySeq() = default;
+        public:
+            /**
+             * @brief Default constructor for MagBlockAssemblySeq.
+             */
+            MagBlockAssemblySeq() = default;
+
+            /**
+             * @brief Constructor for MagBlockAssemblySeq.
+             * @param task_json_fname Filename of the task JSON.
+             */
+            MagBlockAssemblySeq(const std::string &task_json_fname);
+            virtual ~MagBlockAssemblySeq() {};
+
+            /**
+             * @brief Print the assembly sequence.
+             */
+            virtual void print() override;
         
-        /**
-         * @brief Parse the assembly sequence from a JSON file.
-         * @param json_fname Path to the JSON file.
-         * @return True if parsing was successful.
-         */
-        bool parse_from_json(const std::string &json_fname);
-
-        /**
-         * @brief Get the task JSON value.
-         * @return The task JSON value.
-         */
-        Json::Value& get_task_json() { return task_json_; }
-
-        /**
-         * @brief Get the number of tasks.
-         * @return Number of tasks in the sequence.
-         */
-        int num_tasks() const { return num_tasks_; }
-
-    protected:
-        int num_tasks_ = 0;
-        Json::Value task_json_;
-    };
+        private:
+            /**
+             * @brief JSON value describing the task.
+             */
+            Json::Value task_json_;
+        };
 }

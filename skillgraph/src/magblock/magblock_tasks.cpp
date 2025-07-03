@@ -1,61 +1,62 @@
 #include "magblock/magblock_tasks.hpp"
 #include "Utils/Logger.hpp"
-#include "Utils/FileIO.hpp"
-#include <fstream>
-#include <jsoncpp/json/json.h>
 
 namespace skillgraph {
 
-// Helper function to load JSON from file
-bool load_json(const std::string &filename, Json::Value &root) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        return false;
+/**
+ * @brief Construct a MagBlockAssemblySeq for magnetic block assembly tasks.
+ *
+ * Reads the task JSON file, initializes the task sequence - mirroring LEGO approach.
+ * @param task_json_fname Filename of the task JSON.
+ */
+MagBlockAssemblySeq::MagBlockAssemblySeq(const std::string &task_json_fname) {
+    
+    std::ifstream task_file(task_json_fname, std::ifstream::binary);
+    if (!task_file.is_open()) {
+        log("Failed to open task file: " + task_json_fname, LogLevel::ERROR);
+        return;
     }
     
-    Json::CharReaderBuilder builder;
-    std::string errors;
-    return Json::parseFromStream(builder, file, &root, &errors);
-}
-
-bool MagBlockAssemblySeq::parse_from_json(const std::string &json_fname) {
-    // Load and parse the JSON file
-    if (!load_json(json_fname, task_json_)) {
-        log("Failed to load assembly JSON file: " + json_fname, LogLevel::ERROR);
-        return false;
-    }
-
-    // Parse tasks from the JSON
-    task_seq_.clear();
+    task_file >> task_json_;
     num_tasks_ = task_json_.size();
 
+    // Parse tasks from JSON - following LEGO pattern exactly
     for (int i = 0; i < num_tasks_; i++) {
-        int task_idx = i + 1;
-        const auto& node = task_json_[std::to_string(task_idx)];
-
-        // Initialize task
-        TaskPtr task = std::make_shared<Task>();
-        task->name = std::to_string(task_idx);
+        Json::Value node = task_json_[std::to_string(i+1)];
+        std::string seq = "t" + std::to_string(i+1);
         
-        // Get block information
-        int block_id = node["block_id"].asInt();
-        double x = node["x"].asDouble();
-        double y = node["y"].asDouble();
-        double z = node["z"].asDouble();
+        // Extract magblock-specific parameters - matching existing I.json structure
+        std::string block_type = node.get("type", "primitive").asString();
+        int x = node["x"].asInt();
+        int y = node["y"].asInt();
+        int z = node["z"].asInt();
+        int gripper_ori = node.get("gripper_ori", 0).asInt();
+        int press_face = node.get("press_face", 0).asInt();
 
-        task->description = "Pick and place block " + std::to_string(block_id) + 
-                          " to " + std::to_string(x) + " " + 
-                          std::to_string(y) + " " + std::to_string(z);
+        // Initialize a task - exactly mirroring LEGO approach
+        TaskPtr task = std::make_shared<Task>();
+        task->name = seq;
+        task->description = "Pick and place magblock " + block_type + " to (" + 
+                           std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
 
-        // Set task conditions
+        // Set the goal condition for this task - exactly mirroring LEGO approach
         task->post_condition = std::make_shared<TaskParam>();
         task->post_condition->constraints_json = node;
+        
+        // Set allowed skill types based on magblock requirements
+        // All magblock tasks use PickAndPlace as primary skill
         task->post_condition->allowed_skill_type.push_back(Skill::Type::PickAndPlace);
-
+        
         task_seq_.push_back(task);
     }
-
-    return true;
 }
 
+void MagBlockAssemblySeq::print() {
+    std::cout << "MagBlock Assembly Sequence: \n";
+    for (int i = 0; i < num_tasks_; i++) {
+        std::cout << task_seq_[i]->name << " " << task_seq_[i]->description << std::endl;
+    }
+    std::cout << std::endl;
 }
+
+} // namespace skillgraph

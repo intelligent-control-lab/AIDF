@@ -31,18 +31,15 @@ int main(int argc, char** argv) {
         // Initialize skillgraph
         std::cout << "Initializing SkillGraph from: " << skillgraph_config << std::endl;
         auto skillgraph = std::make_shared<skillgraph::MagBlockSkillGraph>(skillgraph_config.string());
-
-        // Load assembly sequence
-        std::cout << "Loading assembly sequence from: " << assembly_path << std::endl;
-        skillgraph->loadAssemblySequence(assembly_path.string());
+        skillgraph->initialize();
 
         // Get initial state
-        auto current_state = skillgraph->getInitialState();
+        auto current_state = skillgraph->get_initial_state();
         std::cout << "Initial state loaded." << std::endl;
 
         // Process each step in the assembly
         int step = 1;
-        while (!skillgraph->isGoalState(current_state)) {
+        while (!skillgraph->at_target(current_state)) {
             std::cout << "\nProcessing Step " << step << ":" << std::endl;
 
             // Get feasible skills for current state
@@ -59,10 +56,11 @@ int main(int argc, char** argv) {
                 std::cout << "Testing skill: " << skill->to_string() << std::endl;
                 
                 // Get next state
-                auto next_state = skillgraph->getNextState(current_state, skill);
-                if (next_state) {
+                skillgraph::State next_state;
+                double cost;
+                if (skillgraph->get_next_state(current_state, skill, next_state, cost)) {
                     std::cout << "State transition successful" << std::endl;
-                    current_state = *next_state;
+                    current_state = next_state;
                     break;
                 }
             }
@@ -71,7 +69,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << "\nAssembly sequence test completed." << std::endl;
-        if (skillgraph->isGoalState(current_state)) {
+        if (skillgraph->at_target(current_state)) {
             std::cout << "Successfully reached goal state!" << std::endl;
         } else {
             std::cout << "Failed to reach goal state." << std::endl;

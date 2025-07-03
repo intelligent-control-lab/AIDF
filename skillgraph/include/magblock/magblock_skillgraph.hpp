@@ -3,31 +3,15 @@
 #include "magblock_tasks.hpp"
 #include "magblock_objects.hpp"
 #include "magblock_algorithms.hpp"
-#include "magblock_skills.hpp"
-#include "rclcpp/rclcpp.hpp"
 
 namespace skillgraph {
     /**
      * @brief MagBlock-specific implementation of the SkillGraph.
+     * 
+     * Inherits from SkillGraph and provides magnetic block assembly functionality,
+     * exactly mirroring the LEGO implementation approach.
      */
     class MagBlockSkillGraph : public SkillGraph {
-        private:
-            /**
-             * @brief ROS node.
-             */
-            std::shared_ptr<rclcpp::Node> node_;
-            
-            /**
-             * @brief JSON value for the task configuration.
-             */
-            Json::Value task_json_;
-
-            /**
-             * @brief Parse the environment configuration.
-             * @param root_config Root JSON configuration.
-             */
-            virtual void parse_env(const Json::Value &root_config) override;
-
         public:
             /**
              * @brief Constructor for MagBlockSkillGraph.
@@ -35,6 +19,12 @@ namespace skillgraph {
              */
             MagBlockSkillGraph(const std::string &config_file);
             virtual ~MagBlockSkillGraph() = default;
+
+            /**
+             * @brief Parse the environment configuration.
+             * @param root_config Root JSON configuration.
+             */
+            virtual void parse_env(const Json::Value &root_config) override;
 
             /**
              * @brief Check if the state is at the target.
@@ -48,7 +38,7 @@ namespace skillgraph {
              * @param state The current state.
              * @return Vector of feasible skills.
              */
-            virtual std::vector<SkillPtr> feasible_u(const skillgraph::State &state) override;
+            virtual std::vector<SkillPtr> feasible_u(const State &state) override;
 
             /**
              * @brief Get the next state given a skill.
@@ -69,32 +59,14 @@ namespace skillgraph {
              */
             virtual bool is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs) override;
 
+        private:
             /**
-             * @brief Load assembly sequence from JSON file.
-             * @param assembly_file Path to the assembly JSON file.
-             * @return True if successful.
+             * @brief Determine which robot to use for a given location.
+             * @param x World x coordinate.
+             * @param y World y coordinate.
+             * @param z World z coordinate.
+             * @return Robot ID (0, 1, or 2).
              */
-            bool loadAssemblySequence(const std::string& assembly_file);
-
-            /**
-             * @brief Get initial state for the assembly.
-             * @return Initial state.
-             */
-            State getInitialState();
-
-            /**
-             * @brief Check if the state is a goal state.
-             * @param state The state to check.
-             * @return True if goal state.
-             */
-            bool isGoalState(const State& state);
-
-            /**
-             * @brief Get next state from skill application.
-             * @param current_state Current state.
-             * @param skill Skill to apply.
-             * @return Next state or nullptr if failed.
-             */
-            std::shared_ptr<State> getNextState(const State& current_state, SkillPtr skill);
+            int determineRobotForLocation(double x, double y, double z);
     };
 }

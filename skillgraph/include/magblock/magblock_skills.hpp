@@ -1,22 +1,28 @@
 #pragma once
 
-#include "../api/skills.hpp"
-#include "../api/backend.hpp"
+#include "skills.hpp"
+#include "moveit_backend.hpp"
+#include <geometry_msgs/msg/pose.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace skillgraph {
 
 /**
  * @brief MagBlock-specific skill executor.
  * 
- * Inherits from SkillExecutor and provides execution logic for MagBlock tasks.
+ * Inherits from SkillExecutor and provides execution logic for MagBlock tasks,
+ * mirroring the LEGO implementation approach with MoveIt2 integration.
  */
 class MagBlockSkillExecutor : public SkillExecutor {
 public:
     /**
      * @brief Constructor for MagBlockSkillExecutor.
      * @param type The skill type.
+     * @param backend Shared pointer to the PlanInstance backend.
      */
-    MagBlockSkillExecutor(Skill::Type type);
+    MagBlockSkillExecutor(Skill::Type type, std::shared_ptr<PlanInstance> backend);
 
     /**
      * @brief Execute the skill on the current state.
@@ -27,9 +33,53 @@ public:
 
 private:
     /**
+     * @brief Backend plan instance.
+     */
+    std::shared_ptr<PlanInstance> backend_;
+    
+    /**
+     * @brief Moveit controller for robot motion.
+     */
+    std::shared_ptr<MoveitControl> controller_;
+    
+    /**
      * @brief Skill type
      */
     Skill::Type skill_type_;
+
+    /**
+     * @brief Execute pick skill for magnetic blocks.
+     * @param current_state Current robot/environment state.
+     * @param constraints JSON constraints for the skill.
+     * @return True if successful.
+     */
+    bool execute_pick_skill(State &current_state);
+    
+    /**
+     * @brief Execute place skill for magnetic blocks.
+     * @param current_state Current robot/environment state.
+     * @return True if successful.
+     */
+    bool execute_place_skill(State &current_state);
+    
+    /**
+     * @brief Execute transit skill for magnetic blocks.
+     * @param current_state Current robot/environment state.
+     * @return True if successful.
+     */
+    bool execute_transit_skill(State &current_state);
+    
+    /**
+     * @brief Execute pick and place skill for magnetic blocks.
+     * @param current_state Current robot/environment state.
+     * @return True if successful.
+     */
+    bool execute_pick_and_place_skill(State &current_state);
 };
+
+/**
+ * @brief Shared pointer type for MagBlockSkillExecutor.
+ */
+typedef std::shared_ptr<MagBlockSkillExecutor> MagBlockSkillExecutorPtr;
 
 } // namespace skillgraph

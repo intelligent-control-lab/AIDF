@@ -1,0 +1,29 @@
+{
+    "1": {
+        "type": "primitive",
+        "x": 0.5,
+        "y": 0.0,
+        "z": 0.0,
+        "robot_id": 0,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "2": {
+        "type": "primitive", 
+        "x": 0.5,
+        "y": 0.0,
+        "z": 0.05,
+        "robot_id": 1,
+        "gripper_ori": 0,
+        "press_face": 0
+    },
+    "3": {
+        "type": "primitive",
+        "x": 0.5,
+        "y": 0.0,
+        "z": 0.10,
+        "robot_id": 2,
+        "gripper_ori": 0,
+        "press_face": 0
+    }
+}
