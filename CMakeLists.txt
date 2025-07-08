@@ -197,6 +197,12 @@ install(DIRECTORY skillgraph/api skillgraph/include planner/include
     DESTINATION include
 )
 
+# Install launch files
+install(DIRECTORY launch/
+    DESTINATION share/${PROJECT_NAME}/launch
+)
+
+
 install(DIRECTORY launch config
     DESTINATION share/${PROJECT_NAME}
 )
@@ -245,8 +251,20 @@ ament_target_dependencies(test_magblock_skillgraph
   moveit_ros_planning_interface
 )
 
+
+# MagBlock Assembly Executor executable  
+add_executable(magblock_assembly_executor src/magblock_assembly_executor.cpp)
+target_link_libraries(magblock_assembly_executor ${PROJECT_NAME}_lib yaml-cpp)
+ament_target_dependencies(magblock_assembly_executor
+  rclcpp
+  moveit_core
+  moveit_ros_planning_interface
+  moveit_visual_tools
+  geometry_msgs
+)
+
 # Install MagBlock executables
-install(TARGETS plan_magblock test_magblock_assembly test_magblock_skillgraph
+install(TARGETS plan_magblock test_magblock_assembly test_magblock_skillgraph magblock_assembly_executor
     DESTINATION lib/${PROJECT_NAME}
 )
 

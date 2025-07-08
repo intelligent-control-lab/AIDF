@@ -12,6 +12,33 @@ namespace skillgraph {
  */
 MagBlockSkillGraph::MagBlockSkillGraph(const std::string &config_file) : SkillGraph(config_file)
 {
+    // Initialize robot transformation configurations using left arm as reference frame
+    // Block coordinates are now defined relative to the left arm with specified offset
+    
+    RobotConfig left_arm_config;
+    // Left arm serves as the origin, so no transformation needed except for the offset
+    left_arm_config.x_origin_blocks = 0.0;  // Block origin at left arm with offset
+    left_arm_config.y_origin_blocks = 0.0;
+    left_arm_config.default_orientation_deg = {0, -180, 90};
+    left_arm_config.block_to_robot_matrix << 1, 0, 0, 1;  // Identity transformation
+    robot_configs_["left_arm"] = left_arm_config;
+
+    RobotConfig right_arm_config;
+    // Right arm transformation relative to left arm
+    // These values may need adjustment based on actual robot base positions
+    right_arm_config.x_origin_blocks = 0.0;
+    right_arm_config.y_origin_blocks = 0.0;
+    right_arm_config.default_orientation_deg = {0, -180, 90};
+    right_arm_config.block_to_robot_matrix << 1, 0, 0, 1;
+    robot_configs_["right_arm"] = right_arm_config;
+
+    RobotConfig center_arm_config;
+    // Center arm transformation relative to left arm
+    center_arm_config.x_origin_blocks = 0.0;
+    center_arm_config.y_origin_blocks = 0.0;
+    center_arm_config.default_orientation_deg = {0, -180, 90};
+    center_arm_config.block_to_robot_matrix << 1, 0, 0, 1;
+    robot_configs_["center_arm"] = center_arm_config;
 }
 
 /**
@@ -191,21 +218,149 @@ bool MagBlockSkillGraph::is_feasible(const State&state, Json::Value &skill_confi
 
 /**
  * @brief Determine which robot to use for a given location.
- * @param x World x coordinate.
- * @param y World y coordinate.
- * @param z World z coordinate.
- * @return Robot ID (0, 1, or 2).
  */
 int MagBlockSkillGraph::determineRobotForLocation(double x, double y, double z) {
-    // Simple spatial partitioning for three arms
-    // This can be refined based on actual workspace geometry
-    if (x < -0.3) {
-        return 0; // Left robot
-    } else if (x > 0.3) {
-        return 2; // Right robot
+    // Simple workspace-based robot selection
+    // This can be enhanced with reachability analysis from skillgraph
+    
+    // For now, use simple spatial partitioning:
+    // Left arm: x < 10
+    // Center arm: 10 <= x <= 20  
+    // Right arm: x > 20
+    
+    if (x < 10) {
+        return 0;  // left_arm
+    } else if (x > 20) {
+        return 2;  // right_arm
     } else {
-        return 1; // Center robot
+        return 1;  // center_arm
     }
+}
+
+/**
+ * @brief Transform block coordinates to robot coordinates.
+ * Block coordinates are now defined relative to the left arm with a specific offset.
+ * The offset is: x=11cm, y=-40cm, z=0cm in the left arm's frame.
+ */
+bool MagBlockSkillGraph::blockToRobotFrame(const std::string& robot_name, 
+                                         double x_blocks, double y_blocks, double z_blocks,
+                                         double& x_robot, double& y_robot, double& z_robot,
+                                         double& rx_deg, double& ry_deg, double& rz_deg) {
+    
+    // Check if robot config exists
+    auto config_it = robot_configs_.find(robot_name);
+    if (config_it == robot_configs_.end()) {
+        log("Robot config not found for: " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+    
+    const RobotConfig& config = config_it->second;
+    
+    // Apply block-to-robot transformation matrix
+    Eigen::Vector2d block_pos(x_blocks, y_blocks);
+    Eigen::Vector2d robot_pos = config.block_to_robot_matrix * block_pos;
+    
+    // Add origin offset
+    x_robot = robot_pos(0) + config.x_origin_blocks;
+    y_robot = robot_pos(1) + config.y_origin_blocks;
+    z_robot = z_blocks * block_size_;  // Convert block units to meters
+    
+    // Set default orientation
+    rx_deg = config.default_orientation_deg[0];
+    ry_deg = config.default_orientation_deg[1];
+    rz_deg = config.default_orientation_deg[2];
+    
+    log("Transformed block coords (" + std::to_string(x_blocks) + "," + 
+        std::to_string(y_blocks) + "," + std::to_string(z_blocks) + 
+        ") to robot coords (" + std::to_string(x_robot) + "," + 
+        std::to_string(y_robot) + "," + std::to_string(z_robot) + ")", LogLevel::DEBUG);
+    
+    return true;
+}
+
+/**
+ * @brief Load assembly task from JSON file.
+ */
+bool MagBlockSkillGraph::loadAssemblyTask(const std::string& task_file, const std::string& env_setup_file) {
+    try {
+        // Load assembly tasks
+        std::ifstream task_stream(task_file);
+        if (!task_stream.is_open()) {
+            log("Failed to open task file: " + task_file, LogLevel::ERROR);
+            return false;
+        }
+        task_stream >> assembly_tasks_;
+        task_stream.close();
+        
+        // Load environment setup
+        std::ifstream env_stream(env_setup_file);
+        if (!env_stream.is_open()) {
+            log("Failed to open env setup file: " + env_setup_file, LogLevel::ERROR);
+            return false;
+        }
+        env_stream >> env_setup_;
+        env_stream.close();
+        
+        // Create assembly sequence
+        assembly_seq_ = std::make_shared<MagBlockAssemblySeq>(task_file);
+        task_seq_ = assembly_seq_;  // For compatibility
+        
+        log("Successfully loaded magblock assembly task and environment", LogLevel::INFO);
+        return true;
+    } catch (const std::exception& e) {
+        log("Exception loading assembly task: " + std::string(e.what()), LogLevel::ERROR);
+        return false;
+    }
+}
+
+/**
+ * @brief Get the assembly sequence for trajectory planning.
+ */
+std::shared_ptr<MagBlockAssemblySeq> MagBlockSkillGraph::getAssemblySequence() const {
+    return assembly_seq_;
+}
+
+/**
+ * @brief Set the assembly sequence.
+ */
+void MagBlockSkillGraph::setAssemblySequence(std::shared_ptr<MagBlockAssemblySeq> assembly_seq) {
+    assembly_seq_ = assembly_seq;
+    task_seq_ = assembly_seq;  // For compatibility
+}
+
+/**
+ * @brief Set environment configuration.
+ */
+void MagBlockSkillGraph::setEnvironmentConfig(const Json::Value& env_config) {
+    env_setup_ = env_config;
+}
+
+/**
+ * @brief Get optimal robot for given block coordinates.
+ */
+int MagBlockSkillGraph::getOptimalRobot(double x_blocks, double y_blocks, double z_blocks) {
+    return determineRobotForLocation(x_blocks, y_blocks, z_blocks);
+}
+
+/**
+ * @brief Transform block coordinates to robot frame - renamed for clarity.
+ */
+bool MagBlockSkillGraph::transformBlockToRobot(const std::string& robot_name, 
+                                              double x_blocks, double y_blocks, double z_blocks,
+                                              double& x_robot, double& y_robot, double& z_robot,
+                                              double& rx_deg, double& ry_deg, double& rz_deg) {
+    return blockToRobotFrame(robot_name, x_blocks, y_blocks, z_blocks,
+                            x_robot, y_robot, z_robot, rx_deg, ry_deg, rz_deg);
+}
+
+/**
+ * @brief Get pick pose for a task from skillgraph logic.
+ */
+bool MagBlockSkillGraph::getPickPose(TaskPtr task, double& x, double& y, double& z) {
+    // Implementation: Get storage/source location for the block
+    // For now, return false to use default table pick location
+    // This can be enhanced with actual storage location logic
+    return false;
 }
 
 } // namespace skillgraph

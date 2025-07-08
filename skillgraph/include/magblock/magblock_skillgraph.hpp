@@ -59,6 +59,89 @@ namespace skillgraph {
              */
             virtual bool is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs) override;
 
+            /**
+             * @brief Transform block coordinates to robot coordinates.
+             * @param robot_name Name of the robot.
+             * @param x_blocks X coordinate in block frame.
+             * @param y_blocks Y coordinate in block frame.
+             * @param z_blocks Z coordinate in block frame.
+             * @param x_robot Output X coordinate in robot frame.
+             * @param y_robot Output Y coordinate in robot frame.
+             * @param z_robot Output Z coordinate in robot frame.
+             * @param rx_deg Output roll in degrees.
+             * @param ry_deg Output pitch in degrees.
+             * @param rz_deg Output yaw in degrees.
+             * @return True if transformation successful.
+             */
+            bool blockToRobotFrame(const std::string& robot_name, 
+                                 double x_blocks, double y_blocks, double z_blocks,
+                                 double& x_robot, double& y_robot, double& z_robot,
+                                 double& rx_deg, double& ry_deg, double& rz_deg);
+            
+            /**
+             * @brief Load assembly task from JSON file.
+             * @param task_file Path to assembly task JSON.
+             * @param env_setup_file Path to environment setup JSON.
+             * @return True if successful.
+             */
+            bool loadAssemblyTask(const std::string& task_file, const std::string& env_setup_file);
+            
+            /**
+             * @brief Get the assembly sequence for trajectory planning.
+             * @return Assembly sequence pointer.
+             */
+            std::shared_ptr<MagBlockAssemblySeq> getAssemblySequence() const;
+            
+            /**
+             * @brief Set the assembly sequence.
+             * @param assembly_seq Assembly sequence to set.
+             */
+            void setAssemblySequence(std::shared_ptr<MagBlockAssemblySeq> assembly_seq);
+            
+            /**
+             * @brief Set environment configuration.
+             * @param env_config Environment configuration JSON.
+             */
+            void setEnvironmentConfig(const Json::Value& env_config);
+            
+            /**
+             * @brief Get optimal robot for given block coordinates.
+             * @param x_blocks X coordinate in block frame.
+             * @param y_blocks Y coordinate in block frame.
+             * @param z_blocks Z coordinate in block frame.
+             * @return Robot ID (0=left, 1=center, 2=right).
+             */
+            int getOptimalRobot(double x_blocks, double y_blocks, double z_blocks);
+            
+            /**
+             * @brief Transform block coordinates to robot frame - renamed for clarity.
+             * @param robot_name Name of the robot.
+             * @param x_blocks X coordinate in block frame.
+             * @param y_blocks Y coordinate in block frame.
+             * @param z_blocks Z coordinate in block frame.
+             * @param x_robot Output X coordinate in robot frame.
+             * @param y_robot Output Y coordinate in robot frame.
+             * @param z_robot Output Z coordinate in robot frame.
+             * @param rx_deg Output roll in degrees.
+             * @param ry_deg Output pitch in degrees.
+             * @param rz_deg Output yaw in degrees.
+             * @return True if transformation successful.
+             */
+            bool transformBlockToRobot(const std::string& robot_name, 
+                                     double x_blocks, double y_blocks, double z_blocks,
+                                     double& x_robot, double& y_robot, double& z_robot,
+                                     double& rx_deg, double& ry_deg, double& rz_deg);
+            
+            /**
+             * @brief Get pick pose for a task from skillgraph logic.
+             * @param task Task to get pick pose for.
+             * @param x Output x coordinate.
+             * @param y Output y coordinate.
+             * @param z Output z coordinate.
+             * @return True if successful.
+             */
+            bool getPickPose(TaskPtr task, double& x, double& y, double& z);
+
         private:
             /**
              * @brief Determine which robot to use for a given location.
@@ -68,5 +151,21 @@ namespace skillgraph {
              * @return Robot ID (0, 1, or 2).
              */
             int determineRobotForLocation(double x, double y, double z);
+
+            // Robot transformation configurations
+            struct RobotConfig {
+                double x_origin_blocks;
+                double y_origin_blocks;
+                std::vector<double> default_orientation_deg;
+                Eigen::Matrix2d block_to_robot_matrix;
+            };
+            std::map<std::string, RobotConfig> robot_configs_;
+            double block_size_ = 0.025; // 2.5cm block size
+
+            // Assembly task data
+            Json::Value assembly_tasks_;
+            Json::Value env_setup_;
+            std::shared_ptr<MagBlockAssemblySeq> assembly_seq_;
+            std::shared_ptr<MagBlockAssemblySeq> task_seq_;  // For compatibility
     };
 }
