@@ -2,7 +2,7 @@
 
 #include <memory>
 // instructed by Phillip to delete ros dependency
-// #include <ros/ros.h>
+#include <ros/ros.h>
 #include <std_msgs/Bool.h>
 
 namespace skillgraph {

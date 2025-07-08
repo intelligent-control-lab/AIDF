@@ -375,8 +375,9 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                         if (atomic_skill->type == Skill::Type::Handover) {
                             // add handover constraints
-                            if (atomic_skill->param.isMember("receive_q")) {
-                                task->post_condition->constraints_json["receive_q"] = atomic_skill->param["receive_q"];
+                            Json::Value receive_q;
+                            if (atomic_skill->param->get("receive_q", receive_q)) {
+                                task->post_condition->constraints_json["receive_q"] = receive_q;
                             }
                         }
 
