@@ -32,6 +32,8 @@
 #include "robots.hpp"
 #include "tasks.hpp"
 #include "algorithms.hpp"
+//instructed by Phillip to make the code clear
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace skillgraph {
 
@@ -94,7 +96,7 @@ public:
     }
      // Help function written by Yijie to set state interpolation to avoid sudden movements
     void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
-    std::shared_ptr<ros::NodeHandle> getNodeHandle() const override {
+    std::shared_ptr<ros::NodeHandle> getNodeHandle() const  {
         return nh_;
     }
 

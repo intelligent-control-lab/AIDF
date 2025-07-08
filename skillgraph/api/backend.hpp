@@ -1,5 +1,6 @@
 #pragma once
-#include <moveit/planning_scene/planning_scene.h>
+//instructed by Phillip to make the code clear
+//#include <moveit/planning_scene/planning_scene.h>
 
 #include "robots.hpp"
 #include "objects.hpp"
@@ -103,9 +104,9 @@ public:
     }
 
 
-    // 在 PlanInstance 里，加一行：
-    virtual planning_scene::PlanningScenePtr getPlanningScene() const = 0;
-    virtual std::shared_ptr<ros::NodeHandle> getNodeHandle() const = 0;
+    // // 在 PlanInstance 里，加一行：
+    // virtual planning_scene::PlanningScenePtr getPlanningScene() const = 0;
+    // virtual std::shared_ptr<ros::NodeHandle> getNodeHandle() const = 0;
 
 
 protected:

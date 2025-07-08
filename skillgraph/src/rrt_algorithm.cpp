@@ -32,7 +32,8 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
         log("RRTConnect::plan: Invalid robot_id in start state.", LogLevel::ERROR);
         return false;
     }
-    
+    // Ensure the instance is a MoveitInstance
+    auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(instance_);
 
     /*
     written by Phillip
@@ -151,7 +152,8 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
     req.num_planning_attempts = 1; // Default
 
     // Set start state from the updated planning scene
-    moveit::core::robotStateToRobotStateMsg(instance_->getPlanningScene()->getCurrentState(), req.start_state);
+    // moveit::core::robotStateToRobotStateMsg(instance_->getPlanningScene()->getCurrentState(), req.start_state);
+    moveit::core::robotStateToRobotStateMsg(moveit_instance->getPlanningScene()->getCurrentState(), req.start_state);
     req.start_state.is_diff = false; 
 
     // Set Goal Constraints
@@ -169,10 +171,12 @@ bool RRTConnect::plan(const skillgraph::State &start, const skillgraph::State &g
 
     //pipeline
     planning_pipeline::PlanningPipelinePtr planning_pipeline = 
-    std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, *(instance_->getNodeHandle()), "ompl", "request_adapters");
+    // std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, *(instance_->getNodeHandle()), "ompl", "request_adapters");
+    std::make_shared<planning_pipeline::PlanningPipeline>(robot_model_, *(moveit_instance->getNodeHandle()), "ompl", "request_adapters");
 
     planning_interface::MotionPlanResponse res;
-    planning_pipeline->generatePlan(instance_->getPlanningScene(), req, res);
+    planning_pipeline->generatePlan(moveit_instance->getPlanningScene(), req, res);
+    // planning_pipeline->generatePlan(instance_->getPlanningScene(), req, res);
 
     if (res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS) {
     log("RRTConnect::plan: Planning successful.", LogLevel::INFO);
