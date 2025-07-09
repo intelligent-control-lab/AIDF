@@ -37,16 +37,7 @@ namespace skillgraph
         std::shared_ptr<ConstraintEvaluator> constraint_check; /**< Constraint evaluator */
 
 
-        //pddl state 针对lego
-
-        //inhand rob1
-        //inhand rob2
-        //assembly
         
-        //taskparam pddl
-        //state pddl    
-        // condition check is not used for now
-        //简单的pre post condition check 先看手上有没有lego brick
     
     };
 

@@ -304,6 +304,7 @@ bool MoveitInstance::checkCollision(const std::vector<RobotState> &poses, bool s
         }
     }
 
+    
     return c_res.collision;
 }
 

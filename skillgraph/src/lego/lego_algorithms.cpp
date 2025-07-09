@@ -115,7 +115,7 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
 
 bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
          State &goal_state) {
-    log("hi2",LogLevel::INFO);
+    log("generate function",LogLevel::INFO);
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
         + std::to_string(robot_->robot_id), LogLevel::INFO);
     RobotState &robot_goal_state = goal_state.robot_states[robot_->robot_id];
@@ -663,8 +663,12 @@ bool LegoPlan::plan_skill(const skillgraph::State &current_state, const skillgra
     else if (type == Skill::Type::Handover) {
         return plan_handover(current_state, task_param, traj);
     }
+    else if(type == Skill::Type::Transit || type == Skill::Type::align || type == Skill::Type::Translate || type == Skill::Type::Rotate) {
+        return true;
+    }
     else {
         throw std::runtime_error("Unsupported skill type: " + std::to_string(int(type)));
+        // return true; // For now, we return true for unsupported skills
     }
 }
 

@@ -42,6 +42,7 @@ namespace skillgraph {
 
 
         //0 for pre-condition, 1 for post-condition
+        //it may not be used further, skillgraph will be reimplemented
         int pre_or_post=-1; /**< Indicates if this is a pre-condition or post-condition */
         pddl_state_ptr state_;
     };

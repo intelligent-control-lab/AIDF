@@ -4,6 +4,17 @@
 // instructed by Phillip to delete ros dependency
 // #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+//pddl state 针对lego
+
+        //inhand rob1
+        //inhand rob2
+        //assembly
+        
+        //taskparam pddl
+        //state pddl    
+        // condition check is not used for now
+        //简单的pre post condition check 先看手上有没有lego brick
+        //it will be changed later
 
 namespace skillgraph {
 

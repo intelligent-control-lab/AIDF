@@ -459,19 +459,19 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
     Skill::Type skill_type = Skill::from_string(skillname);
 
     // hi
-    log("hi", LogLevel::INFO);
+    log("hi1", LogLevel::INFO);
 
 
     bool skill_feasible = false;
 
 
     //pre condition check
-    TaskParamPtr pre_condition = std::make_shared<TaskParam>();
-    pre_condition->condition_check->pre_or_post = 0; // pre condition
-    if(!pre_condition->condition_check->eval_condition()) {
-        log("Pre-condition not met for skill " + skillname, LogLevel::ERROR);
-        return false;
-    }
+    // TaskParamPtr pre_condition = std::make_shared<TaskParam>();
+    // pre_condition->condition_check->pre_or_post = 0; // pre condition
+    // if(!pre_condition->condition_check->eval_condition()) {
+    //     log("Pre-condition not met for skill " + skillname, LogLevel::ERROR);
+    //     return false;
+    // }
 
     if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
         || skill_type == Skill::Type::PickHandoverAndPlace) {
@@ -520,7 +520,7 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         TaskParamPtr post_condition = std::make_shared<TaskParam>();
 
         
-        post_condition->condition_check->pre_or_post=1; // post condition
+        // post_condition->condition_check->pre_or_post=1; // post condition
         
         auto &config = post_condition->constraints_json;
         config = skill_config["target_location"];
@@ -592,14 +592,6 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             task_param->target_state = end_state_i;
             // call grasp pose generator
             auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
-            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
-            RobotTrajectory traj;
-            atomic_executor->set_planned_trajectory(traj);
-            skill_feasible = planner->plan_skill(task_param->target_state, *task_param, atomic_skill->type, traj);
-            if(skill_feasible == false) {
-                log("Failed to plan skill " + atomic_skill->to_string(), LogLevel::ERROR);
-                break;
-            }
             
             if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
                 log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::ERROR);
@@ -607,16 +599,25 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
                 break;
             }
 
-
+            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
+            RobotTrajectory traj;
+            atomic_executor->set_planned_trajectory(traj);
+            skill_feasible = planner->plan_skill(task_param->target_state, *task_param, atomic_skill->type, traj);
+            // log("Planning skill " + atomic_skill->to_string() + " with robot " + atomic_skill->robot[0]->name, LogLevel::INFO);
+            if(skill_feasible == false) {
+                log("Failed to plan skill " + atomic_skill->to_string(), LogLevel::ERROR);
+                break;
+            }
+            
           
 
             end_state_i = task_param->target_state;
             
 
-            if(i == gs->atomic_skills.size()-1 && !task_param->condition_check->eval_condition()){
-                log("post condition not met", LogLevel::ERROR);
-                skill_feasible = false;
-            }
+            // if(i == gs->atomic_skills.size()-1 && !task_param->condition_check->eval_condition()){
+            //     log("post condition not met", LogLevel::ERROR);
+            //     skill_feasible = false;
+            // }
         }
        
     }
