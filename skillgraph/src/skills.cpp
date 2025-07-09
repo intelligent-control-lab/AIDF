@@ -35,7 +35,35 @@ Skill::Type Skill::from_string(const std::string &name) {
 }
 
 void Skill::set_param(const Json::Value &param) {
+    if (this->param != nullptr) {
+        this->param->set_json_param(param);
+    }
+    else {
+        log("Skill parameter is null, cannot set JSON param", LogLevel::ERROR);
+    }
+}
+
+
+void SkillParam::set_json_param(const Json::Value &param) {
     this->param = param;
+};
+
+bool SkillParam::get(const std::string &key, Json::Value &value) const {
+    if (param.isMember(key)) {
+        log("Parameter " + key + ": " + param[key].asString(), LogLevel::INFO);
+        value = param[key];
+    } else {
+        log("Parameter " + key + " does not exist", LogLevel::WARN);
+    }
+}
+
+void SkillParam::update_param(const std::string &key, const std::string &value) {
+    if (param.isMember(key)) {
+        param[key] = value;
+    } else {
+        // If the key does not exist, add it
+        param[key] = value;
+    }
 }
 
 

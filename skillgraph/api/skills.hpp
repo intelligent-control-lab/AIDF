@@ -6,6 +6,7 @@ namespace skillgraph {
     
     class SkillExecutor; // forward declaration
     class MetaSkillExecutor; // forward declaration
+    class SkillParam; // forward declaration
 
     class Skill {
     public:
@@ -47,10 +48,32 @@ namespace skillgraph {
         Type type; // enum type
         std::string name; // name
         std::shared_ptr<SkillExecutor> executor; // skill executor
-        Json::Value param; // parameters
+        std::shared_ptr<SkillParam> param; // skill parameters
         
     };
     typedef std::shared_ptr<Skill> SkillPtr;
+
+    class SkillParam {
+    public:
+        /*
+        Class definition of SkillParam, which contains the skill type and parameters
+        */
+        SkillParam(Skill::Type type, const Json::Value &param) : type(type), param(param) {}
+
+        void set_json_param(const Json::Value &param);
+
+        bool get(const std::string &key, Json::Value &value) const;
+
+        void update_param(const std::string &key, const std::string &value);
+
+        virtual std::string to_string() const {
+            return "SkillParam: " + std::to_string(type) + " with parameters: " + param.toStyledString();
+        }
+    
+        Skill::Type type; // skill type
+        Json::Value param; // parameters
+    };
+    typedef std::shared_ptr<SkillParam> SkillParamPtr;
 
     class AtomicSkill : public Skill {
     public:
