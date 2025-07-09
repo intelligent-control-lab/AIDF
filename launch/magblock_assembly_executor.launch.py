@@ -78,7 +78,7 @@ def launch_setup(context, *args, **kwargs):
             )
         )
     
-    # Move group node
+    # Move group node with suppressed TF warnings
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
@@ -87,6 +87,7 @@ def launch_setup(context, *args, **kwargs):
             moveit_config.to_dict(),
             {"use_sim_time": use_sim_time},
         ],
+        arguments=['--ros-args', '--log-level', 'moveit_ros.planning_scene_monitor.planning_scene_monitor:=error']
     )
 
     # MagBlock Assembly Executor node
