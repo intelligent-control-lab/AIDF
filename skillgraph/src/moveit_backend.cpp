@@ -1194,7 +1194,36 @@ void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_
             interp.robot_states.push_back(r);
         }
 
-        interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
+        // interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
+        
+        for(int i = 0; i < start.env_state.objects.size(); ++i) {
+            ObjPtr obj = std::make_shared<Object>(*start.env_state.objects[i]);
+            if(obj->state == Object::State::Attached) {
+                // Interpolate the attached object's pose
+                obj->x_attach = start.env_state.objects[i]->x_attach + 
+                                (goal.env_state.objects[i]->x_attach - start.env_state.objects[i]->x_attach) * ((double)step / steps);
+                obj->y_attach = start.env_state.objects[i]->y_attach + 
+                                (goal.env_state.objects[i]->y_attach - start.env_state.objects[i]->y_attach) * ((double)step / steps);
+                obj->z_attach = start.env_state.objects[i]->z_attach + 
+                                (goal.env_state.objects[i]->z_attach - start.env_state.objects[i]->z_attach) * ((double)step / steps);
+                obj->qx_attach = start.env_state.objects[i]->qx_attach + 
+                                 (goal.env_state.objects[i]->qx_attach - start.env_state.objects[i]->qx_attach) * ((double)step / steps);
+                obj->qy_attach = start.env_state.objects[i]->qy_attach + 
+                                 (goal.env_state.objects[i]->qy_attach - start.env_state.objects[i]->qy_attach) * ((double)step / steps);
+                obj->qz_attach = start.env_state.objects[i]->qz_attach + 
+                                 (goal.env_state.objects[i]->qz_attach - start.env_state.objects[i]->qz_attach) * ((double)step / steps);
+                obj->qw_attach = start.env_state.objects[i]->qw_attach + 
+                                 (goal.env_state.objects[i]->qw_attach - start.env_state.objects[i]->qw_attach) * ((double)step / steps);
+            }
+            else {
+                obj= std::make_shared<Object>(*goal.env_state.objects[i]);
+            }
+            interp.env_state.objects.push_back(obj);
+        }
+
+
+
+
 
         setState(interp);
         updateScene();
@@ -1221,15 +1250,15 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
     if (fake_move_) {
 
-
+        // log("skill type"+ std::to_string(post_condition->skill_type), LogLevel::DEBUG);
         // Add interpolation to avoid sudden move
         //Added by Yijie Liao
         State start_state = instance_->getLastState();
         bool collision_check_start = instance_->checkCollision(start_state.robot_states, true);
-        if (collision_check_start) {
-            log("Fake move failed due to collision at start state", LogLevel::ERROR);
-            return false;
-        }
+        // if (collision_check_start) {
+        //     log("Fake move failed due to collision at start state", LogLevel::ERROR);
+        //     return false;
+        // }
         State target_state = post_condition->target_state;        
         instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
   //
@@ -1237,10 +1266,10 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
         instance_->setState(post_condition->target_state);
         instance_->updateScene();
 
-        bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
-        if (collision_check_final) {
-            log("Fake move failed due to collision", LogLevel::ERROR);
-            return false;}
+        // bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
+        // if (collision_check_final) {
+        //     log("Fake move failed due to collision", LogLevel::ERROR);
+        //     return false;}
 
         return true;
     }

@@ -117,6 +117,7 @@ bool LegoSkillExecutor::execute(State &current_state) {
     } else {
         // Use MoveitControl for other skills
         log("Executing skill with MoveitControl", LogLevel::INFO);
+        // log("skill_type: " + skill_type, LogLevel::INFO);
         bool success = controller_->move(post_condition, planned_trajectory_);
         current_state.robot_states = post_condition->target_state.robot_states;
         current_state.env_state = post_condition->target_state.env_state;

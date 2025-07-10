@@ -115,6 +115,29 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
 
 bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
          State &goal_state) {
+    
+   
+    // auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(instance_);
+    // State current_state = moveit_instance->getLastState();
+    // if(skill_seq >0){
+    //     //check collision
+    //     bool collision_check_start = moveit_instance->checkCollision(current_state.robot_states, true);
+    //     if (collision_check_start) {
+    //         log("Collision detected at the start state for skill " + std::to_string(skill_seq) + " robot " 
+    //             + std::to_string(robot_->robot_id), LogLevel::ERROR);
+    //         return false;       
+    //     }
+    // }
+
+
+
+    //check whether it's collision free at begging
+    // bool collision_check_start = instance_->checkCollision({goal_state.robot_states[robot_->robot_id]}, true);
+
+
+
+
+    
     log("generate function",LogLevel::INFO);
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
         + std::to_string(robot_->robot_id), LogLevel::INFO);
@@ -243,10 +266,12 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             }
 
             
-
-
+        // instance_->setState(goal_state);
         // instance_->updateScene();
         // bool hasCollision = instance_->checkCollision({robot_goal_state}, false);
+
+        // // instance_->updateScene();
+        // // bool hasCollision = instance_->checkCollision({robot_goal_state}, false);
         // if (hasCollision) {
         //     log("Collision detected in generate grasp pose for skill " + std::to_string(skill_seq) + " robot " 
         //         + std::to_string(robot_->robot_id), LogLevel::WARN);
@@ -572,6 +597,18 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
             break;
         }
     }
+
+
+
+    // check collision
+    instance_->setState(goal_state);
+    bool collision_check = instance_->checkCollision({robot_goal_state}, true);
+    if (collision_check) {
+        log("Collision detected in generate grasp pose for skill in end" + std::to_string(skill_seq) + " robot " 
+            + std::to_string(robot_->robot_id), LogLevel::ERROR);
+        return false;
+    }    
+    // instance_->setState(current_state);
 
    
 
