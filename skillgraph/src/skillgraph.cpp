@@ -13,6 +13,7 @@ void SkillGraph::parse_skills(const Json::Value &root) {
         for (const auto& robot_type : skills_config.getMemberNames()) {
             std::vector<std::string> capabilities_of_robot;
 
+            // add skills to the capabitilies of the robot
             const Json::Value& robot_skills = skills_config[robot_type];
             for (const auto& skill_name : robot_skills.getMemberNames()) {
                 auto skill = std::make_shared<AtomicSkill>(skill_name);
@@ -24,7 +25,7 @@ void SkillGraph::parse_skills(const Json::Value &root) {
                 // parse parameters
                 const Json::Value& skill_config = robot_skills[skill_name];
                 if (skill_config.isMember("default_params")) {
-                    skill->set_param(skill_config["default_params"]);
+                    skill->set_default_param(skill_config["default_params"]);
                 }
             }
 
@@ -37,6 +38,7 @@ void SkillGraph::parse_skills(const Json::Value &root) {
     if (root.isMember("metaskills")) {
         const Json::Value& meta_skills_config = root["metaskills"];
         
+        // parse the skills 
         for (const auto& robot_type : meta_skills_config.getMemberNames()) {
             std::vector<std::string> capabilities_of_robot;
 
