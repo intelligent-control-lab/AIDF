@@ -154,7 +154,13 @@ int main(int argc, char* argv[]) {
             if (success) {
                 std::cout << "Skill is feasible: " << skill->to_string() << std::endl;
                 // Execute the skill
+             
                 success = skill->executor->execute(state);
+
+
+                // log("Executed skill: " + skill->to_string(), LogLevel::INFO);
+
+
                 if (!success) {
                     std::string msg;
                     getPastLog(msg);
@@ -167,6 +173,7 @@ int main(int argc, char* argv[]) {
             }
 
         };
+        
 
         // Setup file monitoring
         FileMonitor monitor(web_msg_json_path, processJsonFile);

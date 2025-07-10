@@ -600,19 +600,27 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
                 break;
             }
 
-            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
-            RobotTrajectory traj;
-            atomic_executor->set_planned_trajectory(traj);
-            skill_feasible = planner->plan_skill(task_param->target_state, *task_param, atomic_skill->type, traj);
-            // log("Planning skill " + atomic_skill->to_string() + " with robot " + atomic_skill->robot[0]->name, LogLevel::INFO);
-            if(skill_feasible == false) {
-                log("Failed to plan skill " + atomic_skill->to_string(), LogLevel::ERROR);
-                break;
-            }
+            // auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
+            // RobotTrajectory traj;
+            // atomic_executor->set_planned_trajectory(traj);
+            // skill_feasible = planner->plan_skill(task_param->target_state, *task_param, atomic_skill->type, traj);
+            // // log("Planning skill " + atomic_skill->to_string() + " with robot " + atomic_skill->robot[0]->name, LogLevel::INFO);
+            // if(skill_feasible == false) {
+            //     log("Failed to plan skill " + atomic_skill->to_string(), LogLevel::ERROR);
+            //     break;
+            // }
             
           
 
             end_state_i = task_param->target_state;
+
+            // instance_.backend_->updateScene();
+            // bool collision = instance_.backend_->checkCollision({end_state_i.robot_states[0], 
+            //                                                     end_state_i.robot_states[1]},true);
+
+            
+
+
             
 
             // if(i == gs->atomic_skills.size()-1 && !task_param->condition_check->eval_condition()){

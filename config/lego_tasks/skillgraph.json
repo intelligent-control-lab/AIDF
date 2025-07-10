@@ -262,8 +262,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "gate",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/gate.json",
+        "name": "stairs",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs.json",
         "assemble": "true"
     }
 }

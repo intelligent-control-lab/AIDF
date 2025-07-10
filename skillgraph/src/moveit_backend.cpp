@@ -1225,12 +1225,23 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
         // Add interpolation to avoid sudden move
         //Added by Yijie Liao
         State start_state = instance_->getLastState();
+        bool collision_check_start = instance_->checkCollision(start_state.robot_states, true);
+        if (collision_check_start) {
+            log("Fake move failed due to collision at start state", LogLevel::ERROR);
+            return false;
+        }
         State target_state = post_condition->target_state;        
         instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
   //
   
         instance_->setState(post_condition->target_state);
         instance_->updateScene();
+
+        bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
+        if (collision_check_final) {
+            log("Fake move failed due to collision", LogLevel::ERROR);
+            return false;}
+
         return true;
     }
 

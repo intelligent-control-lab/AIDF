@@ -241,6 +241,17 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                     break;
                 }
             }
+
+            
+
+
+        // instance_->updateScene();
+        // bool hasCollision = instance_->checkCollision({robot_goal_state}, false);
+        // if (hasCollision) {
+        //     log("Collision detected in generate grasp pose for skill " + std::to_string(skill_seq) + " robot " 
+        //         + std::to_string(robot_->robot_id), LogLevel::WARN);
+        //     return false;
+        // }
         }
         if ((meta_skill_type == "pickplace" && skill_seq == 2) 
             || (meta_skill_type == "pickplacewithsupport" && skill_seq == 5)
@@ -562,6 +573,8 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         }
     }
 
+   
+
     return true;
 }
 
@@ -634,8 +647,64 @@ void LegoGraspGenerator::calculateIKforLego(const Eigen::MatrixXd& T, const Eige
     // auto toc = std::chrono::high_resolution_clock::now();
     // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic).count() / 1000.0;
     // ik_reachability_time_ += duration;
+    
+        // instance_->updateScene();
+        
+        // bool hasCollision = instance_->checkCollision({robot_state}, false);
+        // reachable &= !hasCollision;
+        // if (hasCollision) {
+        //     log("Collision detected in calculateIKforLego", LogLevel::WARN);
+        // }
+    
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 LegoPlan::LegoPlan(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
                     std::shared_ptr<skillgraph::PlanInstance> instance,
@@ -854,17 +923,28 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
         log("Missing constraints (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") || !constraints.isMember("brick_ori")) {
+    // if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") || !constraints.isMember("brick_ori")) {
+    //     log("Missing constraints (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
+    //     return false;
+    // }
+     if (!constraints.isMember("x") || !constraints.isMember("y") || !constraints.isMember("z") || !constraints.isMember("ori")) {
         log("Missing constraints (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
         return false;
     }
     int brick_id_val = constraints["brick_id"].asInt();
     int press_side = constraints["press_side"].asInt();
     int press_offset = constraints["press_offset"].asInt();
-    int brick_x = constraints["brick_x"].asInt();
-    int brick_y = constraints["brick_y"].asInt();
-    int brick_z = constraints["brick_z"].asInt();
-    int brick_ori = constraints["brick_ori"].asInt();
+    // int brick_x = constraints["brick_x"].asInt();
+    // int brick_y = constraints["brick_y"].asInt();
+    // int brick_z = constraints["brick_z"].asInt();
+    // int brick_ori = constraints["brick_ori"].asInt();
+
+
+
+    int brick_x = constraints["x"].asInt();
+    int brick_y = constraints["y"].asInt();
+    int brick_z = constraints["z"].asInt();
+    int brick_ori = constraints["ori"].asInt();
     
     std::string brick_name = object_->name;
     if (brick_name.empty()){
@@ -902,7 +982,9 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
 
     lego_manipulation::math::VectorJd current_seed_q_deg(robot_dof, 1);
     if (current_robot_state_rad.joint_values.size() != static_cast<size_t>(current_seed_q_deg.rows())) {
-        log("Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
+        log(std::to_string(current_robot_state_rad.joint_values.size()) + " != " + std::to_string(current_seed_q_deg.rows()) + 
+            " in plan_pick: Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
+        // log("Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
         return false;
     }
     for(int i=0; i < current_seed_q_deg.rows(); ++i) {
