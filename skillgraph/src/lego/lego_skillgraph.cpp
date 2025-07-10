@@ -305,9 +305,14 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
     TaskPtr task = task_seq_->get_task_at(assembled_steps);
 
     // get the task constraints
-    const std::vector<Skill::Type> &allowed_skills = task->post_condition->allowed_skill_type;
-    const Json::Value &constraints = task->post_condition->constraints_json;
-    int required_brick_id = constraints["brick_id"].asInt();
+    std::vector<Skill::Type> allowed_skills;
+    task->param->get_allowed_skill_type(allowed_skills);
+
+    if (!task->param->has("brick_id")) {
+        log("Task parameter does not contain brick_id", LogLevel::ERROR);
+        return feasible_set;
+    }
+    int required_brick_id = task->param->get("brick_id").asInt();
     
     //std::cout << "Looking for bricks with ID: " << required_brick_id << std::endl;
 
@@ -356,7 +361,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                     gs->set_executor(meta_executor);
 
                     // set the task parameters
-                    meta_executor->set_post_condition(task->post_condition);
+                    meta_executor->set_task_param(task->param);
 
                     log("Generating grasp pose for skill " + gs->to_string(), LogLevel::INFO);
 
@@ -369,23 +374,24 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         // create atomic skill executor
                         auto atomic_skill = gs->atomic_skills[i];
                         auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
-                        atomic_skill->executor = atomic_executor;
-                        atomic_executor->set_post_condition(task->post_condition);
+                        atomic_skill->set_executor(atomic_executor);
+                        atomic_executor->set_task_param(task->param);
                         meta_executor->add_atomic_executor(atomic_executor);
 
                         if (atomic_skill->type == Skill::Type::Handover) {
                             // add handover constraints
-                            if (atomic_skill->param.isMember("receive_q")) {
-                                task->post_condition->constraints_json["receive_q"] = atomic_skill->param["receive_q"];
+                            Json::Value receive_q;
+                            if (atomic_skill->default_param != nullptr && atomic_skill->default_param->has("receive_q")) {
+                                receive_q = atomic_skill->default_param->get("receive_q");
+                                task->param->set("receive_q", receive_q);
                             }
                         }
 
                         //log("Generating grasp pose for atomic skill " + std::to_string(i) + " " + atomic_skill->to_string(), LogLevel::INFO);
                         // generate the grasp pose
-                        TaskParamPtr task_param = atomic_executor->post_condition;
-                        task_param->target_state = end_state_i;
+                        TaskParamPtr sub_task_param = atomic_executor->get_task_param();
                         auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
-                        if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
+                        if (!generator->generate(*sub_task_param, atomic_skill->type, i, end_state_i)) {
                             log("Failed to generate grasp pose for skill " + std::to_string(i) + " " + atomic_skill->to_string(), LogLevel::INFO);
                             skill_feasible = false;
                             break;
@@ -396,15 +402,15 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         if (atomic_skill->type == Skill::Type::Transit) {
                             int robot_id = atomic_skill->robot->robot_id;
                             planner->interpolate_segment(end_state_i.robot_states[robot_id], 
-                                task_param->target_state.robot_states[robot_id], 
+                                sub_task_param->target_state.robot_states[robot_id], 
                                 robot_traj
                             );
                         }
                         else {
-                            planner->plan_skill(end_state_i, *task_param, atomic_skill->type, robot_traj);
+                            planner->plan_skill(end_state_i, *sub_task_param, atomic_skill->type, robot_traj);
                         }
                         atomic_executor->set_planned_trajectory(robot_traj);
-                        end_state_i = task_param->target_state;
+                        atomic_executor->set_goal_state(end_state_i);
                     }
                     
                     if (skill_feasible) {
@@ -499,9 +505,9 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
 
 
         // set the task parameters
-        TaskParamPtr post_condition = std::make_shared<TaskParam>();
-        auto &config = post_condition->constraints_json;
-        config = skill_config["target_location"];
+        TaskParamPtr task_param = std::make_shared<TaskParam>();
+        
+        auto &config = skill_config["target_location"]; 
         config["brick_id"] = std::dynamic_pointer_cast<LegoBrick>(obj)->brick_id;
         config["attack_dir"] = -1;
         if (skill_type == Skill::Type::PickAndPlace) {
@@ -547,7 +553,8 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             config["support_z"] = config["press_z"].asInt() + 3;
             config["support_ori"] = 1;
         }
-        meta_executor->set_post_condition(post_condition);
+        task_param->set(config);
+        meta_executor->set_task_param(task_param);
 
         State end_state_i = state;
         skill_feasible = true;
@@ -555,21 +562,22 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
             // create atomic skill executor
             auto atomic_skill = gs->atomic_skills[i];
             auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
-            atomic_skill->executor = atomic_executor;
-            atomic_executor->set_post_condition(post_condition);
+            atomic_skill->set_executor(atomic_executor);
+            atomic_executor->set_task_param(task_param);
             meta_executor->add_atomic_executor(atomic_executor);
 
             // generate the grasp pose
-            TaskParamPtr task_param = atomic_executor->post_condition;
-            task_param->target_state = end_state_i;
+            TaskParamPtr sub_task_param = atomic_executor->get_task_param();
             // call grasp pose generator
             auto generator = std::make_shared<LegoGraspGenerator>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
-            if (!generator->generate(task_param->constraints_json, atomic_skill->type, i, task_param->target_state)) {
+
+            if (!generator->generate(*sub_task_param, atomic_skill->type, i, end_state_i)) {
                 log("Failed to generate grasp pose for skill " + atomic_skill->to_string(), LogLevel::ERROR);
                 skill_feasible = false;
                 break;
             }
-            end_state_i = task_param->target_state;
+            atomic_executor->set_goal_state(end_state_i);
+
         }
     }
     else if (skill_type == Skill::Type::TranslateWithRotation) {
@@ -592,34 +600,34 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         
 
         // set postcondition
-        TaskParamPtr post_condition = std::make_shared<TaskParam>();
-        auto &config = post_condition->constraints_json;
-        config = skill_config["skill_parameters"];
+        SkillParamPtr skill_param = std::make_shared<SkillParam>(skill_type, skill_config["skill_parameters"]);
         // print all the member of config
-        std::cout << config << std::endl;
+        std::cout << skill_param->to_string() << std::endl;
         // check if skill_config has a member named translate 
-        if (!config.isMember("Translate")) {
+        if (!skill_param->has("Translate")) {
             log("Translate skill config is missing", LogLevel::ERROR);
             return false;
         }
-        if (!config.isMember("Rotate")) {
+        if (!skill_param->has("Rotate")) {
             log("Rotate skill config is missing", LogLevel::ERROR);
             return false;
         }
         // check if translate has speed, offset, rotate has speed and angle
-        if (!config["Translate"].isMember("speed") || !config["Translate"].isMember("offset")) {
+        Json::Value translate_config = skill_param->get("Translate");
+        Json::Value rotate_config = skill_param->get("Rotate");
+        if (!translate_config.isMember("speed") || !translate_config.isMember("offset")) {
             log("Translate skill config is missing speed or offset", LogLevel::ERROR);
             return false;
         }
-        if (!config["Rotate"].isMember("speed") || !config["Rotate"].isMember("angle")) {
+        if (!rotate_config.isMember("speed") || !rotate_config.isMember("angle")) {
             log("Rotate skill config is missing speed or angle", LogLevel::ERROR);
             return false;
         }
         
         // add atomic executor
         auto atomic_executor = std::make_shared<LegoSkillExecutor>(skill_type, env_->backend_);
-        atomic_executor->set_post_condition(post_condition);
         meta_executor->add_atomic_executor(atomic_executor);
+        meta_executor->set_skill_param(skill_param);
         std::cout << "Added executor for skill " << gs->to_string() << std::endl;
 
         return true;

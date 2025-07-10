@@ -54,7 +54,7 @@ public:
                     RobotPtr robot, 
                     ObjPtr object);
 
-    virtual bool generate(Json::Value &constraint, Skill::Type type, int skill_seq, State &goal_state);
+    virtual bool generate(skillgraph::TaskParam &task_param, Skill::Type type, int skill_seq, State &goal_state);
 
 private:
     void calculateIKforLego(const Eigen::MatrixXd& T, const Eigen::MatrixXd & home_q,

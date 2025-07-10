@@ -37,8 +37,48 @@ Skill::Type Skill::from_string(const std::string &name) {
 
 }
 
-void Skill::set_param(const Json::Value &param) {
+void Skill::set_default_param(const Json::Value &param) {
+    if (this->default_param != nullptr) {
+        this->default_param->set_json_param(param);
+    }
+    else {
+        log("Skill parameter is null, cannot set JSON param", LogLevel::ERROR);
+    }
+}
+
+bool Skill::set_executor(std::shared_ptr<SkillExecutor> executor) {
+    this->executor = executor;
+    if (this->executor->skill_param == nullptr) {
+        this->executor->set_skill_param(this->default_param);
+    }
+
+}
+
+void SkillParam::set_json_param(const Json::Value &param) {
     this->param = param;
+};
+
+bool SkillParam::has(const std::string &key) const {
+    return param.isMember(key);
+}
+
+
+Json::Value SkillParam::get(const std::string &key) const {
+    if (param.isMember(key)) {
+        log("Parameter " + key + ": " + param[key].asString(), LogLevel::INFO);
+        return param[key];
+    } else {
+        throw std::runtime_error("Key " + key + " not found in TaskParam config");
+    }
+}
+
+void SkillParam::update_param(const std::string &key, const std::string &value) {
+    if (param.isMember(key)) {
+        param[key] = value;
+    } else {
+        // If the key does not exist, add it
+        param[key] = value;
+    }
 }
 
 
@@ -125,6 +165,9 @@ std::vector<Skill::Type> MetaSkill::get_atomic_skill_types() {
 
 bool MetaSkill::set_executor(std::shared_ptr<MetaSkillExecutor> executor) {
     this->executor = executor;
+    if (this->executor->skill_param == nullptr) {
+        this->executor->set_skill_param(this->default_param);
+    }
     return true;
 }
 
@@ -182,23 +225,35 @@ bool MetaSkillExecutor::execute(State &current_state) {
 }
 
 
-void SkillExecutor::set_pre_condition(TaskParamPtr pre_condition) {
+void SkillExecutor::set_pre_condition(SkillConditionPtr pre_condition) {
     if (pre_condition == nullptr) {
         log("Pre condition is null", LogLevel::ERROR);
         return;
     }
-    // make a copy of the pre condition for the meta skill executor
-    this->pre_condition = std::make_shared<TaskParam>(*pre_condition);
+    // make a copy of the pre condition 
+    this->pre_condition = std::make_shared<SkillCondition>(*pre_condition);
 }
 
-void SkillExecutor::set_post_condition(TaskParamPtr post_condition) {
+void SkillExecutor::set_post_condition(SkillConditionPtr post_condition) {
     if (post_condition == nullptr) {
         log("Post condition is null", LogLevel::ERROR);
         return;
     }
-    // make a copy of the post condition for the meta skill executor
-    this->post_condition = std::make_shared<TaskParam>(*post_condition);
+    // make a copy of the post condition
+    this->post_condition = std::make_shared<SkillCondition>(*post_condition);
 }
+
+
+void SkillExecutor::set_task_param(std::shared_ptr<TaskParam> task_param) {
+   if (task_param == nullptr) {
+        log("Task parameter is null", LogLevel::ERROR);
+        return;
+    }
+    // make a copy of the task parameter
+    this->task_param = std::make_shared<TaskParam>(*task_param);
+}
+
+
 
 void SkillExecutor::set_planned_trajectory(const RobotTrajectory &planned_trajectory) {
     this->planned_trajectory_ = planned_trajectory;

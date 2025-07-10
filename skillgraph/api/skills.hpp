@@ -6,6 +6,8 @@ namespace skillgraph {
     
     class SkillExecutor; // forward declaration
     class MetaSkillExecutor; // forward declaration
+    class SkillParam; // forward declaration
+    class TaskParam;
 
     class Skill {
     public:
@@ -37,7 +39,8 @@ namespace skillgraph {
         static bool isAtomic(Type type);
         static bool isMeta(Type type);
         static Type from_string(const std::string &type);
-        void set_param(const Json::Value &param);
+        void set_default_param(const Json::Value &param);
+        bool set_executor(std::shared_ptr<SkillExecutor> executor);
 
         virtual std::string to_string() const {
             return "Skill: " + name;
@@ -50,10 +53,35 @@ namespace skillgraph {
         Type type; // enum type
         std::string name; // name
         std::shared_ptr<SkillExecutor> executor; // skill executor
-        Json::Value param; // parameters
+        std::shared_ptr<SkillParam> default_param; // skill parameters
         
     };
     typedef std::shared_ptr<Skill> SkillPtr;
+
+    class SkillParam {
+    public:
+        /*
+        Class definition of SkillParam, which contains the skill type and parameters
+        */
+        SkillParam(Skill::Type type, const Json::Value &param) : type(type), param(param) {}
+
+        void set_json_param(const Json::Value &param);
+
+        bool has(const std::string &key) const;
+
+        Json::Value get(const std::string &key) const;
+
+        void update_param(const std::string &key, const std::string &value);
+
+        virtual std::string to_string() const {
+            return "SkillParam: " + std::to_string(type) + " with parameters: " + param.toStyledString();
+        }
+    
+    private:
+        Skill::Type type; // skill type
+        Json::Value param; // parameters
+    };
+    typedef std::shared_ptr<SkillParam> SkillParamPtr;
 
     class AtomicSkill : public Skill {
     public:
@@ -168,8 +196,33 @@ namespace skillgraph {
     typedef std::shared_ptr<MetaSkill> MetaSkillPtr;
 
     // forward declaration
-    class TaskParam;
-    typedef std::shared_ptr<TaskParam> TaskParamPtr;
+    class SkillCondition {
+        public:
+
+            // constructor
+            SkillCondition() = default;
+            SkillCondition(const pddl_state &symbolic_state, std::shared_ptr<ConditionEvaluator> condition_check)
+                : symbolic_state(symbolic_state), condition_check(condition_check) {}
+
+            // copy constructor
+            SkillCondition(const SkillCondition &other) {
+                symbolic_state = other.symbolic_state;
+                condition_check = other.condition_check;
+            }
+            virtual ~SkillCondition() = default;
+
+            virtual bool evaluate(const State &state) const {
+                if (condition_check) {
+                    return condition_check->eval_condition();
+                }
+                return true; // default to true if no condition check is set
+            }
+
+            pddl_state symbolic_state;
+
+            std::shared_ptr<ConditionEvaluator> condition_check; /**< Condition evaluator */
+    };
+    typedef std::shared_ptr<SkillCondition> SkillConditionPtr;
    
    
     class SkillExecutor {
@@ -186,16 +239,35 @@ namespace skillgraph {
             virtual bool execute(State &current_state) = 0;
 
             // set the same pre conditions for meta skill and all atomic skills
-            void set_pre_condition(TaskParamPtr pre_condition);
+            void set_pre_condition(SkillConditionPtr pre_condition);
 
-            // set the same post conditions for meta skill and all atomic skills
-            void set_post_condition(TaskParamPtr post_condition);
+            // set the same post conditions for meta skil and all atomic skills
+            void set_post_condition(SkillConditionPtr post_condition);
+
+            // set task param
+            void set_task_param(std::shared_ptr<TaskParam> task_param);
+
+            // set skill parameters
+            void set_skill_param(std::shared_ptr<SkillParam> skill_param) {
+                this->skill_param = skill_param;
+            }
+
+            std::shared_ptr<TaskParam> get_task_param() const {
+                return task_param;
+            }
+
+            void set_goal_state(const State &goal_state) {
+                this->goal_state = goal_state;
+            }
 
             virtual void set_planned_trajectory(const RobotTrajectory &planned_trajectory);
 
             // properties
-            TaskParamPtr pre_condition;
-            TaskParamPtr post_condition;
+            SkillConditionPtr pre_condition;
+            SkillConditionPtr post_condition;
+            std::shared_ptr<SkillParam> skill_param; /**< Skill parameters */
+            std::shared_ptr<TaskParam> task_param; /**< Task parameters */
+            State goal_state;
             Skill::Type skill_type; // corresponding skill
             RobotTrajectory planned_trajectory_;
     };

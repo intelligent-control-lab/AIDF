@@ -113,7 +113,7 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
     return reachable;
 }
 
-bool LegoGraspGenerator::generate(Json::Value &constraint, Skill::Type type, int skill_seq,
+bool LegoGraspGenerator::generate(TaskParam &task_param, Skill::Type type, int skill_seq,
          State &goal_state) {
     
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
@@ -123,39 +123,39 @@ bool LegoGraspGenerator::generate(Json::Value &constraint, Skill::Type type, int
     robot_goal_state = instance_->initRobotState(robot_->robot_id);
     
     // mandatory fields
-    int brick_id = constraint["brick_id"].asInt();
-    int brick_x = constraint["x"].asInt();
-    int brick_y = constraint["y"].asInt();
-    int brick_z = constraint["z"].asInt();
-    int ori = constraint["ori"].asInt();
-    int manip_type = constraint["manipulate_type"].asInt();
+    int brick_id = task_param.get("brick_id").asInt();
+    int brick_x = task_param.get("x").asInt();
+    int brick_y = task_param.get("y").asInt();
+    int brick_z = task_param.get("z").asInt();
+    int ori = task_param.get("ori").asInt();
+    int manip_type = task_param.get("manipulate_type").asInt();
     bool sup_req = false;
     
     // optional fields
     int press_x, press_y, press_z, press_ori, press_side, press_offset;
     int support_x, support_y, support_z, support_ori;
     int attack_dir = -1;
-    if (constraint.isMember("press_side")) {
-        press_side = constraint["press_side"].asInt();
-        press_offset = constraint["press_offset"].asInt();
+    if (task_param.has("press_side")) {
+        press_side = task_param.get("press_side").asInt();
+        press_offset = task_param.get("press_offset").asInt();
     }
-    if (constraint.isMember("press_x")) {
-        press_x = constraint["press_x"].asInt();
-        press_y = constraint["press_y"].asInt();
-        press_z = constraint["press_z"].asInt();
-        press_ori = constraint["press_ori"].asInt();
+    if (task_param.has("press_x")) {
+        press_x = task_param.get("press_x").asInt();
+        press_y = task_param.get("press_y").asInt();
+        press_z = task_param.get("press_z").asInt();
+        press_ori = task_param.get("press_ori").asInt();
     }
-    if (constraint.isMember("support_x")) {
-        support_x = constraint["support_x"].asInt();
-        support_y = constraint["support_y"].asInt();
-        support_z = constraint["support_z"].asInt();
-        support_ori = constraint["support_ori"].asInt();
+    if (task_param.has("support_x")) {
+        support_x = task_param.get("support_x").asInt();
+        support_y = task_param.get("support_y").asInt();
+        support_z = task_param.get("support_z").asInt();
+        support_ori = task_param.get("support_ori").asInt();
         if (support_x != -1) {
             sup_req = true;
         }
     }
-    if (constraint.isMember("attack_dir")) {
-        attack_dir = constraint["attack_dir"].asInt();
+    if (task_param.has("attack_dir")) {
+        attack_dir = task_param.get("attack_dir").asInt();
     }
 
     // local helper variable to determine the skill type
@@ -222,10 +222,10 @@ bool LegoGraspGenerator::generate(Json::Value &constraint, Skill::Type type, int
             lego_ptr_->brick_pose_in_stock(brick_name, press_side, press_offset, cart_T);
             int pick_x, pick_y, pick_z, pick_ori;
             lego_ptr_->get_init_brick_xyzo(brick_name, pick_x, pick_y, pick_z, pick_ori);
-            constraint["pick_x"] = pick_x;
-            constraint["pick_y"] = pick_y;
-            constraint["pick_z"] = pick_z;
-            constraint["pick_ori"] = pick_ori;
+            task_param.set(std::string("pick_x"), Json::Value(pick_x));
+            task_param.set(std::string("pick_y"), Json::Value(pick_y));
+            task_param.set(std::string("pick_z"), Json::Value(pick_z));
+            task_param.set(std::string("pick_ori"), Json::Value(pick_ori));
 
             Eigen::Matrix4d offset_T = Eigen::MatrixXd::Identity(4, 4);
             //offset_T.col(3) << pick_offset(3), pick_offset(4), pick_offset(5) - abs(pick_offset(5)), 1;
@@ -850,22 +850,21 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     }
 
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("brick_id") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
-        log("Missing constraints (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
+    if (!task_param.has("brick_id") || !task_param.has("press_side") || !task_param.has("press_offset")) {
+        log("Missing params (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    if (!constraints.isMember("pick_x") || !constraints.isMember("pick_y") || !constraints.isMember("pick_z") || !constraints.isMember("pick_ori")) {
+    if (!task_param.has("pick_x") || !task_param.has("pick_y") || !task_param.has("pick_z") || !task_param.has("pick_ori")) {
         log("Missing constraints (pick_x, pick_y, pick_z, or pick_ori) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    int brick_id_val = constraints["brick_id"].asInt();
-    int press_side = constraints["press_side"].asInt();
-    int press_offset = constraints["press_offset"].asInt();
-    int brick_x = constraints["pick_x"].asInt();
-    int brick_y = constraints["pick_y"].asInt();
-    int brick_z = constraints["pick_z"].asInt();
-    int brick_ori = constraints["pick_ori"].asInt();
+    int brick_id_val = task_param.get("brick_id").asInt();
+    int press_side = task_param.get("press_side").asInt();
+    int press_offset = task_param.get("press_offset").asInt();
+    int brick_x = task_param.get("pick_x").asInt();
+    int brick_y = task_param.get("pick_y").asInt();
+    int brick_z = task_param.get("pick_z").asInt();
+    int brick_ori = task_param.get("pick_ori").asInt();
 
     std::string brick_name = object_->name;
     if (brick_name.empty()){
@@ -999,20 +998,19 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placedown
-    if (!constraints.isMember("x") || !constraints.isMember("y") || !constraints.isMember("z") ||
-        !constraints.isMember("ori") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
+    if (!task_param.has("x") || !task_param.has("y") || !task_param.has("z") ||
+        !task_param.has("ori") || !task_param.has("press_side") || !task_param.has("press_offset")) {
         log("Missing constraints for plan_placedown (x,y,z,ori, press_side, press_offset).", LogLevel::ERROR);
         return false;
     }
-    int brick_x = constraints["x"].asInt();
-    int brick_y = constraints["y"].asInt();
-    int brick_z = constraints["z"].asInt();
-    int brick_ori = constraints["ori"].asInt();
-    int press_side = constraints["press_side"].asInt();
-    int press_offset_val = constraints["press_offset"].asInt();
-    int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
+    int brick_x = task_param.get("x").asInt();
+    int brick_y = task_param.get("y").asInt();
+    int brick_z = task_param.get("z").asInt();
+    int brick_ori = task_param.get("ori").asInt();
+    int press_side = task_param.get("press_side").asInt();
+    int press_offset_val = task_param.get("press_offset").asInt();
+    int attack_dir = task_param.has("attack_dir") ? task_param.get("attack_dir").asInt() : 1;
     std::string brick_name = object_->name;
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
@@ -1130,19 +1128,18 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placeup
-    if (!constraints.isMember("x") || !constraints.isMember("y") || !constraints.isMember("z") ||
-        !constraints.isMember("ori") || !constraints.isMember("press_side") ) {
+    if (!task_param.has("x") || !task_param.has("y") || !task_param.has("z") ||
+        !task_param.has("ori") || !task_param.has("press_side") ) {
         log("Missing constraints for plan_placeup (x,y,z,ori, press_side).", LogLevel::ERROR);
         return false;
     }
-    int press_x = constraints["x"].asInt();
-    int press_y = constraints["y"].asInt();
-    int press_z = constraints["z"].asInt(); // This is the target Z of the brick
-    int press_ori = constraints["ori"].asInt();
-    int press_side = constraints["press_side"].asInt(); // Used by assemble_pose_from_top
-    int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
+    int press_x = task_param.get("x").asInt();
+    int press_y = task_param.get("y").asInt();
+    int press_z = task_param.get("z").asInt(); // This is the target Z of the brick
+    int press_ori = task_param.get("ori").asInt();
+    int press_side = task_param.get("press_side").asInt(); // Used by assemble_pose_from_top
+    int attack_dir = task_param.has("attack_dir") ? task_param.get("attack_dir").asInt() : 1;
     // brick_name from object_->name if needed, but assemble_pose_from_top doesn't take it.
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1); // Seed for first IK
@@ -1280,16 +1277,15 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("support_x") || !constraints.isMember("support_y") || 
-        !constraints.isMember("support_z") || !constraints.isMember("support_ori")) {
-        log("Missing constraints for plan_support (support_x,y,z,ori).", LogLevel::ERROR);
+    if (!task_param.has("support_x") || !task_param.has("support_y") || 
+        !task_param.has("support_z") || !task_param.has("support_ori")) {
+        log("Missing params for plan_support (support_x,y,z,ori).", LogLevel::ERROR);
         return false;
     }
-    int support_x = constraints["support_x"].asInt();
-    int support_y = constraints["support_y"].asInt();
-    int support_z = constraints["support_z"].asInt();
-    int support_ori = constraints["support_ori"].asInt();
+    int support_x = task_param.get("support_x").asInt();
+    int support_y = task_param.get("support_y").asInt();
+    int support_z = task_param.get("support_z").asInt();
+    int support_ori = task_param.get("support_ori").asInt();
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
     if (robot_dof == 6) home_q_deg << 0,0,0,0,-90,0;
@@ -1346,17 +1342,16 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // In LegoGraspGenerator, these are support_x,y,z,ori for the brick being pressed ON.
-    if (!constraints.isMember("support_x") || !constraints.isMember("support_y") || 
-        !constraints.isMember("support_z") || !constraints.isMember("support_ori")) {
-        log("Missing constraints for plan_pressdown (support_x,y,z,ori of the target brick).", LogLevel::ERROR);
+    if (!task_param.has("support_x") || !task_param.has("support_y") || 
+        !task_param.has("support_z") || !task_param.has("support_ori")) {
+        log("Missing params for plan_pressdown (support_x,y,z,ori of the target brick).", LogLevel::ERROR);
         return false;
     }
-    int target_brick_x = constraints["support_x"].asInt();
-    int target_brick_y = constraints["support_y"].asInt();
-    int target_brick_z = constraints["support_z"].asInt();
-    int target_brick_ori_type = constraints["support_ori"].asInt(); // This is the side of the target brick to press on.
+    int target_brick_x = task_param.get("support_x").asInt();
+    int target_brick_y = task_param.get("support_y").asInt();
+    int target_brick_z = task_param.get("support_z").asInt();
+    int target_brick_ori_type = task_param.get("support_ori").asInt(); // This is the side of the target brick to press on.
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
     if (robot_dof == 6) home_q_deg << 0,0,0,0,-90,0;
@@ -1442,12 +1437,11 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     int robot_dof = (robot_id_handovering == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
     int robot_id_receiving = (robot_id_handovering == 0) ? 1 : 0;
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("receive_q_joint_values")) {
-        log("Missing constraint 'receive_q_joint_values' for plan_handover.", LogLevel::ERROR);
+    if (!task_param.has("receive_q_joint_values")) {
+        log("Missing param 'receive_q_joint_values' for plan_handover.", LogLevel::ERROR);
         return false;
     }
-    Json::Value receive_q_json = constraints["receive_q"];
+    Json::Value receive_q_json = task_param.get("receive_q");
     if (!receive_q_json.isArray() || receive_q_json.size() != robot_dof) {
         log("Invalid 'receive_q' format or size.", LogLevel::ERROR);
         return false;

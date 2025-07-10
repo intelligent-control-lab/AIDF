@@ -34,27 +34,28 @@ LegoSkillExecutor::LegoSkillExecutor(Skill::Type type, std::shared_ptr<PlanInsta
  */
 bool LegoSkillExecutor::execute(State &current_state) {
     // To be implemented
-    if (post_condition == nullptr) {
-        log("Post condition is null", LogLevel::ERROR);
-        return false;
-    }
 
     if (skill_type == Skill::Type::TranslateWithRotation) {
+
+        if (skill_param == nullptr) {
+            log("Post condition is null", LogLevel::ERROR);
+            return false;
+        }
 #ifdef HAVE_YK_TASKS
         // Use actionlib for TranslateWithRotation skill
         yk_msgs::ExecuteCartesianTrajectory goal;
         std::vector<geometry_msgs::Pose> poses;
 
-        double translate_speed = post_condition->constraints_json["Translate"]["speed"].asDouble();
-        double rotate_speed = post_condition->constraints_json["Rotate"]["speed"].asDouble();
-        double rotate_angle = post_condition->constraints_json["Rotate"]["angle"].asDouble();
+        double translate_speed = skill_param->get("Translate")["speed"].asDouble();
+        double rotate_speed = skill_param->get("Rotate")["speed"].asDouble();
+        double rotate_angle = skill_param->get("Rotate")["angle"].asDouble();
         std::vector<double> offset;
 
         log("Translate speed: " + std::to_string(translate_speed) + 
             ", Rotate speed: " + std::to_string(rotate_speed) + 
             ", Rotate angle: " + std::to_string(rotate_angle), LogLevel::INFO);
         
-        for (const auto & val : post_condition->constraints_json["Translate"]["offset"]) {
+        for (const auto & val : skill_param->get("Rotate")["offset"]) {
             offset.push_back(val.asDouble());
             log("Offset: " + std::to_string(val.asDouble()), LogLevel::INFO);
 
@@ -116,9 +117,9 @@ bool LegoSkillExecutor::execute(State &current_state) {
     } else {
         log("Executing atomic skill of type " + std::to_string(skill_type), LogLevel::INFO);
         // Use MoveitControl for other skills
-        bool success = controller_->move(post_condition, planned_trajectory_);
-        current_state.robot_states = post_condition->target_state.robot_states;
-        current_state.env_state = post_condition->target_state.env_state;
+        log("Executing skill with MoveitControl", LogLevel::INFO);
+        bool success = controller_->move(goal_state, planned_trajectory_);
+        current_state = goal_state;
         // sleep for 1 second
         std::this_thread::sleep_for(std::chrono::seconds(1));
         return success;
