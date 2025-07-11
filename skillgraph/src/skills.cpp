@@ -52,8 +52,10 @@ bool SkillParam::get(const std::string &key, Json::Value &value) const {
     if (param.isMember(key)) {
         log("Parameter " + key + ": " + param[key].asString(), LogLevel::INFO);
         value = param[key];
+        return true;
     } else {
         log("Parameter " + key + " does not exist", LogLevel::WARN);
+        return false;
     }
 }
 

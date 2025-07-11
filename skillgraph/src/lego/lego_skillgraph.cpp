@@ -461,7 +461,9 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
 
     // hi
     log("hi1", LogLevel::INFO);
-
+    //set start state
+    auto plan_instance = std::dynamic_pointer_cast<MoveitInstance>(env_->backend_);
+    plan_instance->setLastState(state);
 
     bool skill_feasible = false;
 

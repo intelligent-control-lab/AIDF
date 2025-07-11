@@ -120,6 +120,11 @@ int main(int argc, char* argv[]) {
 
         State state = sg->get_initial_state();
 
+
+        //record the start state
+        State start_state = state;
+
+
         // Define a callback function to process the file when it changes
         auto processJsonFile = [&sg, &state, web_msg_json_path]() {
             std::ifstream file(web_msg_json_path);
@@ -154,7 +159,14 @@ int main(int argc, char* argv[]) {
             if (success) {
                 std::cout << "Skill is feasible: " << skill->to_string() << std::endl;
                 // Execute the skill
-             
+                
+
+
+                // bool start_set_success = skill->executor->setStartState(start_state);
+                // if (!start_set_success) {
+                //     log("Failed to set start state for skill executor", LogLevel::ERROR);
+                // }
+
                 success = skill->executor->execute(state);
 
 

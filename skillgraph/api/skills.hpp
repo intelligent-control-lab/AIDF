@@ -173,6 +173,9 @@ namespace skillgraph {
 
             virtual bool execute(State &current_state) = 0;
 
+            // set the start state for the executor
+            // virtual bool setStartState(const State &start_state) =0;
+
             // set the same pre conditions for meta skill and all atomic skills
             void set_pre_condition(TaskParamPtr pre_condition);
 
@@ -203,6 +206,15 @@ namespace skillgraph {
 
             std::vector<SkillExecutorPtr> atomic_executors;
         
+
+
+            // virtual bool setStartState(const State &start_state) override{
+            //     controller_->setStartState(start_state);
+            //     return true;
+            // }
+            
+
+
         protected:
             MetaSkill::ComposeType compose_type;
     };

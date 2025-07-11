@@ -1200,6 +1200,7 @@ void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_
             ObjPtr obj = std::make_shared<Object>(*start.env_state.objects[i]);
             if(obj->state == Object::State::Attached) {
                 // Interpolate the attached object's pose
+                log("Interpolating attached object " + obj->name, LogLevel::DEBUG);
                 obj->x_attach = start.env_state.objects[i]->x_attach + 
                                 (goal.env_state.objects[i]->x_attach - start.env_state.objects[i]->x_attach) * ((double)step / steps);
                 obj->y_attach = start.env_state.objects[i]->y_attach + 

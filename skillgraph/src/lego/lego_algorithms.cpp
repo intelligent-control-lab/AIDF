@@ -600,7 +600,7 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
 
 
 
-    // check collision
+    // check collision at goal state
     instance_->setState(goal_state);
     bool collision_check = instance_->checkCollision({robot_goal_state}, true);
     if (collision_check) {
