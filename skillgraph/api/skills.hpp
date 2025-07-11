@@ -60,6 +60,7 @@ namespace skillgraph {
         /*
         Class definition of SkillParam, which contains the skill type and parameters
         */
+        SkillParam(const SkillParam &param) : type(param.type), param(param.param) {}
         SkillParam(Skill::Type type, const Json::Value &param) : type(type), param(param) {}
 
         void set_json_param(const Json::Value &param);
