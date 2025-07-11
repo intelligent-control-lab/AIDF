@@ -1,48 +1,59 @@
 #pragma once
 
 #include <memory>
-// instructed by Phillip to delete ros dependency
-#include <ros/ros.h>
-#include <std_msgs/Bool.h>
-//pddl state 针对lego
-
-        //inhand rob1
-        //inhand rob2
-        //assembly
-        
-        //taskparam pddl
-        //state pddl    
-        // condition check is not used for now
-        //简单的pre post condition check 先看手上有没有lego brick
-        //it will be changed later
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <regex>
 
 namespace skillgraph {
 
+/**
+ * @brief Simple predicate proxy that acts like a boolean attribute
+ */
+class PredicateProxy {
+public:
+    PredicateProxy(std::unordered_map<std::string, bool>& predicates, const std::string& name) 
+        : predicates_(predicates), name_(name) {}
+    
+    operator bool() const { return predicates_[name_]; }
+    PredicateProxy& operator=(bool value) { predicates_[name_] = value; return *this; }
+    
+private:
+    std::unordered_map<std::string, bool>& predicates_;
+    std::string name_;
+};
+
+/**
+ * @brief Dynamic PDDL state with attribute-like access to predicates
+ */
 class pddl_state {
 public:
-    bool inhand_rob1 = false;  ///< True if robot 1 (destroyer) has object
-    bool inhand_rob2 = false;  ///< True if robot 2 (architect) has object
-    bool assembly = false;     ///< True if the assembly is complete
-};
-
-using pddl_state_ptr = std::shared_ptr<pddl_state>;
-
-class PDDLStateUpdater {
-public:
-    PDDLStateUpdater(ros::NodeHandle& nh, pddl_state_ptr state);
+    pddl_state() = default;
+    explicit pddl_state(const std::string& domain_file_path) { loadDomain(domain_file_path); }
+    
+    bool loadDomain(const std::string& domain_file_path);
+    
+    // Dynamic attribute access - returns a proxy that acts like a boolean
+    PredicateProxy operator[](const std::string& predicate_name) {
+        return PredicateProxy(predicates_, predicate_name);
+    }
+    
+    bool operator[](const std::string& predicate_name) const {
+        auto it = predicates_.find(predicate_name);
+        return it != predicates_.end() ? it->second : false;
+    }
 
 private:
-    void callbackRob1(const std_msgs::Bool::ConstPtr& msg);
-    void callbackRob2(const std_msgs::Bool::ConstPtr& msg);
-    void callbackAssemblyComplete(const std_msgs::Bool::ConstPtr& msg);  // 新增装配完成回调
-
-
+    bool parseDomainFile(const std::string& content);
     
-    pddl_state_ptr state_;
-    ros::Subscriber sub_rob1_;
-    ros::Subscriber sub_rob2_;
-    ros::Subscriber sub_assembly_complete_;  // 新增订阅者
+    std::unordered_map<std::string, bool> predicates_;
+    std::vector<std::string> predicate_names_;
 };
+
+typedef std::shared_ptr<pddl_state> pddl_state_ptr;
 
 }  // namespace skillgraph
 

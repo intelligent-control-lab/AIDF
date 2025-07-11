@@ -39,16 +39,15 @@ LegoAssemblySeq::LegoAssemblySeq(lego_manipulation::lego::Lego::Ptr lego_ptr,
         task->description = "Pick and place brick " + std::to_string(brick_id) + " to " + std::to_string(brick_x) + " " + std::to_string(brick_y) + " " + std::to_string(brick_z);
 
         // set the goal condition for this task
-        task->post_condition = std::make_shared<TaskParam>();
+        task->param = std::make_shared<TaskParam>(node);
 
-        task->post_condition->constraints_json = node;
         if (manip_type == 1) {
-            task->post_condition->allowed_skill_type.push_back(Skill::Type::PickHandoverAndPlace);
+            task->param->add_allowed_skill_type(Skill::Type::PickHandoverAndPlace);
         } else if (manip_type == 0) {
             if (support_x == -1) {
-                task->post_condition->allowed_skill_type.push_back(Skill::Type::PickAndPlace);
+                task->param->add_allowed_skill_type(Skill::Type::PickAndPlace);
             } else {
-                task->post_condition->allowed_skill_type.push_back(Skill::Type::PickAndPlaceWithSupport);
+                task->param->add_allowed_skill_type(Skill::Type::PickAndPlaceWithSupport);
             }
         }
         task_seq_.push_back(task);
