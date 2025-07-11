@@ -119,7 +119,8 @@ bool LegoSkillExecutor::execute(State &current_state) {
         // Use MoveitControl for other skills
         log("Executing skill with MoveitControl", LogLevel::INFO);
         bool success = controller_->move(goal_state, planned_trajectory_);
-        current_state = goal_state;
+        current_state.robot_states = goal_state.robot_states;
+        current_state.env_state = goal_state.env_state;
         // sleep for 1 second
         std::this_thread::sleep_for(std::chrono::seconds(1));
         return success;
