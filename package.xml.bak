@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>aidf</name>
+  <version>0.0.0</version>
+  <description>The AIDF planner package - ROS2 compatible</description>
+
+  <maintainer email="yizhouhu@andrew.cmu.edu">ruic</maintainer>
+
+  <license>TODO</license>
+
+  <!-- ROS2 Build tools -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <!-- <buildtool_depend>rosidl_default_generators</buildtool_depend> --> <!-- Disabled: ROS1 lego service only -->
+
+  <!-- Core dependencies -->
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+
+  <!-- Interface generation - Disabled for now (ROS1 lego service only) -->
+  <!-- <depend>rosidl_default_generators</depend> -->
+  <!-- <exec_depend>rosidl_default_runtime</exec_depend> -->
+
+  <!-- MoveIt dependencies -->
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_visual_tools</depend>
+  <depend>tf2_geometry_msgs</depend>
+
+  <!-- Additional dependencies -->
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <build_depend>yaml_cpp_vendor</build_depend>
+  <exec_depend>yaml_cpp_vendor</exec_depend>
+  <build_depend>libjsoncpp-dev</build_depend>
+  <exec_depend>libjsoncpp-dev</exec_depend>
+
+  
+  <!-- External dependencies -->
+  <depend>eigen3</depend>
+  <depend>boost</depend>
+
+  <!-- Execution dependencies -->
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+
+  <!-- From GP4-Lego -->
+  <depend>yk_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

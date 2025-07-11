@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>aidf</name>
+  <version>0.0.0</version>
+  <description>The AIDF planner package - ROS2 compatible</description>
+
+  <maintainer email="yizhouhu@andrew.cmu.edu">ruic</maintainer>
+
+  <license>TODO</license>
+
+  <!-- ROS2 Build tools -->
+  <buildtool_depend>ament_cmake</buildtool_depend>

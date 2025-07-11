@@ -2,9 +2,13 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <moveit_msgs/msg/robot_trajectory.hpp>
 #include <moveit_msgs/msg/display_trajectory.hpp>
+#include <moveit_msgs/msg/move_it_error_codes.hpp>
 #include <moveit_msgs/action/move_group.hpp>
 #include <moveit_msgs/srv/get_planning_scene.hpp>
 #include <moveit_msgs/srv/apply_planning_scene.hpp>
@@ -21,6 +25,7 @@
 #include <jsoncpp/json/json.h>
 #include <cmath>
 #include <set>
+#include <map>
 
 #include "magblock/magblock_skillgraph.hpp"
 #include "magblock/magblock_algorithms.hpp"
@@ -45,12 +50,6 @@ public:
  {
  RCLCPP_INFO(node_->get_logger(), "Starting MagBlock Assembly Executor");
  RCLCPP_INFO(node_->get_logger(), "Waiting for MoveIt2 services...");
- 
- // Suppress TF and planning scene monitor warnings for cleaner output
- if (rcutils_logging_set_logger_level(
- "moveit_ros.planning_scene_monitor.planning_scene_monitor", RCUTILS_LOG_SEVERITY_ERROR) != RCUTILS_RET_OK) {
- RCLCPP_DEBUG(node_->get_logger(), "Could not set planning scene monitor log level");
- }
  
  // Wait for MoveIt2 services to be available
  if (!waitForMoveItServices()) {
@@ -102,6 +101,11 @@ public:
  
  // Control execution flow
  wait_for_confirmation_ = false; // Set to false for automatic execution without prompts
+ 
+ // Initialize gripper states (false = open, true = closed)
+ gripper_states_[0] = false; // left_arm gripper open
+ gripper_states_[1] = false; // center_arm gripper open
+ gripper_states_[2] = false; // right_arm gripper open
  
  RCLCPP_INFO(node_->get_logger(), "MagBlock Assembly Executor initialized with skillgraph trajectory planning");
  }
@@ -223,32 +227,101 @@ public:
  RCLCPP_INFO(node_->get_logger(), "6. Retract Place: (%.3f, %.3f, %.3f) - Move straight UP from place", 
  retract_place_pose.position.x, retract_place_pose.position.y, retract_place_pose.position.z);
  
- // Plan clear pick-and-place sequence with vertical movements
- std::vector<std::pair<std::string, geometry_msgs::msg::Pose>> waypoints = {
- {"Approach Pick", approach_pick_pose}, // Move above pick location
- {"Pick", pick_pose}, // Move straight down to pick location
- {"Retract Pick", retract_pick_pose}, // Move straight up from pick location
- {"Approach Place", approach_place_pose}, // Move above place location  
- {"Place", place_pose}, // Move straight down to place location
- {"Retract Place", retract_place_pose} // Move straight up from place location
- };
+ // Initialize current joint state if not already set
+ if (current_joint_states_.find(robot_id) == current_joint_states_.end()) {
+ // Get current joint values from arm (home position)
+ current_joint_states_[robot_id] = arm->getCurrentJointValues();
+ }
  
- for (const auto& [segment_name, target_pose] : waypoints) {
- RCLCPP_INFO(node_->get_logger(), "Planning %s segment to (%.3f, %.3f, %.3f)", 
- segment_name.c_str(), target_pose.position.x, target_pose.position.y, target_pose.position.z);
- 
- arm->setPoseTarget(target_pose);
- 
- moveit::planning_interface::MoveGroupInterface::Plan plan;
- auto success = static_cast<bool>(arm->plan(plan));
- 
- if (success) {
- trajectories.push_back(plan.trajectory_);
- RCLCPP_INFO(node_->get_logger(), "Successfully planned %s segment", segment_name.c_str());
- } else {
- RCLCPP_ERROR(node_->get_logger(), "Failed to plan %s segment", segment_name.c_str());
+ // Step 1: MoveIt planning from home to approach pick
+ RCLCPP_INFO(node_->get_logger(), "Planning Approach Pick segment using MoveIt");
+ if (!planSingleTrajectory(arm, approach_pick_pose, "Approach Pick", trajectories)) {
  return false;
  }
+ 
+ // Get joint values from the end of approach pick trajectory for seeding
+ std::vector<double> approach_pick_joint_values;
+ if (!trajectories.empty() && !trajectories.back().joint_trajectory.points.empty()) {
+ approach_pick_joint_values = trajectories.back().joint_trajectory.points.back().positions;
+ }
+ 
+ // Step 2: Joint space interpolation from approach pick to pick
+ // Ensure pick pose has same orientation as approach pick to avoid joint flips
+ geometry_msgs::msg::Pose consistent_pick_pose = pick_pose;
+ consistent_pick_pose.orientation = approach_pick_pose.orientation; // Keep same orientation
+ 
+ RCLCPP_INFO(node_->get_logger(), "Planning Pick segment using joint space interpolation");
+ if (!interpolateJointTrajectory(arm, approach_pick_pose, consistent_pick_pose, 
+ approach_pick_joint_values, "Pick", trajectories)) {
+ return false;
+ }
+ 
+ // Get joint values from the end of pick trajectory for seeding
+ std::vector<double> pick_joint_values;
+ if (!trajectories.empty() && !trajectories.back().joint_trajectory.points.empty()) {
+ pick_joint_values = trajectories.back().joint_trajectory.points.back().positions;
+ }
+ 
+ // Step 3: Joint space interpolation from pick to retract pick
+ // Ensure retract pick pose has same orientation as pick pose to avoid joint flips
+ geometry_msgs::msg::Pose consistent_retract_pick_pose = retract_pick_pose;
+ consistent_retract_pick_pose.orientation = consistent_pick_pose.orientation; // Keep same orientation
+ 
+ RCLCPP_INFO(node_->get_logger(), "Planning Retract Pick segment using joint space interpolation");
+ if (!interpolateJointTrajectory(arm, consistent_pick_pose, consistent_retract_pick_pose, 
+ pick_joint_values, "Retract Pick", trajectories)) {
+ return false;
+ }
+ 
+ // Get joint values from the end of retract pick trajectory for seeding
+ std::vector<double> retract_pick_joint_values;
+ if (!trajectories.empty() && !trajectories.back().joint_trajectory.points.empty()) {
+ retract_pick_joint_values = trajectories.back().joint_trajectory.points.back().positions;
+ }
+ 
+ // Step 4: MoveIt planning from retract pick to approach place
+ RCLCPP_INFO(node_->get_logger(), "Planning Approach Place segment using MoveIt");
+ // Create a robot state with the current joint values
+ auto robot_state = std::make_shared<moveit::core::RobotState>(arm->getRobotModel());
+ robot_state->setJointGroupPositions(arm->getName(), retract_pick_joint_values);
+ arm->setStartState(*robot_state);
+ 
+ if (!planSingleTrajectory(arm, approach_place_pose, "Approach Place", trajectories)) {
+ return false;
+ }
+ 
+ // Get joint values from the end of approach place trajectory for seeding
+ std::vector<double> approach_place_joint_values;
+ if (!trajectories.empty() && !trajectories.back().joint_trajectory.points.empty()) {
+ approach_place_joint_values = trajectories.back().joint_trajectory.points.back().positions;
+ }
+ 
+ // Step 5: Joint space interpolation from approach place to place
+ // Ensure place pose has same orientation as approach place to avoid joint flips
+ geometry_msgs::msg::Pose consistent_place_pose = place_pose;
+ consistent_place_pose.orientation = approach_place_pose.orientation; // Keep same orientation
+ 
+ RCLCPP_INFO(node_->get_logger(), "Planning Place segment using joint space interpolation");
+ if (!interpolateJointTrajectory(arm, approach_place_pose, consistent_place_pose, 
+ approach_place_joint_values, "Place", trajectories)) {
+ return false;
+ }
+ 
+ // Get joint values from the end of place trajectory for seeding
+ std::vector<double> place_joint_values;
+ if (!trajectories.empty() && !trajectories.back().joint_trajectory.points.empty()) {
+ place_joint_values = trajectories.back().joint_trajectory.points.back().positions;
+ }
+ 
+ // Step 6: Joint space interpolation from place to retract place
+ // Ensure retract place pose has same orientation as place pose to avoid joint flips
+ geometry_msgs::msg::Pose consistent_retract_place_pose = retract_place_pose;
+ consistent_retract_place_pose.orientation = consistent_place_pose.orientation; // Keep same orientation
+ 
+ RCLCPP_INFO(node_->get_logger(), "Planning Retract Place segment using joint space interpolation");
+ if (!interpolateJointTrajectory(arm, consistent_place_pose, consistent_retract_place_pose, 
+ place_joint_values, "Retract Place", trajectories)) {
+ return false;
  }
  
  RCLCPP_INFO(node_->get_logger(), "Successfully planned all %zu trajectory segments for %s", 
@@ -278,6 +351,113 @@ public:
  RCLCPP_ERROR(node_->get_logger(), "Failed to plan trajectory segment: %s", segment_name.c_str());
  return false;
  }
+ }
+ 
+ /**
+ * @brief Interpolate between start and goal poses in joint space using direct IK
+ * For short vertical movements, we use setFromIK() with consistency limits to minimize joint changes
+ */
+ bool interpolateJointTrajectory(std::shared_ptr<moveit::planning_interface::MoveGroupInterface> arm,
+ const geometry_msgs::msg::Pose& start_pose,
+ const geometry_msgs::msg::Pose& goal_pose,
+ const std::vector<double>& seed_joint_angles,
+ const std::string& segment_name,
+ std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories,
+ int num_waypoints = 10) {
+ 
+ RCLCPP_INFO(node_->get_logger(), "Interpolating joint trajectory for %s using direct IK with consistency limits", 
+ segment_name.c_str());
+ 
+ // Debug pose information
+ RCLCPP_INFO(node_->get_logger(), "Goal pose: pos(%.3f, %.3f, %.3f) ori(%.3f, %.3f, %.3f, %.3f)", 
+ goal_pose.position.x, goal_pose.position.y, goal_pose.position.z,
+ goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w);
+ 
+ // Validate seed joint angles
+ if (seed_joint_angles.empty()) {
+ RCLCPP_ERROR(node_->get_logger(), "Empty seed joint angles for %s", segment_name.c_str());
+ return false;
+ }
+ 
+ RCLCPP_INFO(node_->get_logger(), "Using seed joint angles: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f]", 
+ seed_joint_angles[0], seed_joint_angles[1], seed_joint_angles[2], 
+ seed_joint_angles[3], seed_joint_angles[4], seed_joint_angles[5]);
+ 
+ // Get robot model and joint model group
+ auto robot_model = arm->getRobotModel();
+ auto joint_model_group = robot_model->getJointModelGroup(arm->getName());
+ 
+ // Create robot state with seed joint angles
+ moveit::core::RobotState seed_state(robot_model);
+ seed_state.setJointGroupPositions(joint_model_group, seed_joint_angles);
+ seed_state.update();
+ 
+ // Create IK state as copy of seed state
+ moveit::core::RobotState ik_state(seed_state);
+ 
+ // Solve IK for goal pose with timeout
+ bool found_ik = ik_state.setFromIK(
+ joint_model_group,
+ goal_pose,
+ 0.05); // timeout in seconds
+ 
+ if (!found_ik) {
+ RCLCPP_ERROR(node_->get_logger(), "Failed to find IK solution for %s", segment_name.c_str());
+ return false;
+ }
+ 
+ // Get the IK solution
+ std::vector<double> goal_joint_angles;
+ ik_state.copyJointGroupPositions(joint_model_group, goal_joint_angles);
+ 
+ // Validate that the IK solution is reasonable (not too far from seed)
+ double max_joint_diff = 0.0;
+ for (size_t i = 0; i < seed_joint_angles.size(); ++i) {
+ double diff = std::abs(goal_joint_angles[i] - seed_joint_angles[i]);
+ max_joint_diff = std::max(max_joint_diff, diff);
+ }
+ 
+ // If joint change is too large, this might be a bad IK solution
+ if (max_joint_diff > 0.5) { // 0.5 rad ~ 28.6 degrees
+ RCLCPP_WARN(node_->get_logger(), "Large joint change detected (%.3f rad = %.1f°) for %s - this might cause unwanted motion", 
+ max_joint_diff, max_joint_diff * 180.0 / M_PI, segment_name.c_str());
+ }
+ 
+ RCLCPP_INFO(node_->get_logger(), "Found IK solution: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f]", 
+ goal_joint_angles[0], goal_joint_angles[1], goal_joint_angles[2], 
+ goal_joint_angles[3], goal_joint_angles[4], goal_joint_angles[5]);
+ 
+ RCLCPP_INFO(node_->get_logger(), "Maximum joint change: %.3f rad (%.1f°)", 
+ max_joint_diff, max_joint_diff * 180.0 / M_PI);
+ 
+ // Create trajectory with linear interpolation in joint space
+ moveit_msgs::msg::RobotTrajectory trajectory;
+ trajectory.joint_trajectory.header.frame_id = arm->getPoseReferenceFrame();
+ trajectory.joint_trajectory.joint_names = joint_model_group->getActiveJointModelNames();
+ 
+ // Generate waypoints through linear interpolation
+ for (int i = 0; i <= num_waypoints; ++i) {
+ double t = static_cast<double>(i) / static_cast<double>(num_waypoints);
+ 
+ trajectory_msgs::msg::JointTrajectoryPoint point;
+ point.positions.resize(seed_joint_angles.size());
+ 
+ // Linear interpolation between start and goal joint angles
+ for (size_t j = 0; j < seed_joint_angles.size(); ++j) {
+ point.positions[j] = seed_joint_angles[j] + t * (goal_joint_angles[j] - seed_joint_angles[j]);
+ }
+ 
+ // Set time stamps for smooth motion
+ point.time_from_start = rclcpp::Duration::from_seconds(i * 0.1); // 0.1 seconds between waypoints
+ 
+ trajectory.joint_trajectory.points.push_back(point);
+ }
+ 
+ trajectories.push_back(trajectory);
+ RCLCPP_INFO(node_->get_logger(), "Successfully created interpolated trajectory for %s with %d waypoints", 
+ segment_name.c_str(), num_waypoints + 1);
+ 
+ return true;
  }
  
  /**
@@ -397,6 +577,9 @@ public:
  const auto& final_point = joint_trajectory.points.back();
  moveRobot(robot_id, final_point.positions);
  updateScene();
+ 
+ // Update current joint state for this robot
+ current_joint_states_[robot_id] = final_point.positions;
  }
  
  RCLCPP_INFO(node_->get_logger(), "=== COMPLETED %s ===", segment_name.c_str());
@@ -415,6 +598,9 @@ public:
  RCLCPP_INFO(node_->get_logger(), "Executing %zu trajectory segments for %s using %s", 
  trajectories.size(), object_name.c_str(), robot_name.c_str());
  
+ // Start with gripper open
+ openGripper(robot_id);
+ 
  std::vector<std::string> segment_names = {
  "Approach Pick", "Pick", "Retract Pick", "Approach Place", "Place", "Retract Place"
  };
@@ -431,11 +617,15 @@ public:
  return false;
  }
  
- // Add special messages for pick and place actions
+ // Handle gripper actions and special messages
  if (segment_name == "Pick") {
+ // Close gripper to pick up object
+ closeGripper(robot_id);
  RCLCPP_INFO(node_->get_logger(), "*** PICKED UP %s ***", object_name.c_str());
  } else if (segment_name == "Place") {
  RCLCPP_INFO(node_->get_logger(), "*** PLACED %s ***", object_name.c_str());
+ // Open gripper to release object
+ openGripper(robot_id);
  }
  
  // Longer pause between segments to clearly see each movement
@@ -1048,6 +1238,64 @@ public:
  return 2; // default to right_arm
  }
 
+ /**
+ * @brief Control gripper to open position
+ */
+ void openGripper(int robot_id) {
+ std::string robot_name = getRobotName(robot_id);
+ 
+ // Check current state
+ bool is_currently_open = gripper_states_.find(robot_id) != gripper_states_.end() && 
+ !gripper_states_[robot_id];
+ 
+ if (is_currently_open) {
+ RCLCPP_INFO(node_->get_logger(), "Gripper already open for %s", robot_name.c_str());
+ return;
+ }
+ 
+ RCLCPP_INFO(node_->get_logger(), "Opening gripper for %s", robot_name.c_str());
+ 
+ // In simulation, we just log the action
+ // In real robot, this would send gripper commands
+ // Example: gripper_client_->sendGoal(gripper_open_goal);
+ 
+ rclcpp::sleep_for(std::chrono::milliseconds(500)); // Simulate gripper action time
+ 
+ // Update state
+ gripper_states_[robot_id] = false; // false = open
+ 
+ RCLCPP_INFO(node_->get_logger(), "Gripper opened for %s", robot_name.c_str());
+ }
+ 
+ /**
+ * @brief Control gripper to close position
+ */
+ void closeGripper(int robot_id) {
+ std::string robot_name = getRobotName(robot_id);
+ 
+ // Check current state
+ bool is_currently_closed = gripper_states_.find(robot_id) != gripper_states_.end() && 
+ gripper_states_[robot_id];
+ 
+ if (is_currently_closed) {
+ RCLCPP_INFO(node_->get_logger(), "Gripper already closed for %s", robot_name.c_str());
+ return;
+ }
+ 
+ RCLCPP_INFO(node_->get_logger(), "Closing gripper for %s", robot_name.c_str());
+ 
+ // In simulation, we just log the action
+ // In real robot, this would send gripper commands
+ // Example: gripper_client_->sendGoal(gripper_close_goal);
+ 
+ rclcpp::sleep_for(std::chrono::milliseconds(500)); // Simulate gripper action time
+ 
+ // Update state
+ gripper_states_[robot_id] = true; // true = closed
+ 
+ RCLCPP_INFO(node_->get_logger(), "Gripper closed for %s", robot_name.c_str());
+ }
+
 private:
  rclcpp::Node::SharedPtr node_;
  std::shared_ptr<moveit::planning_interface::MoveGroupInterface> left_arm_group_;
@@ -1064,6 +1312,12 @@ private:
  
  Json::Value env_setup_; // Environment setup configuration
  bool wait_for_confirmation_; // Control execution flow
+ 
+ // Track current joint states for better IK seeding
+ std::map<int, std::vector<double>> current_joint_states_;
+ 
+ // Track gripper states for each robot (true = closed, false = open)
+ std::map<int, bool> gripper_states_;
 };
 
 int main(int argc, char** argv)
@@ -1113,6 +1367,3 @@ int main(int argc, char** argv)
  rclcpp::shutdown();
  return 0;
 }
-
-
-
