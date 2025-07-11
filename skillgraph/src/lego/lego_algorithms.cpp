@@ -145,7 +145,8 @@ bool LegoGraspGenerator::generate(TaskParam &task_param, Skill::Type type, int s
         press_z = task_param.get("press_z").asInt();
         press_ori = task_param.get("press_ori").asInt();
     }
-    if (task_param.has("support_x")) {
+    if (task_param.has("support_x") && task_param.has("support_y") && task_param.has("support_z")
+        && task_param.has("support_ori")) {
         support_x = task_param.get("support_x").asInt();
         support_y = task_param.get("support_y").asInt();
         support_z = task_param.get("support_z").asInt();

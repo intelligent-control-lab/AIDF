@@ -16,7 +16,7 @@ Json::Value TaskParam::get(const std::string &key) const {
     if (config.isMember(key)) {
         return config[key];
     } else {
-        throw std::runtime_error("Key " + key + " not found in TaskParam config");
+        throw std::runtime_error("Key " + key + " not found in TaskParam config" + config.toStyledString());
     }
 }
 

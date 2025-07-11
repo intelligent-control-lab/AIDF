@@ -42,7 +42,7 @@ void Skill::set_default_param(const Json::Value &param) {
         this->default_param->set_json_param(param);
     }
     else {
-        log("Skill parameter is null, cannot set JSON param", LogLevel::ERROR);
+        this->default_param = std::make_shared<SkillParam>(type, param);
     }
 }
 
@@ -51,7 +51,7 @@ bool Skill::set_executor(std::shared_ptr<SkillExecutor> executor) {
     if (this->executor->skill_param == nullptr) {
         this->executor->set_skill_param(this->default_param);
     }
-
+    return true;
 }
 
 void SkillParam::set_json_param(const Json::Value &param) {
@@ -68,7 +68,7 @@ Json::Value SkillParam::get(const std::string &key) const {
         log("Parameter " + key + ": " + param[key].asString(), LogLevel::INFO);
         return param[key];
     } else {
-        throw std::runtime_error("Key " + key + " not found in TaskParam config");
+        throw std::runtime_error("Key " + key + " not found in TaskParam config" + param.toStyledString());
     }
 }
 
