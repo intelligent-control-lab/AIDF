@@ -117,8 +117,16 @@ bool LegoSkillExecutor::execute(State &current_state) {
     return true;
     } else {
         // Use MoveitControl for other skills
+        
         log("Executing skill with MoveitControl", LogLevel::INFO);
-        bool success = controller_->move(goal_state, planned_trajectory_);
+        bool success = false;
+        if(skill_type==Skill::Type::Transit){
+            log("Executing Transit skill", LogLevel::INFO);
+            success = controller_->transit_move(current_state, planned_trajectory_);
+        }else{
+            success = controller_->move(goal_state, planned_trajectory_);
+
+        }
         current_state.robot_states = goal_state.robot_states;
         current_state.env_state = goal_state.env_state;
         // sleep for 1 second

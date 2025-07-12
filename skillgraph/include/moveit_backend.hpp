@@ -105,6 +105,9 @@ public:
         last_state_ = state;
     }
 
+    robot_model::RobotModelPtr getRobotModel() const {
+        return robot_model_;
+    }
     
 
 
@@ -153,7 +156,7 @@ public:
 
     bool move(State target_state, const RobotTrajectory &trajectory);
 
-    
+    bool transit_move(State target_state, const RobotTrajectory &trajectory);
 
 private:
     std::shared_ptr<MoveitInstance> instance_;

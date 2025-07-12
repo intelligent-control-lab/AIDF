@@ -9,6 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <algorithm>
+#include "rrt_algorithm.hpp" // For RRTConnect
 
 namespace skillgraph {
 
@@ -1262,6 +1263,13 @@ bool MoveitControl::move(State target_state, const RobotTrajectory &trajectory) 
         //     return false;
         // }
         instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
+        
+        // // add rrt for transit skill
+        // auto robot_model=instance_->getRobotModel();
+        // skillgraph::RRTConnect rrtplan(robot_model,instance_);
+        // RobotTrajectory traj;
+        // bool rrt_plan=rrtplan.plan(start_state, target_state, traj);
+        
         instance_->setState(target_state);
         instance_->updateScene();
 
@@ -1284,6 +1292,50 @@ bool MoveitControl::move(State target_state, const RobotTrajectory &trajectory) 
 
 }
 
+
+
+bool MoveitControl::transit_move(State target_state, const RobotTrajectory &trajectory) {
+   if (fake_move_) {
+
+        // log("skill type"+ std::to_string(post_condition->skill_type), LogLevel::DEBUG);
+        // Add interpolation to avoid sudden move
+        //Added by Yijie Liao
+        State start_state = instance_->getLastState();
+        // bool collision_check_start = instance_->checkCollision(start_state.robot_states, true);
+
+        // if (collision_check_start) {
+        //     log("Fake move failed due to collision at start state", LogLevel::ERROR);
+        //     return false;
+        // }
+        instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
+        
+        // add rrt for transit skill
+        auto robot_model=instance_->getRobotModel();
+        skillgraph::RRTConnect rrtplan(robot_model,instance_);
+        RobotTrajectory traj;
+        bool rrt_plan=rrtplan.plan(start_state, target_state, traj);
+        
+        instance_->setState(target_state);
+        instance_->updateScene();
+
+        // bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
+        // if (collision_check_final) {
+        //     log("Fake move failed due to collision", LogLevel::ERROR);
+        //     return false;}
+
+        return true;
+    }
+
+    // check if the trajectory is valid
+    if (trajectory.trajectory.empty()) {
+        log("Trajectory is empty", LogLevel::ERROR);
+        return false;
+    }
+    
+
+    return true;
+
+}
 
 
 
