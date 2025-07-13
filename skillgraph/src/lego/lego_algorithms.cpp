@@ -603,7 +603,7 @@ bool LegoGraspGenerator::generate(const TaskParam &task_param, Skill::Type type,
 
     // check collision at goal state
     instance_->setState(goal_state);
-    bool collision_check = instance_->checkCollision({robot_goal_state}, true);
+    bool collision_check = instance_->checkCollision({robot_goal_state}, false,true);
     if (collision_check) {
         log("Collision detected in generate grasp pose for skill in end" + std::to_string(skill_seq) + " robot " 
             + std::to_string(robot_->robot_id), LogLevel::ERROR);
