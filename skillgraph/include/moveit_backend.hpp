@@ -44,6 +44,7 @@ public:
                    const std::string &joint_group_name,
                    planning_scene::PlanningScenePtr planning_scene);
     MoveitInstance(const std::string &move_group_name, const std::string &moveit_pkg_name);
+    MoveitInstance(rclcpp::Node::SharedPtr node, const std::string &move_group_name, const std::string &moveit_pkg_name);
     ~MoveitInstance();
 
     // Static cleanup function for signal handling
@@ -85,6 +86,33 @@ public:
     virtual bool setCollision(const std::string& obj_name, const std::string& link_name, bool allow) override;
     virtual void printKnownObjects() const override;
     virtual void setState(const State &state) override;
+
+    // IK solver and joint-space planning functions
+    bool solveIK(const std::string& robot_name, 
+                 const geometry_msgs::msg::Pose& target_pose,
+                 const std::vector<double>& seed_joints,
+                 std::vector<double>& solution_joints);
+    
+    // Enhanced IK solver using MoveGroupInterface planning
+    bool solveIKWithPlanning(const std::string& robot_name,
+                            const geometry_msgs::msg::Pose& target_pose,
+                            const std::vector<double>& seed_joints,
+                            std::vector<double>& solution_joints);
+    
+    bool getCurrentJointValues(const std::string& robot_name, 
+                              std::vector<double>& current_joints);
+    
+    std::vector<std::vector<double>> interpolateJointTrajectory(
+        const std::vector<double>& start_joints,
+        const std::vector<double>& end_joints,
+        int num_steps);
+    
+    void executeJointTrajectory(const std::string& robot_name,
+                               const std::vector<std::vector<double>>& joint_trajectory,
+                               double step_duration = 0.1);
+
+    // Friend class declaration
+    friend class MoveitControl;
 
 private:
     // ROS 2 node

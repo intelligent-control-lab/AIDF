@@ -103,7 +103,7 @@ namespace skillgraph {
         /*
         * State Class containing the robot state and environment state
         */
-        State() = default;
+        State() : assembled_steps(0) {}
         std::vector<RobotState> robot_states;
         EnvState env_state;
         int assembled_steps;

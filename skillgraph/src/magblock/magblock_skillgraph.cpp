@@ -24,12 +24,20 @@ MagBlockSkillGraph::MagBlockSkillGraph(const std::string &config_file) : SkillGr
     robot_configs_["left_arm"] = left_arm_config;
 
     RobotConfig right_arm_config;
-    // Right arm transformation relative to left arm
-    // These values may need adjustment based on actual robot base positions
-    right_arm_config.x_origin_blocks = 0.0;
-    right_arm_config.y_origin_blocks = 0.0;
+    // Right arm transformation: RIGHT robot base frame coordinates
+    // Block frame origin is offset from RIGHT robot base by:
+    // - x=40cm (to the right of right robot base) 
+    // - y=11cm (in front of right robot base)
+    // - z=0cm (same height as right robot base)
+    //
+    // Coordinate directions:
+    // - Moving right of right robot base is +X robot, but -X in block frame
+    // - Moving forward from right robot base is +Y robot, and +Y in block frame 
+    // - Moving up from right robot base is +Z robot, and +Z in block frame
+    right_arm_config.x_origin_blocks = 16.0;  // 40cm / 2.5cm = 16 block units
+    right_arm_config.y_origin_blocks = -4.4;  // -11cm / 2.5cm = -4.4 block units
     right_arm_config.default_orientation_deg = {0, -180, 90};
-    right_arm_config.block_to_robot_matrix << 1, 0, 0, 1;
+    right_arm_config.block_to_robot_matrix << -1, 0, 0, -1;  // Invert X, negate Y
     robot_configs_["right_arm"] = right_arm_config;
 
     RobotConfig center_arm_config;
@@ -103,6 +111,12 @@ bool MagBlockSkillGraph::at_target(const State &state) {
 std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     std::vector<SkillPtr> feasible_skills;
     
+    // Debug: Check if skill_map_ is populated
+    log("Debug: skill_map_ size: " + std::to_string(skill_map_.size()), LogLevel::INFO);
+    for (const auto& [skill_type, skill] : skill_map_) {
+        log("Debug: skill_map_ contains skill type: " + std::to_string(static_cast<int>(skill_type)) + " (" + skill->name + ")", LogLevel::INFO);
+    }
+    
     // Get the next task to execute - following LEGO pattern
     int assembled_steps = state.assembled_steps;
     if (assembled_steps >= task_seq_->num_tasks()) {
@@ -112,8 +126,19 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     
     TaskPtr current_task = task_seq_->get_task_at(assembled_steps);
     
+    // Check if task is valid
+    if (!current_task) {
+        log("Invalid task at step " + std::to_string(assembled_steps), LogLevel::ERROR);
+        return feasible_skills;
+    }
+    
+    // Debug: Check current task
+    log("Debug: Current task allowed skill types: " + std::to_string(current_task->post_condition->allowed_skill_type.size()), LogLevel::INFO);
+    
     // Add allowed skills for this task - following LEGO pattern
     for (const auto& skill_type : current_task->post_condition->allowed_skill_type) {
+        log("Debug: Looking for skill type: " + std::to_string(static_cast<int>(skill_type)), LogLevel::INFO);
+        
         // Convert skill type to string and create AtomicSkill
         std::string skill_name;
         switch(skill_type) {
@@ -137,8 +162,16 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
                 break;
         }
         
-        SkillPtr skill = std::make_shared<AtomicSkill>(skill_name);
-        feasible_skills.push_back(skill);
+        // Create atomic skill with executor and post condition - following LEGO pattern
+        auto atomic_skill = std::make_shared<AtomicSkill>(skill_name);
+        auto atomic_executor = std::make_shared<MagBlockSkillExecutor>(skill_type, env_->backend_);
+        
+        // Set post-condition from current task
+        atomic_executor->set_post_condition(current_task->post_condition);
+        atomic_skill->executor = atomic_executor;
+        
+        feasible_skills.push_back(atomic_skill);
+        log("Debug: Added feasible skill: " + skill_name, LogLevel::INFO);
     }
     
     log("Found " + std::to_string(feasible_skills.size()) + " feasible skills for task " + 
@@ -206,13 +239,34 @@ bool MagBlockSkillGraph::is_feasible(const State&state, Json::Value &skill_confi
         post_condition->constraints_json = skill_config["target_location"];
         
         meta_executor->set_post_condition(post_condition);
+        
+        // Create atomic executors for each atomic skill in the meta skill - following LEGO pattern
+        for (auto& atomic_skill : gs_meta->atomic_skills) {
+            auto atomic_executor = std::make_shared<MagBlockSkillExecutor>(atomic_skill->type, env_->backend_);
+            atomic_executor->set_post_condition(post_condition);
+            atomic_skill->executor = atomic_executor;
+            meta_executor->add_atomic_executor(atomic_executor);
+        }
+        
         gs_meta->set_executor(meta_executor);
         
         return true;
     }
     
-    // For other skills, use simple atomic skill creation
-    gs = std::make_shared<AtomicSkill>(skillname);
+    // For other atomic skills (Pick, Place, Transit), create atomic skill
+    auto atomic_skill = std::make_shared<AtomicSkill>(skillname);
+    gs = atomic_skill;
+    
+    // Create and set executor with proper post condition - following LEGO pattern
+    auto atomic_executor = std::make_shared<MagBlockSkillExecutor>(atomic_skill->type, env_->backend_);
+    
+    // Set post-condition from skill config
+    skillgraph::TaskParamPtr post_condition = std::make_shared<skillgraph::TaskParam>();
+    post_condition->constraints_json = skill_config;
+    
+    atomic_executor->set_post_condition(post_condition);
+    atomic_skill->executor = atomic_executor;
+    
     return true;
 }
 
@@ -256,7 +310,48 @@ bool MagBlockSkillGraph::blockToRobotFrame(const std::string& robot_name,
     
     const RobotConfig& config = config_it->second;
     
-    // Apply block-to-robot transformation matrix
+    // For right arm, apply the proper transformation based on magblock_assembly_executor.cpp
+    if (robot_name == "right_arm") {
+        // Transform block frame coordinates to RIGHT robot base frame coordinates
+        // Block frame origin is offset from RIGHT robot base by:
+        // - x=40cm (to the right of right robot base) 
+        // - y=11cm (in front of right robot base)
+        // - z=0cm (same height as right robot base)
+        //
+        // Coordinate directions:
+        // - Moving right of right robot base is +X robot, but -X in block frame
+        // - Moving forward from right robot base is +Y robot, and +Y in block frame 
+        // - Moving up from right robot base is +Z robot, and +Z in block frame
+        //
+        // Each block unit = 2.5cm = 0.025m
+        
+        double block_size = 0.025; // 2.5cm per block unit
+        double block_frame_offset_x = 0.40; // 40cm offset to right of right robot base
+        double block_frame_offset_y = 0.11; // 11cm offset in front of right robot base 
+        double block_frame_offset_z = 0.0; // Same height as right robot base
+        double table_height = 0.195; // Table height above ground
+        double block_height_offset = 0.0125; // Half block height (2.5cm / 2) to place on table surface
+        
+        // Transform from block frame to right robot base frame
+        // Note: X direction is inverted between block frame and robot frame
+        x_robot = block_frame_offset_x - (x_blocks * block_size); // Inverted X direction
+        y_robot = -(block_frame_offset_y + (y_blocks * block_size)); // Negative Y for right robot arm
+        z_robot = table_height + block_frame_offset_z + (z_blocks * block_size) + block_height_offset; // Place on table surface
+        
+        // Set default orientation
+        rx_deg = config.default_orientation_deg[0];
+        ry_deg = config.default_orientation_deg[1];
+        rz_deg = config.default_orientation_deg[2];
+        
+        log("Right arm block coords (" + std::to_string(x_blocks) + "," + 
+            std::to_string(y_blocks) + "," + std::to_string(z_blocks) + 
+            ") to robot coords (" + std::to_string(x_robot) + "," + 
+            std::to_string(y_robot) + "," + std::to_string(z_robot) + ")", LogLevel::DEBUG);
+        
+        return true;
+    }
+    
+    // For other robots, use the matrix transformation (simplified for now)
     Eigen::Vector2d block_pos(x_blocks, y_blocks);
     Eigen::Vector2d robot_pos = config.block_to_robot_matrix * block_pos;
     

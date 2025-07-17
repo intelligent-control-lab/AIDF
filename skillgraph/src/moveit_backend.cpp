@@ -9,6 +9,8 @@
 #include <vector>
 #include <mutex>
 #include <algorithm>
+#include <Eigen/Geometry>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace skillgraph {
 
@@ -86,6 +88,61 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
     log("MoveitInstance: ROS 2 node initialized successfully", LogLevel::INFO);
 
     // Initialize robot model loader with ROS 2 node
+    robot_model_loader::RobotModelLoader robot_model_loader(node_, "robot_description");
+    robot_model_ = robot_model_loader.getModel();
+    
+    if (!robot_model_) {
+        throw std::runtime_error("Failed to load robot model");
+    }
+    
+    kinematic_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
+    kinematic_state_->setToDefaultValues();
+
+    // Create planning scene
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(robot_model_);
+    
+    // Initialize service client for planning scene
+    planning_scene_diff_client_ = node_->create_client<moveit_msgs::srv::ApplyPlanningScene>("apply_planning_scene");
+    
+    // Get original scene
+    planning_scene_->getPlanningSceneMsg(original_scene_);
+    
+    // Initialize marker publisher
+    marker_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>("visualization_marker", 10);
+    
+    joint_group_name_ = move_group_name;
+    
+    // Initialize move group interface
+    move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node_, move_group_name);
+    
+    planning_scene_diff_ = original_scene_;
+    
+    log("MoveitInstance: Initialization complete", LogLevel::INFO);
+}
+
+MoveitInstance::MoveitInstance(rclcpp::Node::SharedPtr node, const std::string &move_group_name, const std::string &moveit_pkg_name)
+{
+    // Register this instance for emergency cleanup
+    {
+        std::lock_guard<std::mutex> lock(instances_mutex_);
+        active_instances_.push_back(this);
+        
+        // Setup signal handlers only for the first instance
+        if (active_instances_.size() == 1) {
+            std::signal(SIGSEGV, signalHandler);
+            std::signal(SIGTERM, signalHandler);
+            std::signal(SIGINT, signalHandler);
+            std::signal(SIGABRT, signalHandler);
+            log("MoveitInstance: Signal handlers registered for emergency cleanup", LogLevel::INFO);
+        }
+    }
+    
+    // Use the provided node
+    node_ = node;
+    
+    log("MoveitInstance: Using provided ROS 2 node", LogLevel::INFO);
+
+    // Initialize robot model loader with provided node
     robot_model_loader::RobotModelLoader robot_model_loader(node_, "robot_description");
     robot_model_ = robot_model_loader.getModel();
     
@@ -438,9 +495,326 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 }
 
 bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
-    // Simplified stub
-    log("MoveitControl::move called but not implemented", LogLevel::WARN);
-    return fake_move_;
+    if (fake_move_) {
+        log("MoveitControl::move called in fake mode", LogLevel::INFO);
+        return true;
+    }
+    
+    // Get the move group interface from the instance
+    auto move_group = instance_->move_group_;
+    if (!move_group) {
+        log("MoveitControl::move - no move group interface available", LogLevel::ERROR);
+        return false;
+    }
+    
+    try {
+        // Convert RobotTrajectory to MoveIt trajectory format
+        moveit_msgs::msg::RobotTrajectory moveit_trajectory;
+        
+        // Set up trajectory header
+        moveit_trajectory.joint_trajectory.header.stamp = instance_->node_->now();
+        moveit_trajectory.joint_trajectory.header.frame_id = instance_->joint_group_name_ + "_base_link";
+        
+        // Get joint names from the robot model
+        const moveit::core::JointModelGroup* joint_model_group =
+            instance_->kinematic_state_->getJointModelGroup(instance_->joint_group_name_);
+        moveit_trajectory.joint_trajectory.joint_names = joint_model_group->getActiveJointModelNames();
+        
+        // Convert trajectory points
+        for (size_t i = 0; i < trajectory.trajectory.size(); ++i) {
+            trajectory_msgs::msg::JointTrajectoryPoint point;
+            
+            // Set positions
+            point.positions = trajectory.trajectory[i].joint_values;
+            
+            // Set velocities and accelerations to zero (will be computed by controller)
+            point.velocities.resize(trajectory.trajectory[i].joint_values.size(), 0.0);
+            point.accelerations.resize(trajectory.trajectory[i].joint_values.size(), 0.0);
+            
+            // Set time from start
+            if (i < trajectory.times.size()) {
+                point.time_from_start = rclcpp::Duration::from_seconds(trajectory.times[i]);
+            } else {
+                point.time_from_start = rclcpp::Duration::from_seconds(i * 0.1); // Default 100ms between points
+            }
+            
+            moveit_trajectory.joint_trajectory.points.push_back(point);
+        }
+        
+        // If trajectory is empty, create a simple trajectory to current position
+        if (moveit_trajectory.joint_trajectory.points.empty()) {
+            log("Empty trajectory provided, creating single point trajectory", LogLevel::WARN);
+            
+            trajectory_msgs::msg::JointTrajectoryPoint point;
+            std::vector<double> current_joint_values;
+            move_group->getCurrentState()->copyJointGroupPositions(joint_model_group, current_joint_values);
+            
+            point.positions = current_joint_values;
+            point.velocities.resize(current_joint_values.size(), 0.0);
+            point.accelerations.resize(current_joint_values.size(), 0.0);
+            point.time_from_start = rclcpp::Duration::from_seconds(1.0);
+            
+            moveit_trajectory.joint_trajectory.points.push_back(point);
+        }
+        
+        log("MoveitControl::move - Executing trajectory with " + std::to_string(moveit_trajectory.joint_trajectory.points.size()) + " points", LogLevel::INFO);
+        
+        // Execute the trajectory
+        auto result = move_group->execute(moveit_trajectory);
+        
+        if (result == moveit::core::MoveItErrorCode::SUCCESS) {
+            log("MoveitControl::move - Trajectory execution successful", LogLevel::INFO);
+            
+            // Add a small delay to ensure motion completes
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            
+            return true;
+        } else {
+            log("MoveitControl::move - Trajectory execution failed with error code: " + std::to_string(result.val), LogLevel::ERROR);
+            return false;
+        }
+        
+    } catch (const std::exception& e) {
+        log("MoveitControl::move - Exception during trajectory execution: " + std::string(e.what()), LogLevel::ERROR);
+        return false;
+    }
 }
 
+// Add IK solver functionality for joint-space planning
+bool MoveitInstance::solveIK(const std::string& robot_name, 
+                            const geometry_msgs::msg::Pose& target_pose,
+                            const std::vector<double>& seed_joints,
+                            std::vector<double>& solution_joints) {
+    try {
+        const moveit::core::JointModelGroup* joint_model_group = 
+            robot_model_->getJointModelGroup(robot_name);
+        
+        if (!joint_model_group) {
+            log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+            return false;
+        }
+        
+        // Create a robot state for IK solving
+        moveit::core::RobotState robot_state(robot_model_);
+        
+        // Set seed state
+        if (seed_joints.size() == joint_model_group->getActiveJointModelNames().size()) {
+            robot_state.setJointGroupPositions(joint_model_group, seed_joints);
+        } else {
+            log("Seed joint size mismatch for " + robot_name + " (got " + 
+                std::to_string(seed_joints.size()) + ", expected " + 
+                std::to_string(joint_model_group->getActiveJointModelNames().size()) + 
+                "), using default positions", LogLevel::WARN);
+            robot_state.setToDefaultValues();
+        }
+        
+        // Convert geometry_msgs::Pose to Eigen::Isometry3d
+        Eigen::Isometry3d target_transform = Eigen::Isometry3d::Identity();
+        target_transform.translation() = Eigen::Vector3d(
+            target_pose.position.x,
+            target_pose.position.y,
+            target_pose.position.z
+        );
+        
+        target_transform.linear() = Eigen::Quaterniond(
+            target_pose.orientation.w,
+            target_pose.orientation.x,
+            target_pose.orientation.y,
+            target_pose.orientation.z
+        ).toRotationMatrix();
+        
+        // Get the tip link (end effector) for the robot arm
+        std::string tip_link;
+        if (robot_name == "left_arm") {
+            tip_link = "left_end_effector_link";
+        } else if (robot_name == "right_arm") {
+            tip_link = "right_end_effector_link";
+        } else if (robot_name == "center_arm") {
+            tip_link = "center_end_effector_link";
+        } else {
+            // Fallback to the last link in the group
+            const std::vector<std::string>& link_names = joint_model_group->getLinkModelNames();
+            if (!link_names.empty()) {
+                tip_link = link_names.back();
+            } else {
+                log("No links found for group " + robot_name, LogLevel::ERROR);
+                return false;
+            }
+        }
+        
+        log("Using tip link: " + tip_link + " for IK solving", LogLevel::DEBUG);
+        
+        // Solve IK with increased timeout
+        bool found_ik = robot_state.setFromIK(joint_model_group, target_transform, tip_link, 
+                                             5.0, // increased timeout to 5 seconds
+                                             moveit::core::GroupStateValidityCallbackFn(), 
+                                             kinematics::KinematicsQueryOptions());
+        
+        if (found_ik) {
+            // Get the joint values from the solution
+            std::vector<double> joint_values;
+            robot_state.copyJointGroupPositions(joint_model_group, joint_values);
+            solution_joints = joint_values;
+            
+            log("IK solution found for " + robot_name + " with " + std::to_string(solution_joints.size()) + " joints", LogLevel::DEBUG);
+            return true;
+        } else {
+            log("IK solution not found for " + robot_name + " (target: [" + 
+                std::to_string(target_pose.position.x) + ", " + 
+                std::to_string(target_pose.position.y) + ", " + 
+                std::to_string(target_pose.position.z) + "])", LogLevel::WARN);
+            return false;
+        }
+        
+    } catch (const std::exception& e) {
+        log("Error in IK solving for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
+        return false;
+    }
 }
+
+bool MoveitInstance::getCurrentJointValues(const std::string& robot_name, 
+                                         std::vector<double>& current_joints) {
+    try {
+        const moveit::core::JointModelGroup* joint_model_group = 
+            robot_model_->getJointModelGroup(robot_name);
+        
+        if (!joint_model_group) {
+            log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+            return false;
+        }
+        
+        // Get current state from planning scene
+        moveit::core::RobotState current_state = planning_scene_->getCurrentState();
+        current_state.copyJointGroupPositions(joint_model_group, current_joints);
+        
+        log("Retrieved current joint values for " + robot_name + " with " + 
+            std::to_string(current_joints.size()) + " joints", LogLevel::DEBUG);
+        
+        return true;
+    } catch (const std::exception& e) {
+        log("Error getting current joint values for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
+        return false;
+    }
+}
+
+std::vector<std::vector<double>> MoveitInstance::interpolateJointTrajectory(
+    const std::vector<double>& start_joints,
+    const std::vector<double>& end_joints,
+    int num_steps) {
+    
+    std::vector<std::vector<double>> trajectory;
+    
+    if (start_joints.size() != end_joints.size()) {
+        log("Joint vector size mismatch in interpolation", LogLevel::ERROR);
+        return trajectory;
+    }
+    
+    for (int i = 0; i <= num_steps; ++i) {
+        double t = static_cast<double>(i) / num_steps;
+        std::vector<double> interpolated_joints(start_joints.size());
+        
+        for (size_t j = 0; j < start_joints.size(); ++j) {
+            interpolated_joints[j] = start_joints[j] + t * (end_joints[j] - start_joints[j]);
+        }
+        
+        trajectory.push_back(interpolated_joints);
+    }
+    
+    return trajectory;
+}
+
+void MoveitInstance::executeJointTrajectory(const std::string& robot_name,
+                                          const std::vector<std::vector<double>>& joint_trajectory,
+                                          double step_duration) {
+    try {
+        const moveit::core::JointModelGroup* joint_model_group = 
+            robot_model_->getJointModelGroup(robot_name);
+        
+        if (!joint_model_group) {
+            log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+            return;
+        }
+        
+        // Get robot ID from robot name
+        int robot_id = (robot_name == "left_arm") ? 0 : (robot_name == "center_arm") ? 1 : 2;
+        
+        // Execute trajectory by updating robot state at each step
+        for (size_t i = 0; i < joint_trajectory.size(); ++i) {
+            skillgraph::RobotState robot_state;
+            robot_state.robot_name = robot_name;
+            robot_state.robot_id = robot_id;
+            robot_state.joint_values = joint_trajectory[i];
+            
+            // Update the robot position
+            moveRobot(robot_id, robot_state);
+            updateScene();
+            
+            // Sleep for step duration
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step_duration * 1000)));
+        }
+        
+        log("Joint trajectory execution completed for " + robot_name, LogLevel::INFO);
+        
+    } catch (const std::exception& e) {
+        log("Error executing joint trajectory for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
+    }
+}
+
+// Enhanced IK solver using MoveGroupInterface planning approach
+bool MoveitInstance::solveIKWithPlanning(const std::string& robot_name,
+                                        const geometry_msgs::msg::Pose& target_pose,
+                                        const std::vector<double>& seed_joints,
+                                        std::vector<double>& solution_joints) {
+    try {
+        // Create a separate MoveGroupInterface for this robot if needed
+        std::shared_ptr<moveit::planning_interface::MoveGroupInterface> arm;
+        
+        // Use existing move_group_ if it matches, otherwise create a new one
+        if (joint_group_name_ == robot_name) {
+            arm = move_group_;
+        } else {
+            arm = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node_, robot_name);
+        }
+        
+        if (!arm) {
+            log("Failed to create MoveGroupInterface for " + robot_name, LogLevel::ERROR);
+            return false;
+        }
+        
+        log("Using MoveGroupInterface planning approach for IK solving for " + robot_name, LogLevel::DEBUG);
+        
+        // Set the robot state to start joint configuration for IK solving
+        if (seed_joints.size() > 0) {
+            arm->setJointValueTarget(seed_joints);
+        }
+        
+        // Set pose target for IK solving
+        arm->setPoseTarget(target_pose);
+        
+        // Plan to get IK solution (but we'll use only the goal joint values)
+        moveit::planning_interface::MoveGroupInterface::Plan temp_plan;
+        moveit::core::MoveItErrorCode result = arm->plan(temp_plan);
+        
+        if (result != moveit::core::MoveItErrorCode::SUCCESS) {
+            log("Failed to solve IK for goal pose using MoveGroupInterface planning for " + robot_name, LogLevel::ERROR);
+            return false;
+        }
+        
+        // Extract goal joint values from the planned trajectory
+        if (!temp_plan.trajectory_.joint_trajectory.points.empty()) {
+            solution_joints = temp_plan.trajectory_.joint_trajectory.points.back().positions;
+            log("IK solution found using MoveGroupInterface planning for " + robot_name + 
+                " with " + std::to_string(solution_joints.size()) + " joints", LogLevel::DEBUG);
+            return true;
+        } else {
+            log("Empty trajectory from IK solution using MoveGroupInterface planning for " + robot_name, LogLevel::ERROR);
+            return false;
+        }
+        
+    } catch (const std::exception& e) {
+        log("Error in enhanced IK solving for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
+        return false;
+    }
+}
+
+} // namespace skillgraph

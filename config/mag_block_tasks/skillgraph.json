@@ -1,70 +1,16 @@
 {
     "metaskills": {
-        "left_arm": {
+        "gen3": {
             "PickAndPlace": {
-                "atomicSkills": ["Pick", "Transit", "Place-Down"],
+                "type": "temporal",
                 "numRobot": 1,
-                "robotId": [0],
-                "type": "temporal"
-            }
-        },
-        "right_arm": {
-            "PickAndPlace": {
                 "atomicSkills": ["Pick", "Transit", "Place-Down"],
-                "numRobot": 1,
-                "robotId": [1],
-                "type": "temporal"
-            }
-        },
-        "center_arm": {
-            "PickAndPlace": {
-                "atomicSkills": ["Pick", "Transit", "Place-Down"],
-                "numRobot": 1,
-                "robotId": [2],
-                "type": "temporal"
+                "robotId": [0, 0, 0]
             }
         }
     },
     "skills": {
-        "left_arm": {
-            "Pick": {
-                "default_params": {
-                    "approach_distance": 0.1,
-                    "grip_width": 0.08
-                }
-            },
-            "Place-Down": {
-                "default_params": {
-                    "approach_distance": 0.1,
-                    "release_distance": 0.002
-                }
-            },
-            "Transit": {
-                "default_params": {
-                    "speed_scale": 0.5
-                }
-            }
-        },
-        "right_arm": {
-            "Pick": {
-                "default_params": {
-                    "approach_distance": 0.1,
-                    "grip_width": 0.08
-                }
-            },
-            "Place-Down": {
-                "default_params": {
-                    "approach_distance": 0.1,
-                    "release_distance": 0.002
-                }
-            },
-            "Transit": {
-                "default_params": {
-                    "speed_scale": 0.5
-                }
-            }
-        },
-        "center_arm": {
+        "gen3": {
             "Pick": {
                 "default_params": {
                     "approach_distance": 0.1,

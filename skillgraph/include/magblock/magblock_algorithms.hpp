@@ -2,6 +2,16 @@
 #include "algorithms.hpp"
 #include "magblock_objects.hpp"
 #include "moveit_backend.hpp"
+#include <geometry_msgs/msg/pose.hpp>
+#include <moveit_msgs/msg/robot_trajectory.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <jsoncpp/json/json.h>
+#include <vector>
+#include <tuple>
+#include <set>
+#include <memory>
 
 namespace skillgraph {
     /**
@@ -15,6 +25,119 @@ namespace skillgraph {
         // Speed for robot motions
         double execution_speed = 0.5;
     };
+
+    // ===============================
+    // MagBlock Algorithm Functions
+    // ===============================
+
+    /**
+     * @brief Load robot properties configuration from JSON file
+     */
+    void loadRobotProperties();
+
+    /**
+     * @brief Load environment setup from JSON file
+     */
+    Json::Value loadEnvironmentSetup();
+
+    /**
+     * @brief Load assembly instructions from JSON file
+     */
+    Json::Value loadAssemblyInstructions();
+
+    /**
+     * @brief Create pose with orientation from Euler angles
+     */
+    geometry_msgs::msg::Pose createPoseWithOrientation(double x, double y, double z, 
+                                                        double thetax_deg, double thetay_deg, double thetaz_deg);
+
+    /**
+     * @brief Transform coordinates from skillgraph frame to robot frame
+     */
+    void transformSkillgraphToRobot(double x_sg, double y_sg, double z_sg, 
+                                   double& x_robot, double& y_robot, double& z_robot, 
+                                   double& rx, double& ry, double& rz);
+
+    /**
+     * @brief Transform coordinates from skillgraph frame to robot frame for specific robot
+     */
+    void transformSkillgraphToRobot(const std::string& robot_name, 
+                                   double x_sg, double y_sg, double z_sg, 
+                                   double& x_robot, double& y_robot, double& z_robot, 
+                                   double& rx, double& ry, double& rz);
+
+    /**
+     * @brief Find optimal theta-Z angle that doesn't block the required press face
+     */
+    double findOptimalThetaZ(int press_face);
+
+    /**
+     * @brief Get blocked faces for a given thetaz orientation
+     */
+    std::set<int> getBlockedFaces(double thetaz_deg);
+
+    /**
+     * @brief Get approach direction offset based on press_face for place operation
+     */
+    std::tuple<double, double, double> getPlaceApproachOffset(int press_face, double approach_distance = 0.15);
+
+    /**
+     * @brief Get place orientation based on gripper_ori parameter
+     */
+    std::pair<double, double> getPlaceOrientation(int gripper_ori);
+
+    /**
+     * @brief Create place pose with proper orientation
+     */
+    geometry_msgs::msg::Pose createPlacePose(double x, double y, double z, 
+                                              int press_face, int gripper_ori, double pick_thetaz);
+
+    /**
+     * @brief Create approach pose for place operation
+     */
+    geometry_msgs::msg::Pose createPlaceApproachPose(const geometry_msgs::msg::Pose& place_pose, 
+                                                      int press_face, double approach_distance);
+
+    /**
+     * @brief Get block pick position from environment setup
+     */
+    bool getBlockPickPosition(const std::string& block_name, double& x, double& y, double& z);
+
+    /**
+     * @brief Get block place position from assembly instructions
+     */
+    bool getBlockPlacePosition(const std::string& block_name, double& x, double& y, double& z, 
+                               int& press_face, int& gripper_ori);
+
+    /**
+     * @brief Plan pick-place trajectory using MoveIt planning and execution
+     */
+    bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 const std::string& robot_name,
+                                 const geometry_msgs::msg::Pose& pick_pose,
+                                 const geometry_msgs::msg::Pose& place_pose,
+                                 const std::string& object_name,
+                                 int press_face,
+                                 std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
+
+    /**
+     * @brief Get the current joint state for a robot to ensure trajectory continuity
+     */
+    std::vector<double> getCurrentJointState(std::shared_ptr<MoveitInstance> moveit_instance, int robot_id);
+
+    /**
+     * @brief Interpolate between two joint configurations and move robot for visualization
+     */
+    void interpolateAndMoveRobot(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 int robot_id,
+                                 const std::vector<double>& start_joints,
+                                 const std::vector<double>& end_joints,
+                                 int steps,
+                                 int delay_ms);
+
+    // ===============================
+    // Planning Algorithm Classes
+    // ===============================
 
     /**
      * @brief Generator for magnetic block grasp poses.

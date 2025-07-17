@@ -26,8 +26,9 @@ void AssemblySeq::print() {
  */
 TaskPtr AssemblySeq::get_task_at(int i) 
 {
-    if (i >= task_seq_.size()) {
-        std::cerr << "Object index out of range" << std::endl;
+    if (i < 0 || i >= task_seq_.size()) {
+        std::cerr << "Object index out of range: " << i << " (size: " << task_seq_.size() << ")" << std::endl;
+        return nullptr;
     }
 
     return task_seq_[i];

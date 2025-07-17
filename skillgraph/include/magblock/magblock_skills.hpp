@@ -2,14 +2,9 @@
 
 #include "skills.hpp"
 #include "moveit_backend.hpp"
-#include <geometry_msgs/msg/pose.hpp>
-#include <moveit_msgs/msg/robot_trajectory.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/utils.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <cmath>
-#include <thread>
-#include <chrono>
+#include <jsoncpp/json/json.h>
+#include <vector>
+#include <memory>
 
 namespace skillgraph {
 
@@ -79,42 +74,8 @@ private:
      * @return True if successful.
      */
     bool execute_pick_and_place_skill(State &current_state);
-    
-    /**
-     * @brief MoveIt-specific functions for trajectory planning and execution
-     */
-    
-    // Helper functions for MoveIt trajectory planning
-    geometry_msgs::msg::Pose createPoseWithOrientation(double x, double y, double z, 
-                                                      double thetax_deg, double thetay_deg, double thetaz_deg);
-    geometry_msgs::msg::Pose createPlacePose(double x, double y, double z, 
-                                            int press_face, int gripper_ori, double pick_thetaz);
-    geometry_msgs::msg::Pose createPlaceApproachPose(const geometry_msgs::msg::Pose& place_pose, 
-                                                    int press_face, double approach_distance = 0.15);
-    double findOptimalThetaZ(int press_face);
-    std::tuple<double, double, double> getPlaceApproachOffset(int press_face, double approach_distance = 0.15);
-    std::pair<double, double> getPlaceOrientation(int gripper_ori);
-    void transformSkillgraphToRobot(double x_sg, double y_sg, double z_sg, 
-                                   double& x_robot, double& y_robot, double& z_robot, 
-                                   double& rx, double& ry, double& rz);
-    
-    // MoveIt planning and execution functions
-    bool planPickPlaceTrajectory(const std::string& robot_name,
-                                const geometry_msgs::msg::Pose& pick_pose,
-                                const geometry_msgs::msg::Pose& place_pose,
-                                const std::string& object_name,
-                                int press_face,
-                                std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
-    
-    bool executeTrajectories(const std::string& robot_name,
-                            const std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories,
-                            const std::string& object_name);
-    
-    // Robot state management
-    std::vector<double> getCurrentJointState(int robot_id);
 
-private:
-    // MoveIt interfaces accessed through backend
+    // Helper to get MoveitInstance from backend
     std::shared_ptr<MoveitInstance> getMoveitInstance() {
         return std::dynamic_pointer_cast<MoveitInstance>(backend_);
     }

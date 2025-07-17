@@ -1,0 +1,60 @@
+{
+    "robots": {
+        "left_arm": {
+            "id": 0,
+            "block_frame_transform": {
+                "offset_x": -0.40,
+                "offset_y": 0.11,
+                "offset_z": 0.0,
+                "x_direction": 1.0,
+                "y_direction": 1.0,
+                "z_direction": 1.0,
+                "description": "Left robot base frame transformation from block frame origin"
+            }
+        },
+        "center_arm": {
+            "id": 1,
+            "block_frame_transform": {
+                "offset_x": 0.0,
+                "offset_y": 0.11,
+                "offset_z": 0.0,
+                "x_direction": 1.0,
+                "y_direction": 1.0,
+                "z_direction": 1.0,
+                "description": "Center robot base frame transformation from block frame origin"
+            }
+        },
+        "right_arm": {
+            "id": 2,
+            "block_frame_transform": {
+                "offset_x": 0.40,
+                "offset_y": 0.11,
+                "offset_z": 0.0,
+                "x_direction": -1.0,
+                "y_direction": -1.0,
+                "z_direction": 1.0,
+                "description": "Right robot base frame transformation from block frame origin - X direction inverted, Y negative for right robot arm"
+            }
+        }
+    },
+    "workspace": {
+        "block_size": 0.025,
+        "table_height": 0.15,
+        "block_height_offset": 0.0125,
+        "description": "Common workspace parameters for all robots"
+    },
+    "coordinate_system": {
+        "block_frame_origin": {
+            "description": "Block frame origin (0,0,0) is at the center of the workspace table",
+            "x_positive": "Rightward when looking from front of table",
+            "y_positive": "Forward toward the robots",
+            "z_positive": "Upward from table surface"
+        },
+        "robot_base_frames": {
+            "description": "Robot base frames are positioned around the workspace table",
+            "left_robot": "40cm to the left of block frame origin, 11cm back from origin",
+            "center_robot": "Directly behind block frame origin, 11cm back from origin",
+            "right_robot": "40cm to the right of block frame origin, 11cm back from origin"
+        }
+    }
+}
