@@ -1,4 +1,6 @@
 #include "magblock/magblock_algorithms.hpp"
+#include "Utils/PathUtils.hpp"
+using skillgraph::utils::PathResolver;
 #include "Utils/Logger.hpp"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/utils.h>
@@ -10,6 +12,24 @@
 #include <tuple>
 #include <fstream>
 #include <jsoncpp/json/json.h>
+
+static Json::Value task_config_;
+static bool task_config_loaded_ = false;
+
+void loadTaskConfig() {
+    if (task_config_loaded_) return;
+
+    std::string config_path = PathResolver::resolvePath("config/mag_block_tasks/skillgraph.json");
+
+    std::ifstream config_file(config_path);
+    if (!config_file.is_open()) {
+        log("Failed to open task config: " + config_path, LogLevel::ERROR);
+        return;
+    }
+
+    config_file >> task_config_;
+    task_config_loaded_ = true;
+}
 
 namespace skillgraph {
 
@@ -29,7 +49,9 @@ static bool properties_loaded = false;
 void loadRobotProperties() {
     if (properties_loaded) return;
     
-    std::string config_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/robot_properties.json";
+    // std::string config_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/robot_properties.json";
+    loadTaskConfig();
+    std::string config_path = PathResolver::resolvePath(task_config_["environment"]["robot_properties"].asString());
     
     std::ifstream config_file(config_path);
     if (!config_file.is_open()) {
@@ -68,7 +90,9 @@ void loadRobotProperties() {
  * @brief Load environment setup from JSON file
  */
 Json::Value loadEnvironmentSetup() {
-    std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
+    loadTaskConfig();
+    std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
+    // std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
     
     std::ifstream env_file(env_path);
     Json::Value env_setup;
@@ -93,7 +117,9 @@ Json::Value loadEnvironmentSetup() {
  * @brief Load assembly instructions from JSON file
  */
 Json::Value loadAssemblyInstructions() {
-    std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
+    loadTaskConfig();
+    std::string assembly_path = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
+    // std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
     
     std::ifstream assembly_file(assembly_path);
     Json::Value assembly_data;
@@ -468,75 +494,45 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
             " pitch=" + std::to_string(pitch * 180.0 / M_PI) + " yaw=" + std::to_string(yaw * 180.0 / M_PI), LogLevel::DEBUG);
         
         // First try the enhanced IK solver using MoveGroupInterface planning
-        if (!moveit_instance->solveIKWithPlanning(robot_name, waypoints[i], seed_joints, solution_joints)) {
-            log("Enhanced IK planning failed for " + waypoint_names[i] + " pose, trying basic IK solver...", LogLevel::WARN);
-            
-            // Fallback to basic IK solver
-            if (!moveit_instance->solveIK(robot_name, waypoints[i], seed_joints, solution_joints)) {
-                log("Basic IK also failed for " + waypoint_names[i] + " pose", LogLevel::ERROR);
+        if (!moveit_instance->solveIK(robot_name, waypoints[i], seed_joints, solution_joints)) {
+            log("IK planning failed for " + waypoint_names[i] + " pose, trying basic IK solver...", LogLevel::WARN);
+                        
+                // Try with a more relaxed orientation - modify the pose to have less strict orientation
+                log("Trying with relaxed orientation...", LogLevel::WARN);
+                geometry_msgs::msg::Pose relaxed_pose = waypoints[i];
                 
-                // Try with increased timeout and different seed
-                log("Retrying with default seed...", LogLevel::WARN);
-                std::vector<double> default_seed = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+                // Use a more achievable orientation - slightly tilted instead of straight down
+                double relaxed_thetax = 10.0;  // Small tilt
+                double relaxed_thetay = 170.0; // Not quite straight down
+                double relaxed_thetaz = 0.0;   // No rotation around Z
                 
-                // Try enhanced planning with default seed first
-                if (!moveit_instance->solveIKWithPlanning(robot_name, waypoints[i], default_seed, solution_joints)) {
-                    log("Enhanced IK planning with default seed failed, trying basic IK...", LogLevel::WARN);
+                // Convert to quaternion
+                tf2::Quaternion relaxed_quat;
+                relaxed_quat.setRPY(relaxed_thetax * M_PI / 180.0, 
+                                    relaxed_thetay * M_PI / 180.0, 
+                                    relaxed_thetaz * M_PI / 180.0);
+                
+                relaxed_pose.orientation.x = relaxed_quat.x();
+                relaxed_pose.orientation.y = relaxed_quat.y();
+                relaxed_pose.orientation.z = relaxed_quat.z();
+                relaxed_pose.orientation.w = relaxed_quat.w();
+                
+                log("Relaxed orientation: roll=" + std::to_string(relaxed_thetax) + 
+                    " pitch=" + std::to_string(relaxed_thetay) + " yaw=" + std::to_string(relaxed_thetaz), LogLevel::DEBUG);
+                
+                // Try enhanced planning with relaxed pose first
+                if (!moveit_instance->solveIK(robot_name, relaxed_pose, seed_joints, solution_joints)) {
+                    log("IK planning with relaxed orientation failed, trying basic IK...", LogLevel::WARN);
                     
-                    if (!moveit_instance->solveIK(robot_name, waypoints[i], default_seed, solution_joints)) {
-                        log("All IK attempts failed for " + waypoint_names[i] + " pose", LogLevel::ERROR);
-                        
-                        // Try with a more relaxed orientation - modify the pose to have less strict orientation
-                        log("Trying with relaxed orientation...", LogLevel::WARN);
-                        geometry_msgs::msg::Pose relaxed_pose = waypoints[i];
-                        
-                        // Use a more achievable orientation - slightly tilted instead of straight down
-                        double relaxed_thetax = 10.0;  // Small tilt
-                        double relaxed_thetay = 170.0; // Not quite straight down
-                        double relaxed_thetaz = 0.0;   // No rotation around Z
-                        
-                        // Convert to quaternion
-                        tf2::Quaternion relaxed_quat;
-                        relaxed_quat.setRPY(relaxed_thetax * M_PI / 180.0, 
-                                           relaxed_thetay * M_PI / 180.0, 
-                                           relaxed_thetaz * M_PI / 180.0);
-                        
-                        relaxed_pose.orientation.x = relaxed_quat.x();
-                        relaxed_pose.orientation.y = relaxed_quat.y();
-                        relaxed_pose.orientation.z = relaxed_quat.z();
-                        relaxed_pose.orientation.w = relaxed_quat.w();
-                        
-                        log("Relaxed orientation: roll=" + std::to_string(relaxed_thetax) + 
-                            " pitch=" + std::to_string(relaxed_thetay) + " yaw=" + std::to_string(relaxed_thetaz), LogLevel::DEBUG);
-                        
-                        // Try enhanced planning with relaxed pose first
-                        if (!moveit_instance->solveIKWithPlanning(robot_name, relaxed_pose, default_seed, solution_joints)) {
-                            log("Enhanced IK planning with relaxed orientation failed, trying basic IK...", LogLevel::WARN);
-                            
-                            if (!moveit_instance->solveIK(robot_name, relaxed_pose, default_seed, solution_joints)) {
-                                log("Even relaxed orientation IK failed for " + waypoint_names[i] + " pose", LogLevel::ERROR);
-                                return false;
-                            } else {
-                                log("Relaxed orientation basic IK succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
-                                waypoints[i] = relaxed_pose; // Update the waypoint to use the successful pose
-                            }
-                        } else {
-                            log("Relaxed orientation enhanced IK succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
-                            waypoints[i] = relaxed_pose; // Update the waypoint to use the successful pose
-                        }
-                    } else {
-                        log("Basic IK with default seed succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
-                    }
                 } else {
-                    log("Enhanced IK planning with default seed succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+                    log("Relaxed orientation IK succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+                    waypoints[i] = relaxed_pose; // Update the waypoint to use the successful pose
                 }
-            } else {
-                log("Basic IK with original seed succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
-            }
         } else {
-            log("Enhanced IK planning succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+            log("IK planning succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
         }
-        
+    
+
         waypoint_joints.push_back(solution_joints);
         seed_joints = solution_joints;  // Use previous solution as seed for next IK
         

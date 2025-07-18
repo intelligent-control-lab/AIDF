@@ -51,11 +51,20 @@
     "environment": {
         "name": "magblock_assembly",
         "type": "MagBlock",
+        "rootPwd": "${AIDF_PROJECT_ROOT}/",
         "backend": {
             "type": "moveit",
             "moveitConfigPkg": "kinova_three_arm_moveit_config",
             "moveit_group_name": "all_arms",
             "l1_vmax": 1.0
-        }
+        },
+        "object_library": "config/mag_block_tasks/env_setup/env_setup_I.json",
+        "robot_properties": "config/mag_block_tasks/robot_properties.json"
+    },
+    "tasks": {
+        "type": "MagBlock",
+        "name": "I",
+        "assembly_seq": "config/mag_block_tasks/assembly_tasks/I.json",
+        "assemble": "true"
     }
 }

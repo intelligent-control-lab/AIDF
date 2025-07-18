@@ -97,9 +97,10 @@ def launch_setup(context, *args, **kwargs):
             Node(
                 package="aidf",
                 executable="magblock_assembly_test",
+                #executable="magblock_assembly_test",
                 name="magblock_assembly_test",
                 output="screen",
-                prefix="gdb --batch --ex 'set confirm off' --ex 'set pagination off' --ex 'run' --ex 'bt' --ex 'info registers' --ex 'quit' --args",
+                prefix="xterm -e gdb --args",
                 parameters=[
                     moveit_config.to_dict(),
                     {"use_sim_time": use_sim_time},
