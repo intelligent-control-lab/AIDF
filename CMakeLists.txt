@@ -235,26 +235,6 @@ ament_target_dependencies(plan_magblock
   moveit_ros_planning_interface
 )
 
-add_executable(test_magblock_assembly exe/test_magblock_assembly.cpp)
-target_link_libraries(test_magblock_assembly ${PROJECT_NAME}_lib yaml-cpp)
-ament_target_dependencies(test_magblock_assembly
-  rclcpp
-  moveit_core
-  moveit_ros_planning_interface
-)
-
-add_executable(test_magblock_skillgraph exe/test_magblock_skillgraph.cpp)
-target_link_libraries(test_magblock_skillgraph ${PROJECT_NAME}_lib yaml-cpp)
-ament_target_dependencies(test_magblock_skillgraph
-  rclcpp
-  moveit_core
-  moveit_ros_planning_interface
-)
-
-add_executable(minimal_moveit_backend_test exe/minimal_moveit_backend_test.cpp)
-target_link_libraries(minimal_moveit_backend_test ${PROJECT_NAME}_lib yaml-cpp)
-ament_target_dependencies(minimal_moveit_backend_test rclcpp moveit_core moveit_ros_planning_interface)
-
 
 # MagBlock Assembly Executor executable (DISABLED - use magblock_assembly_test instead)
 # add_executable(magblock_assembly_executor src/magblock_assembly_executor.cpp)
@@ -279,7 +259,7 @@ ament_target_dependencies(magblock_assembly_test
 )
 
 # Install MagBlock executables
-install(TARGETS plan_magblock test_magblock_assembly test_magblock_skillgraph magblock_assembly_test
+install(TARGETS plan_magblock magblock_assembly_test
     DESTINATION lib/${PROJECT_NAME}
 )
 

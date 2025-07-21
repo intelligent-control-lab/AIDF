@@ -47,6 +47,12 @@ private:
     Skill::Type skill_type_;
 
     /**
+     * @brief Get robot name from constraints or use default.
+     * @return Robot name to use for execution.
+     */
+    std::string getRobotName() const;
+
+    /**
      * @brief Execute pick skill for magnetic blocks.
      * @param current_state Current robot/environment state.
      * @param constraints JSON constraints for the skill.

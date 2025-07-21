@@ -4,7 +4,12 @@
             "PickAndPlace": {
                 "type": "temporal",
                 "numRobot": 1,
-                "atomicSkills": ["Pick", "Transit", "Place-Down"],
+                "atomicSkills": [
+                    "Pick", 
+                    "Transit", 
+                    "Place-Down",
+                    "Transit"
+                ],
                 "robotId": [0, 0, 0]
             }
         }

@@ -119,6 +119,11 @@ namespace skillgraph {
                                  const std::string& object_name,
                                  int press_face,
                                  std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
+    
+    bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
+                             const std::string& robot_name,
+                             const geometry_msgs::msg::Pose& goal_pose,
+                             std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
 
     /**
      * @brief Get the current joint state for a robot to ensure trajectory continuity
@@ -166,6 +171,21 @@ namespace skillgraph {
         RobotPtr robot_;
         ObjPtr object_;
     };
+
+    /**
+     * @brief Get current robot end-effector pose using forward kinematics.
+     */
+    bool getCurrentRobotPose(std::shared_ptr<PlanInstance> backend,
+                           const std::string& robot_name, 
+                           geometry_msgs::msg::Pose& current_pose);
+
+    /**
+     * @brief Calculate the exact approach pose for a task, consistent with pick/place operations.
+     */
+    bool calculateApproachPose(std::shared_ptr<PlanInstance> backend,
+                             const Json::Value& task_constraints,
+                             const std::string& robot_name, 
+                             geometry_msgs::msg::Pose& approach_pose);
 
     /**
      * @brief Planning algorithms for magnetic block assembly.

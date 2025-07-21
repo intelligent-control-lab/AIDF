@@ -17,8 +17,28 @@
 #include "magblock/magblock_skills.hpp"
 #include "moveit_backend.hpp"
 #include "Utils/Logger.hpp"
+// #include "Utils/PathUtils.hpp"
+// using skillgraph::utils::PathResolver;
 
 using namespace skillgraph;
+
+// static Json::Value task_config_;
+// static bool task_config_loaded_ = false;
+
+// void loadTaskConfig() {
+//     if (task_config_loaded_) return;
+
+//     std::string config_path = PathResolver::resolvePath("config/mag_block_tasks/skillgraph.json");
+
+//     std::ifstream config_file(config_path);
+//     if (!config_file.is_open()) {
+//         log("Failed to open task config: " + config_path, LogLevel::ERROR);
+//         return;
+//     }
+
+//     config_file >> task_config_;
+//     task_config_loaded_ = true;
+// }
 
 class MagBlockAssemblyTest {
 public:
@@ -86,6 +106,8 @@ public:
             // Set the assembly environment configuration
             // Load the environment setup file and pass it to the skillgraph
             std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
+            // loadTaskConfig();
+            // std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
             std::ifstream env_file(env_path);
             if (env_file.is_open()) {
                 Json::Value env_setup;
@@ -117,17 +139,18 @@ public:
             // Get initial state
             State current_state = skillgraph_->get_initial_state();
             
-            // Execute each task in sequence
-            for (int i = 0; i < assembly_seq->num_tasks(); ++i) {
-                auto task = assembly_seq->get_task_at(i);
+            // Execute assembly tasks using skill execution loop
+            while (!skillgraph_->at_target(current_state)) {
+                int current_task_num = current_state.assembled_steps + 1;
+                auto task = assembly_seq->get_task_at(current_state.assembled_steps);
                 
-                log("Processing task " + std::to_string(i+1) + ": " + task->name, LogLevel::INFO);
+                log("Processing task " + std::to_string(current_task_num) + ": " + task->name, LogLevel::INFO);
                 
                 // Get feasible skills for current state
                 auto feasible_skills = skillgraph_->feasible_u(current_state);
                 
                 if (feasible_skills.empty()) {
-                    log("No feasible skills found for task " + std::to_string(i+1), LogLevel::ERROR);
+                    log("No feasible skills found for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
                 
@@ -147,7 +170,7 @@ public:
                 
                 // Execute the skill
                 if (!skill_executor->execute(current_state)) {
-                    log("Failed to execute skill for task " + std::to_string(i+1), LogLevel::ERROR);
+                    log("Failed to execute skill for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
                 
@@ -155,16 +178,27 @@ public:
                 State next_state;
                 double cost;
                 if (!skillgraph_->get_next_state(current_state, selected_skill, next_state, cost)) {
-                    log("Failed to get next state for task " + std::to_string(i+1), LogLevel::ERROR);
+                    log("Failed to get next state for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
                 
                 current_state = next_state;
                 
-                log("Task " + std::to_string(i+1) + " completed successfully", LogLevel::INFO);
+                // Log state transition
+                if (selected_skill->type == Skill::Type::Transit) {
+                    log("Transit skill completed - robot positioned for task " + std::to_string(current_task_num), LogLevel::INFO);
+                } else {
+                    log("Task " + std::to_string(current_task_num) + " completed successfully", LogLevel::INFO);
+                }
                 
-                // Brief pause between tasks
+                // Brief pause between skills
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                
+                // Safety check to prevent infinite loops
+                if (current_state.assembled_steps > assembly_seq->num_tasks()) {
+                    log("ERROR: assembled_steps exceeded num_tasks - breaking loop", LogLevel::ERROR);
+                    break;
+                }
             }
             
             log("All assembly tasks completed successfully!", LogLevel::INFO);
@@ -181,6 +215,8 @@ public:
         
         // Test with a simple assembly sequence
         std::string test_task = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
+        // loadTaskConfig();
+        // std::string test_task = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
         
         if (executeAssemblyTask(test_task)) {
             log("MagBlock Assembly Test PASSED", LogLevel::INFO);

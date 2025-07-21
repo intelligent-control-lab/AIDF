@@ -93,12 +93,6 @@ public:
                  const std::vector<double>& seed_joints,
                  std::vector<double>& solution_joints);
     
-    // Enhanced IK solver using MoveGroupInterface planning
-    bool solveIKWithPlanning(const std::string& robot_name,
-                            const geometry_msgs::msg::Pose& target_pose,
-                            const std::vector<double>& seed_joints,
-                            std::vector<double>& solution_joints);
-    
     bool getCurrentJointValues(const std::string& robot_name, 
                               std::vector<double>& current_joints);
     

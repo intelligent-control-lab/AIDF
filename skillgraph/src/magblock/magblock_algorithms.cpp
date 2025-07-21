@@ -49,9 +49,9 @@ static bool properties_loaded = false;
 void loadRobotProperties() {
     if (properties_loaded) return;
     
-    // std::string config_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/robot_properties.json";
-    loadTaskConfig();
-    std::string config_path = PathResolver::resolvePath(task_config_["environment"]["robot_properties"].asString());
+    std::string config_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/robot_properties.json";
+    // loadTaskConfig();
+    // std::string config_path = PathResolver::resolvePath(task_config_["environment"]["robot_properties"].asString());
     
     std::ifstream config_file(config_path);
     if (!config_file.is_open()) {
@@ -90,9 +90,9 @@ void loadRobotProperties() {
  * @brief Load environment setup from JSON file
  */
 Json::Value loadEnvironmentSetup() {
-    loadTaskConfig();
-    std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
-    // std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
+    // loadTaskConfig();
+    // std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
+    std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
     
     std::ifstream env_file(env_path);
     Json::Value env_setup;
@@ -117,9 +117,9 @@ Json::Value loadEnvironmentSetup() {
  * @brief Load assembly instructions from JSON file
  */
 Json::Value loadAssemblyInstructions() {
-    loadTaskConfig();
-    std::string assembly_path = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
-    // std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
+    // loadTaskConfig();
+    // std::string assembly_path = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
+    std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
     
     std::ifstream assembly_file(assembly_path);
     Json::Value assembly_data;
@@ -422,7 +422,52 @@ bool getBlockPlacePosition(const std::string& block_name, double& x, double& y, 
 }
 
 /**
- * @brief Plan pick-place trajectory using MoveIt planning and execution
+ * @brief Plan transit trajectory
+ */
+bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
+                             const std::string& robot_name,
+                             const geometry_msgs::msg::Pose& goal_pose,
+                             std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories) {
+    if (!moveit_instance) {
+        log("No MoveitInstance backend available for transit planning", LogLevel::ERROR);
+        return false;
+    }
+
+    trajectories.clear();
+
+    // Get current joint values as seed for IK
+    std::vector<double> current_joints;
+    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+
+    std::vector<double> solution_joints;
+    if (!moveit_instance->solveIK(robot_name, goal_pose, current_joints, solution_joints)) {
+        log("IK planning failed for transit goal pose", LogLevel::ERROR);
+        return false;
+    }
+
+    // Create interpolated trajectories between waypoints
+    int steps_per_segment = 10;
+    double step_duration = 0.1;  // 100ms per step
+    
+    std::vector<std::vector<double>> full_trajectory;
+    std::vector<std::vector<double>> segment = moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment);
+    // Execute the joint trajectory
+    moveit_instance->executeJointTrajectory(robot_name, segment, step_duration);
+    for (const auto& joint_values : segment) {
+        std::cout << "Joint values: ";
+        for (const auto& value : joint_values) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
+    return true;
+}
+
+/**
+ * @brief Plan pick-place trajectory
  */
 bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
                              const std::string& robot_name,
@@ -693,6 +738,127 @@ bool MagBlockPlan::plan_place(const State& current_state,
     
     // Use magblock algorithms for sophisticated place planning
     // This could leverage the approach pose and orientation functions
+    
+    return true;
+}
+
+/**
+ * @brief Get current robot end-effector pose using forward kinematics.
+ */
+bool getCurrentRobotPose(std::shared_ptr<PlanInstance> backend,
+                        const std::string& robot_name, 
+                        geometry_msgs::msg::Pose& current_pose) {
+    auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend);
+    if (!moveit_instance) {
+        log("MoveIt instance not available for FK calculation", LogLevel::ERROR);
+        return false;
+    }
+    
+    // Get current joint values
+    std::vector<double> current_joints;
+    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+    
+    // Use MoveIt's robot state to compute forward kinematics
+    auto planning_scene = moveit_instance->getPlanningScene();
+    if (!planning_scene) {
+        log("Planning scene not available for FK calculation", LogLevel::ERROR);
+        return false;
+    }
+    
+    moveit::core::RobotState robot_state = planning_scene->getCurrentState();
+    const moveit::core::JointModelGroup* joint_model_group = 
+        robot_state.getJointModelGroup(robot_name);
+        
+    if (!joint_model_group) {
+        log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+    
+    // Set joint positions and compute FK
+    robot_state.setJointGroupPositions(joint_model_group, current_joints);
+    const Eigen::Isometry3d& end_effector_state = 
+        robot_state.getGlobalLinkTransform(joint_model_group->getLinkModelNames().back());
+    
+    // Convert to geometry_msgs::Pose
+    current_pose.position.x = end_effector_state.translation().x();
+    current_pose.position.y = end_effector_state.translation().y();
+    current_pose.position.z = end_effector_state.translation().z();
+    
+    Eigen::Quaterniond q(end_effector_state.rotation());
+    current_pose.orientation.x = q.x();
+    current_pose.orientation.y = q.y();
+    current_pose.orientation.z = q.z();
+    current_pose.orientation.w = q.w();
+    
+    log("Current robot pose for " + robot_name + ": pos(" + 
+        std::to_string(current_pose.position.x) + "," + 
+        std::to_string(current_pose.position.y) + "," + 
+        std::to_string(current_pose.position.z) + ") orient(" +
+        std::to_string(current_pose.orientation.w) + "," +
+        std::to_string(current_pose.orientation.x) + "," +
+        std::to_string(current_pose.orientation.y) + "," +
+        std::to_string(current_pose.orientation.z) + ")", LogLevel::DEBUG);
+    
+    return true;
+}
+
+/**
+ * @brief Calculate the exact approach pose for a task, consistent with pick/place operations.
+ */
+bool calculateApproachPose(std::shared_ptr<PlanInstance> backend,
+                         const Json::Value& task_constraints,
+                         const std::string& robot_name, 
+                         geometry_msgs::msg::Pose& approach_pose) {
+    // Extract target positions from constraints (block coordinates)
+    double target_x = task_constraints.get("x", 0.0).asDouble();
+    double target_y = task_constraints.get("y", 0.0).asDouble();
+    double target_z = task_constraints.get("z", 0.0).asDouble();
+    
+    // Transform to robot coordinates using the existing transform function
+    double robot_x, robot_y, robot_z, rx_deg, ry_deg, rz_deg;
+    transformSkillgraphToRobot(robot_name, target_x, target_y, target_z, 
+                              robot_x, robot_y, robot_z, rx_deg, ry_deg, rz_deg);
+    
+    // Calculate approach position - offset above target for pick operations
+    // This should match the offset used in pick operations
+    double approach_offset_z = 0.15; // 15cm above target (same as pick approach)
+    
+    approach_pose.position.x = robot_x;
+    approach_pose.position.y = robot_y;
+    approach_pose.position.z = robot_z + approach_offset_z;
+    
+    // Get current robot orientation to preserve it for transit
+    geometry_msgs::msg::Pose current_pose;
+    if (getCurrentRobotPose(backend, robot_name, current_pose)) {
+        // Preserve current orientation for transit
+        approach_pose.orientation = current_pose.orientation;
+        log("Transit will preserve current robot orientation for " + robot_name, LogLevel::INFO);
+    } else {
+        // Fallback to proper gripper-down orientation if we can't get current pose
+        // Convert the default orientation from degrees to quaternion
+        tf2::Quaternion quat;
+        quat.setRPY(0.0, M_PI, 0.0);
+        
+        approach_pose.orientation.x = quat.x();
+        approach_pose.orientation.y = quat.y();
+        approach_pose.orientation.z = quat.z();
+        approach_pose.orientation.w = quat.w();
+        
+        log("Using default orientation for transit (could not get current pose) for " + robot_name, LogLevel::WARN);
+    }
+    
+    log("Calculated approach pose for " + robot_name + " at task (" + 
+        std::to_string(target_x) + "," + std::to_string(target_y) + "," + std::to_string(target_z) + 
+        "): pos(" + std::to_string(approach_pose.position.x) + "," + 
+        std::to_string(approach_pose.position.y) + "," + 
+        std::to_string(approach_pose.position.z) + ") orient(" +
+        std::to_string(approach_pose.orientation.w) + "," +
+        std::to_string(approach_pose.orientation.x) + "," +
+        std::to_string(approach_pose.orientation.y) + "," +
+        std::to_string(approach_pose.orientation.z) + ")", LogLevel::INFO);
     
     return true;
 }

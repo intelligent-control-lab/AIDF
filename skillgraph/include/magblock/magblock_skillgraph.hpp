@@ -45,7 +45,6 @@ namespace skillgraph {
              * @param state The current state.
              * @param gs The skill to apply.
              * @param next_state The resulting next state.
-             * @param cost The cost of the transition.
              * @return True if successful.
              */
             virtual bool get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) override;
@@ -59,25 +58,6 @@ namespace skillgraph {
              */
             virtual bool is_feasible(const State&state, Json::Value &skill_config, SkillPtr &gs) override;
 
-            /**
-             * @brief Transform block coordinates to robot coordinates.
-             * @param robot_name Name of the robot.
-             * @param x_blocks X coordinate in block frame.
-             * @param y_blocks Y coordinate in block frame.
-             * @param z_blocks Z coordinate in block frame.
-             * @param x_robot Output X coordinate in robot frame.
-             * @param y_robot Output Y coordinate in robot frame.
-             * @param z_robot Output Z coordinate in robot frame.
-             * @param rx_deg Output roll in degrees.
-             * @param ry_deg Output pitch in degrees.
-             * @param rz_deg Output yaw in degrees.
-             * @return True if transformation successful.
-             */
-            bool blockToRobotFrame(const std::string& robot_name, 
-                                 double x_blocks, double y_blocks, double z_blocks,
-                                 double& x_robot, double& y_robot, double& z_robot,
-                                 double& rx_deg, double& ry_deg, double& rz_deg);
-            
             /**
              * @brief Load assembly task from JSON file.
              * @param task_file Path to assembly task JSON.
@@ -142,6 +122,59 @@ namespace skillgraph {
              */
             bool getPickPose(TaskPtr task, double& x, double& y, double& z);
 
+            /**
+             * @brief Check if robot is at the correct approach position for the target.
+             * @param robot_state Current robot state.
+             * @param target_x Target x coordinate in block frame.
+             * @param target_y Target y coordinate in block frame.
+             * @param target_z Target z coordinate in block frame.
+             * @param robot_name Name of the robot.
+             * @return True if robot is at approach position.
+             */
+            bool isRobotAtApproachPosition(const RobotState& robot_state, 
+                                         double target_x, double target_y, double target_z,
+                                         const std::string& robot_name);
+
+            /**
+             * @brief Check preconditions for executing a specific skill type.
+             * @param skill_type Type of skill to check.
+             * @param robot_at_approach Whether robot is at approach position.
+             * @param state Current state.
+             * @param current_task Current task being executed.
+             * @return True if preconditions are met.
+             */
+            bool checkSkillPreconditions(Skill::Type skill_type, bool robot_at_approach, 
+                                       const State& state, TaskPtr current_task);
+
+            /**
+             * @brief Convert skill type enum to string.
+             * @param skill_type Skill type enum.
+             * @return String representation of skill type.
+             */
+            std::string skillTypeToString(Skill::Type skill_type);
+
+            /**
+             * @brief Generate a meta skill with proper validation.
+             * @param skill_type Type of meta skill.
+             * @param state Current state.
+             * @param current_task Current task.
+             * @param robot_id ID of robot to use.
+             * @return Generated meta skill or nullptr if not feasible.
+             */
+            SkillPtr generateMetaSkill(Skill::Type skill_type, const State& state, 
+                                     TaskPtr current_task, int robot_id);
+
+            /**
+             * @brief Generate an atomic skill with proper validation.
+             * @param skill_type Type of atomic skill.
+             * @param state Current state.
+             * @param current_task Current task.
+             * @param robot_id ID of robot to use.
+             * @return Generated atomic skill or nullptr if not feasible.
+             */
+            SkillPtr generateAtomicSkill(Skill::Type skill_type, const State& state, 
+                                       TaskPtr current_task, int robot_id);
+
         private:
             /**
              * @brief Determine which robot to use for a given location.
@@ -152,20 +185,13 @@ namespace skillgraph {
              */
             int determineRobotForLocation(double x, double y, double z);
 
-            // Robot transformation configurations
-            struct RobotConfig {
-                double x_origin_blocks;
-                double y_origin_blocks;
-                std::vector<double> default_orientation_deg;
-                Eigen::Matrix2d block_to_robot_matrix;
-            };
-            std::map<std::string, RobotConfig> robot_configs_;
-            double block_size_ = 0.025; // 2.5cm block size
-
             // Assembly task data
             Json::Value assembly_tasks_;
             Json::Value env_setup_;
             std::shared_ptr<MagBlockAssemblySeq> assembly_seq_;
             std::shared_ptr<MagBlockAssemblySeq> task_seq_;  // For compatibility
+            
+            // MagBlock policy configuration
+            MagBlockPolicyCfg magblock_config_;
     };
 }

@@ -2,9 +2,9 @@
     "metaskills": {
         "gen3": {
             "PickAndPlace": {
-                "atomicSkills": ["Pick", "Transit", "Place-Down"],
+                "atomicSkills": ["Transit", "Pick", "Transit", "Place-Down", "Transit"],
                 "numRobot": 1,
-                "robotId": [0],
+                "robotId": [0, 0, 0, 0, 0],
                 "type": "temporal"
             }
         }
