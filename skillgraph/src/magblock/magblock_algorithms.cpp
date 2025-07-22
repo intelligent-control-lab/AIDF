@@ -168,29 +168,15 @@ geometry_msgs::msg::Pose createPoseWithOrientation(double x, double y, double z,
 }
 
 /**
- * @brief Transform coordinates from skillgraph frame to robot frame
- */
-void transformSkillgraphToRobot(double x_sg, double y_sg, double z_sg, 
-                               double& x_robot, double& y_robot, double& z_robot, 
-                               double& rx, double& ry, double& rz) {
-    // Default to right_arm - in practice this should be passed as parameter
-    transformSkillgraphToRobot("right_arm", x_sg, y_sg, z_sg, x_robot, y_robot, z_robot, rx, ry, rz);
-}
-
-/**
  * @brief Transform coordinates from skillgraph frame to robot frame for specific robot
  */
 void transformSkillgraphToRobot(const std::string& robot_name, 
                                double x_sg, double y_sg, double z_sg, 
                                double& x_robot, double& y_robot, double& z_robot, 
                                double& rx, double& ry, double& rz) {
+    // TO DO: FIX LOAD ROBOT PROPERTIES, ACTUALLY USE THEM
     loadRobotProperties();
-    
-    // Get workspace parameters
-    double block_size = robot_properties_["workspace"]["block_size"].asDouble();
-    double block_height_offset = robot_properties_["workspace"]["block_height_offset"].asDouble();
-    
-    // Get robot-specific transformation parameters
+
     const Json::Value& robot_transform = robot_properties_["robots"][robot_name]["block_frame_transform"];
     double offset_x = robot_transform["offset_x"].asDouble();
     double offset_y = robot_transform["offset_y"].asDouble();
@@ -199,15 +185,26 @@ void transformSkillgraphToRobot(const std::string& robot_name,
     double y_direction = robot_transform["y_direction"].asDouble();
     double z_direction = robot_transform["z_direction"].asDouble();
     
-    // Transform from block frame to robot base frame using robot properties
-    // Based on coordinate mapping: +X robot = +Y block, +Y robot = +X block for right arm
-    // Use the direction vectors and offsets from robot_properties.json
+    // Get workspace parameters
+    double block_size = robot_properties_["workspace"]["block_size"].asDouble();
+    double block_height_offset = robot_properties_["workspace"]["block_height_offset"].asDouble();
     
+    // Transform from block frame to robot base frame
     if (robot_name == "right_arm") {
         // For right arm: +X robot = +Y block, +Y robot = +X block
         // Block frame origin is at (11cm, -40cm) in robot frame  
         x_robot = 0.11 + (y_sg * block_size);      // Block Y maps to robot X
         y_robot = -0.40 + (x_sg * block_size);     // Block X maps to robot Y
+    } else if (robot_name == "left_arm") {
+        // For left arm: +X robot = +X block, +Y robot = -Y block
+        // Block frame origin is at (40cm, 113.5cm) in robot frame
+        x_robot = 0.40 + (x_sg * block_size);      // Block X maps to robot X
+        y_robot = 1.135 + (-y_sg * block_size);    // Block -Y maps to robot Y
+    } else if (robot_name == "center_arm") {
+        // For center arm: +X robot = -Y block, +Y robot = -X block  
+        // Block frame origin is at (88.5cm, 50cm) in robot frame
+        x_robot = 0.885 + (-y_sg * block_size);    // Block -Y maps to robot X
+        y_robot = 0.50 + (-x_sg * block_size);     // Block -X maps to robot Y
     } else {
         // For other robots, use the standard transformation with direction vectors
         x_robot = offset_x + (x_direction * x_sg * block_size);
@@ -232,77 +229,111 @@ void transformSkillgraphToRobot(const std::string& robot_name,
 /**
  * @brief Find optimal theta-Z angle that doesn't block the required press face
  */
-double findOptimalThetaZ(int press_face) {
+double findOptimalThetaZ(const std::string& robot_name, int press_face) {
     // Find optimal thetaz that doesn't block the required press_face
+    std::unordered_map<double, std::unordered_set<int>> blocked_faces_by_thetaz;
+
+    if (robot_name == "right_arm" || robot_name == "left_arm") {
+        blocked_faces_by_thetaz = {
+            {0.0, {2, 5, 3}},
+            {90.0, {1, 4, 3}},
+            {180.0, {2, 5, 3}},
+            {270.0, {1, 4, 3}}
+        };
+    } else if (robot_name == "center_arm") {
+        blocked_faces_by_thetaz = {
+            {0.0, {1, 4, 3}},
+            {90.0, {2, 5, 3}},
+            {180.0, {1, 4, 3}},
+            {270.0, {2, 5, 3}}
+        };
+    } else {
+        // Default fallback
+        blocked_faces_by_thetaz = {
+            {0.0, {2, 5, 3}},
+            {90.0, {1, 4, 3}},
+            {180.0, {2, 5, 3}},
+            {270.0, {1, 4, 3}}
+        };
+    }
+    
     std::vector<double> candidate_angles = {0.0, 90.0, 180.0, 270.0};
     
     for (double angle : candidate_angles) {
         // Simple logic: return first valid angle
-        // In practice, this would check which faces are blocked
-        return angle;
+        if (blocked_faces_by_thetaz[angle].find(press_face) == blocked_faces_by_thetaz[angle].end()) {
+            return angle;
+        }
     }
     
     return 0.0; // Default fallback
 }
 
 /**
- * @brief Get blocked faces for a given thetaz orientation
- */
-std::set<int> getBlockedFaces(double thetaz_deg) {
-    // Normalize angle to 0-360 range
-    while (thetaz_deg < 0) thetaz_deg += 360;
-    while (thetaz_deg >= 360) thetaz_deg -= 360;
-    
-    // Round to nearest 90 degree increment for mapping
-    int rounded_angle = static_cast<int>(std::round(thetaz_deg / 90.0) * 90) % 360;
-    
-    switch (rounded_angle) {
-        case 0: return {2, 5, 3};
-        case 90: return {1, 4, 3};
-        case 180: return {2, 5, 3};
-        case 270: return {1, 4, 3};
-        default: return {2, 5, 3}; // Default fallback
-    }
-}
-
-/**
  * @brief Get approach direction offset based on press_face for place operation
  */
-std::tuple<double, double, double> getPlaceApproachOffset(int press_face, double approach_distance) {
-    // Convention for approach direction based on press_face:
-    // press_face 0: approach from +Z to press -Z
-    // press_face 1: approach from -X to press +X 
-    // press_face 2: approach from +Y to press -Y
-    // press_face 3: approach from -Z to press +Z
-    // press_face 4: approach from +X to press -X
-    // press_face 5: approach from -Y to press +Y
+std::tuple<double, double, double> getPlaceApproachOffset(const std::string& robot_name, int press_face, double approach_distance) {
+    // Convention for approach direction based on press_face
     
-    switch(press_face) {
-        case 0: return {0.0, 0.0, approach_distance}; // +Z approach
-        case 1: return {-approach_distance, 0.0, 0.0}; // -X approach
-        case 2: return {0.0, approach_distance, 0.0}; // +Y approach 
-        case 3: return {0.0, 0.0, -approach_distance}; // -Z approach
-        case 4: return {approach_distance, 0.0, 0.0}; // +X approach
-        case 5: return {0.0, -approach_distance, 0.0}; // -Y approach
-        default: 
-            log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
-            return {0.0, 0.0, approach_distance}; // Default +Z approach
+    if (robot_name == "right_arm") {
+        switch(press_face) {
+            case 0: return {0.0, 0.0, approach_distance}; // +Z approach
+            case 1: return {0.0, approach_distance, 0.0}; // -X approach
+            case 2: return {-approach_distance, 0.0, 0.0}; // +Y approach 
+            case 3: return {0.0, 0.0, -approach_distance}; // -Z approach
+            case 4: return {0.0, -approach_distance, 0.0}; // +X approach
+            case 5: return {approach_distance, 0.0, 0.0}; // -Y approach
+            default: 
+                log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
+                return {0.0, 0.0, approach_distance}; // Default +Z approach
+        }
+    } else if (robot_name == "left_arm") {
+        switch(press_face) {
+            case 0: return {0.0, 0.0, approach_distance}; // +Z approach to press -Z
+            case 1: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
+            case 2: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
+            case 3: return {0.0, 0.0, -approach_distance}; // -Z approach to press +Z
+            case 4: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
+            case 5: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
+            default: 
+                log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
+                return {0.0, 0.0, approach_distance};
+        }
+    } else if (robot_name == "center_arm") {
+        switch(press_face) {
+            case 0: return {0.0, 0.0, approach_distance}; // +Z approach to press -Z
+            case 1: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
+            case 2: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
+            case 3: return {0.0, 0.0, -approach_distance}; // -Z approach to press +Z
+            case 4: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
+            case 5: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
+            default: 
+                log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
+                return {0.0, 0.0, approach_distance};
+        }
+    } else {
+        // Default fallback for unknown robots
+        log("Unknown robot " + robot_name + ", using default approach directions", LogLevel::WARN);
+        switch(press_face) {
+            case 0: return {0.0, 0.0, approach_distance};
+            case 1: return {0.0, approach_distance, 0.0};
+            case 2: return {-approach_distance, 0.0, 0.0};
+            case 3: return {0.0, 0.0, -approach_distance};
+            case 4: return {0.0, -approach_distance, 0.0};
+            case 5: return {approach_distance, 0.0, 0.0};
+            default: return {0.0, 0.0, approach_distance};
+        }
     }
 }
 
 /**
  * @brief Get place orientation based on gripper_ori parameter
  */
-std::pair<double, double> getPlaceOrientation(int gripper_ori) {
-    // Mapping from gripper_ori to (thetax, thetay):
-    // 0: (0,180)
-    // 1: (-90,180) 
-    // 2: (120,90)
-    // 3: (-180,180)
-    // 4: (-90,-180)
-    // 5: (-70,-90)
+std::pair<double, double> getPlaceOrientation(const std::string& robot_name, int gripper_ori) {
+    // Mapping from gripper_ori to (thetax, thetay)
     
-    switch(gripper_ori) {
+    if (robot_name == "right_arm") {
+        switch(gripper_ori) {
         case 0: return {0.0, 180.0};
         case 1: return {-90.0, 180.0};
         case 2: return {120.0, 90.0};
@@ -312,16 +343,54 @@ std::pair<double, double> getPlaceOrientation(int gripper_ori) {
         default:
             log("Unknown gripper_ori=" + std::to_string(gripper_ori) + ", defaulting to (0,180)", LogLevel::WARN);
             return {0.0, 180.0}; // Default orientation
+        }
+    } else if (robot_name == "left_arm") {
+        switch(gripper_ori) {
+            case 0: return {180.0, 0.0};
+            case 1: return {-180.0, -90.0};
+            case 2: return {-90.0, 0.0};
+            case 3: return {180.0, 180.0};
+            case 4: return {-90.0, 90.0};
+            case 5: return {90.0, 0.0};
+            default:
+                log("Unknown gripper_ori=" + std::to_string(gripper_ori) + " for " + robot_name + ", defaulting to (180,0)", LogLevel::WARN);
+                return {180.0, 0.0};
+        }
+    } else if (robot_name == "center_arm") {
+        switch(gripper_ori) {
+            case 0: return {180.0, 0.0};
+            case 1: return {45.0, -90.0};
+            case 2: return {-90.0, 0.0};
+            case 3: return {0.0, 0.0};
+            case 4: return {-45.0, 90.0};
+            case 5: return {-90.0, -180.0};
+            default:
+                log("Unknown gripper_ori=" + std::to_string(gripper_ori) + " for " + robot_name + ", defaulting to (180,0)", LogLevel::WARN);
+                return {180.0, 0.0};
+        }
+    } else {
+        // Default fallback
+        log("Unknown robot " + robot_name + ", using default gripper orientation mapping", LogLevel::WARN);
+        switch(gripper_ori) {
+            case 0: return {0.0, 180.0};
+            case 1: return {-90.0, 180.0};
+            case 2: return {120.0, 90.0};
+            case 3: return {-180.0, 180.0};
+            case 4: return {-90.0, -180.0};
+            case 5: return {-70.0, -90.0};
+            default: return {0.0, 180.0};
+        }
     }
+    
 }
 
 /**
  * @brief Create place pose with proper orientation
  */
-geometry_msgs::msg::Pose createPlacePose(double x, double y, double z, 
+geometry_msgs::msg::Pose createPlacePose(const std::string& robot_name, double x, double y, double z, 
                                           int press_face, int gripper_ori, double pick_thetaz) {
     // Get place orientation from gripper_ori
-    auto [place_thetax, place_thetay] = getPlaceOrientation(gripper_ori);
+    auto [place_thetax, place_thetay] = getPlaceOrientation(robot_name, gripper_ori);
     
     // thetaz stays the same as pick operation
     double place_thetaz = pick_thetaz;
@@ -332,9 +401,10 @@ geometry_msgs::msg::Pose createPlacePose(double x, double y, double z,
 /**
  * @brief Create approach pose for place operation
  */
-geometry_msgs::msg::Pose createPlaceApproachPose(const geometry_msgs::msg::Pose& place_pose, 
+geometry_msgs::msg::Pose createPlaceApproachPose(const std::string& robot_name, 
+                                                  const geometry_msgs::msg::Pose& place_pose, 
                                                   int press_face, double approach_distance) {
-    auto [dx, dy, dz] = getPlaceApproachOffset(press_face, approach_distance);
+    auto [dx, dy, dz] = getPlaceApproachOffset(robot_name, press_face, approach_distance);
     
     geometry_msgs::msg::Pose approach_pose = place_pose;
     approach_pose.position.x += dx;
@@ -502,8 +572,8 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     geometry_msgs::msg::Pose lift_pose = pick_pose;
     lift_pose.position.z += 0.1;  // 10cm lift
     
-    geometry_msgs::msg::Pose transport_pose = createPlaceApproachPose(place_pose, press_face, 0.15);
-    geometry_msgs::msg::Pose retract_pose = createPlaceApproachPose(place_pose, press_face, 0.1);
+    geometry_msgs::msg::Pose transport_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.15);
+    geometry_msgs::msg::Pose retract_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.1);
     
     // Solve IK for each waypoint
     std::vector<std::vector<double>> waypoint_joints;

@@ -51,12 +51,6 @@ namespace skillgraph {
     geometry_msgs::msg::Pose createPoseWithOrientation(double x, double y, double z, 
                                                         double thetax_deg, double thetay_deg, double thetaz_deg);
 
-    /**
-     * @brief Transform coordinates from skillgraph frame to robot frame
-     */
-    void transformSkillgraphToRobot(double x_sg, double y_sg, double z_sg, 
-                                   double& x_robot, double& y_robot, double& z_robot, 
-                                   double& rx, double& ry, double& rz);
 
     /**
      * @brief Transform coordinates from skillgraph frame to robot frame for specific robot
@@ -69,33 +63,28 @@ namespace skillgraph {
     /**
      * @brief Find optimal theta-Z angle that doesn't block the required press face
      */
-    double findOptimalThetaZ(int press_face);
-
-    /**
-     * @brief Get blocked faces for a given thetaz orientation
-     */
-    std::set<int> getBlockedFaces(double thetaz_deg);
+    double findOptimalThetaZ(const std::string& robot_name, int press_face);
 
     /**
      * @brief Get approach direction offset based on press_face for place operation
      */
-    std::tuple<double, double, double> getPlaceApproachOffset(int press_face, double approach_distance = 0.15);
+    std::tuple<double, double, double> getPlaceApproachOffset(const std::string& robot_name, int press_face, double approach_distance = 0.15);
 
     /**
      * @brief Get place orientation based on gripper_ori parameter
      */
-    std::pair<double, double> getPlaceOrientation(int gripper_ori);
+    std::pair<double, double> getPlaceOrientation(const std::string& robot_name, int gripper_ori);
 
     /**
      * @brief Create place pose with proper orientation
      */
-    geometry_msgs::msg::Pose createPlacePose(double x, double y, double z, 
+    geometry_msgs::msg::Pose createPlacePose(const std::string& robot_name, double x, double y, double z, 
                                               int press_face, int gripper_ori, double pick_thetaz);
 
     /**
      * @brief Create approach pose for place operation
      */
-    geometry_msgs::msg::Pose createPlaceApproachPose(const geometry_msgs::msg::Pose& place_pose, 
+    geometry_msgs::msg::Pose createPlaceApproachPose(const std::string& robot_name, const geometry_msgs::msg::Pose& place_pose, 
                                                       int press_face, double approach_distance);
 
     /**

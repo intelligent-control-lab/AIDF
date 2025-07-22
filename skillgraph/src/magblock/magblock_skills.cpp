@@ -116,25 +116,25 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     // Get press_face from constraints (for orientation calculation)
     int press_face = constraints.get("press_face", 0).asInt();
     int gripper_ori = constraints.get("gripper_ori", 0).asInt();
-    
-    // Transform from skillgraph to robot coordinates
-    double x_robot, y_robot, z_robot, rx, ry, rz;
-    transformSkillgraphToRobot(x_blocks, y_blocks, z_blocks, x_robot, y_robot, z_robot, rx, ry, rz);
-    
+
     // Determine robot name from skill configuration
     std::string robot_name = getRobotName();
     
+    // Transform from skillgraph to robot coordinates
+    double x_robot, y_robot, z_robot, rx, ry, rz;
+    transformSkillgraphToRobot(robot_name, x_blocks, y_blocks, z_blocks, x_robot, y_robot, z_robot, rx, ry, rz);
+
     // Calculate pick orientation using IK-based approach
     double pick_thetax = 0.0;   // Always approach from above
     double pick_thetay = 180.0; // Gripper pointing down
-    double pick_thetaz = findOptimalThetaZ(press_face);
-    
+    double pick_thetaz = findOptimalThetaZ(robot_name, press_face);
+
     // Create pick pose (table surface for safe pick)
     geometry_msgs::msg::Pose pick_pose = createPoseWithOrientation(x_robot, y_robot, z_robot, 
                                                                   pick_thetax, pick_thetay, pick_thetaz);
     
     // Create place pose (this is simplified - in practice would come from task constraints)
-    geometry_msgs::msg::Pose place_pose = createPlacePose(x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
+    geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
     
     // Plan and execute pick trajectory using joint-space IK planning
     std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
@@ -175,19 +175,20 @@ bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
         return false;
     }
     
-    // Transform from skillgraph to robot coordinates
-    double x_robot, y_robot, z_robot, rx, ry, rz;
-    transformSkillgraphToRobot(x_blocks, y_blocks, z_blocks, x_robot, y_robot, z_robot, rx, ry, rz);
-    
     // Determine robot name from skill configuration
     std::string robot_name = getRobotName();
     
+    // Transform from skillgraph to robot coordinates
+    double x_robot, y_robot, z_robot, rx, ry, rz;
+    transformSkillgraphToRobot(robot_name, x_blocks, y_blocks, z_blocks, x_robot, y_robot, z_robot, rx, ry, rz);
+    
+    
     // Calculate place orientation using IK-based approach
-    double pick_thetaz = findOptimalThetaZ(press_face);
-    geometry_msgs::msg::Pose place_pose = createPlacePose(x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
+    double pick_thetaz = findOptimalThetaZ(robot_name, press_face);
+    geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
     
     // For place skill, we assume object is already in hand, so create approach pose
-    geometry_msgs::msg::Pose approach_pose = createPlaceApproachPose(place_pose, press_face, 0.1);
+    geometry_msgs::msg::Pose approach_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.1);
     
     // Plan and execute place trajectory using joint-space IK planning
     std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
@@ -234,19 +235,19 @@ bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
         return false;
     }
 
-    // Transform coordinates to robot frame
-    double pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz;
-    transformSkillgraphToRobot(pick_x_blocks, pick_y_blocks, pick_z_blocks, pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz);
-    pick_z_robot += 0.15; // Adjust pick height for transit
-    
     // Determine robot name from skill configuration
     std::string robot_name = getRobotName();
+
+    // Transform coordinates to robot frame
+    double pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz;
+    transformSkillgraphToRobot(robot_name, pick_x_blocks, pick_y_blocks, pick_z_blocks, pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz);
+    pick_z_robot += 0.15; // Adjust pick height for transit
     
     // Calculate optimal pick orientation using IK-based approach
     double pick_thetax = 0.0;   // Always approach from above
     double pick_thetay = 180.0; // Gripper pointing down
-    double pick_thetaz = findOptimalThetaZ(press_face);
-    
+    double pick_thetaz = findOptimalThetaZ(robot_name, press_face);
+
     // Create pick pose
     geometry_msgs::msg::Pose pick_pose = createPoseWithOrientation(pick_x_robot, pick_y_robot, pick_z_robot, 
                                                                   pick_thetax, pick_thetay, pick_thetaz);
@@ -312,22 +313,22 @@ bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state) {
     // Transform coordinates to robot frame
     double pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz;
     double place_x_robot, place_y_robot, place_z_robot, place_rx, place_ry, place_rz;
-    
-    transformSkillgraphToRobot(pick_x_blocks, pick_y_blocks, pick_z_blocks, pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz);
-    transformSkillgraphToRobot(place_x_blocks, place_y_blocks, place_z_blocks, place_x_robot, place_y_robot, place_z_robot, place_rx, place_ry, place_rz);
-    
+
     // Determine robot name from skill configuration
     std::string robot_name = getRobotName();
+    
+    transformSkillgraphToRobot(robot_name, pick_x_blocks, pick_y_blocks, pick_z_blocks, pick_x_robot, pick_y_robot, pick_z_robot, pick_rx, pick_ry, pick_rz);
+    transformSkillgraphToRobot(robot_name, place_x_blocks, place_y_blocks, place_z_blocks, place_x_robot, place_y_robot, place_z_robot, place_rx, place_ry, place_rz);
     
     // Calculate optimal pick orientation using IK-based approach
     double pick_thetax = 0.0;   // Always approach from above
     double pick_thetay = 180.0; // Gripper pointing down
-    double pick_thetaz = findOptimalThetaZ(press_face);
+    double pick_thetaz = findOptimalThetaZ(robot_name, press_face);
     
     // Create pick and place poses
     geometry_msgs::msg::Pose pick_pose = createPoseWithOrientation(pick_x_robot, pick_y_robot, pick_z_robot, 
                                                                   pick_thetax, pick_thetay, pick_thetaz);
-    geometry_msgs::msg::Pose place_pose = createPlacePose(place_x_robot, place_y_robot, place_z_robot, press_face, gripper_ori, pick_thetaz);
+    geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, place_x_robot, place_y_robot, place_z_robot, press_face, gripper_ori, pick_thetaz);
     
     // Note: With the new metaskill structure [Transit, Pick, Transit, Place-Down, Transit],
     // the actual pick and place motions are separated by transit skills.
