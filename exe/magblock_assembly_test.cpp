@@ -154,7 +154,7 @@ public:
                     return false;
                 }
                 
-                // Execute first feasible skill (in practice, would use better selection)
+                // Execute first feasible skill
                 auto selected_skill = feasible_skills[0];
                 
                 log("Executing skill: " + selected_skill->to_string(), LogLevel::INFO);

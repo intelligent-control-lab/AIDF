@@ -81,8 +81,8 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         double z = block["z"].asDouble();
         std::cout << x << " " << y << " " << z << std::endl;
         // TO DO: GET ROBOT BASE LINK, GET BLOCK TO ROBOT
-        const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
-        Eigen::Isometry3d target_transform_world = ee_to_world * target_transform;
+        // const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
+        // Eigen::Isometry3d target_transform_world = ee_to_world * target_transform;
 
         // Create the MagBlock object
         ObjPtr mag_block = std::make_shared<Object>();

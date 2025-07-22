@@ -583,6 +583,8 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
         
         log("IK solved for " + waypoint_names[i] + " pose", LogLevel::DEBUG);
     }
+
+    waypoint_joints.push_back({0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570});
     
     // Create interpolated trajectories between waypoints
     int steps_per_segment = 10;
