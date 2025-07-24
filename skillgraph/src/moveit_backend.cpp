@@ -75,7 +75,6 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
             std::signal(SIGTERM, signalHandler);
             std::signal(SIGINT, signalHandler);
             std::signal(SIGABRT, signalHandler);
-            log("MoveitInstance: Signal handlers registered for emergency cleanup", LogLevel::INFO);
         }
     }
     
@@ -128,12 +127,10 @@ MoveitInstance::MoveitInstance(const std::string &move_group_name, const std::st
         std::string base_frame = move_group_name.substr(0, move_group_name.find("_")) + "_base_link";
         move_group_->setPoseReferenceFrame(base_frame);
         
-        log("MoveitInstance: Configured planning parameters for " + move_group_name, LogLevel::INFO);
     }
     
     planning_scene_diff_ = original_scene_;
     
-    log("MoveitInstance: Initialization complete", LogLevel::INFO);
 }
 
 MoveitInstance::MoveitInstance(rclcpp::Node::SharedPtr node, const std::string &move_group_name, const std::string &moveit_pkg_name)
@@ -149,15 +146,12 @@ MoveitInstance::MoveitInstance(rclcpp::Node::SharedPtr node, const std::string &
             std::signal(SIGTERM, signalHandler);
             std::signal(SIGINT, signalHandler);
             std::signal(SIGABRT, signalHandler);
-            log("MoveitInstance: Signal handlers registered for emergency cleanup", LogLevel::INFO);
         }
     }
     
     // Use the provided node
     node_ = node;
     
-    log("MoveitInstance: Using provided ROS 2 node", LogLevel::INFO);
-
     // Initialize robot model loader with provided node
     robot_model_loader::RobotModelLoader robot_model_loader(node_, "robot_description");
     robot_model_ = robot_model_loader.getModel();
@@ -204,7 +198,6 @@ MoveitInstance::MoveitInstance(rclcpp::Node::SharedPtr node, const std::string &
     
     planning_scene_diff_ = original_scene_;
     
-    log("MoveitInstance: Initialization complete", LogLevel::INFO);
 }
 
 MoveitInstance::~MoveitInstance() {
@@ -415,10 +408,15 @@ void MoveitInstance::addMoveableObject(const skillgraph::Object& obj) {
     co.primitive_poses.push_back(pose);
     
     co.operation = co.ADD;
+
+    collision_object_map_[co.id] = co;
     
     moveit_msgs::msg::PlanningScene planning_scene;
-    planning_scene.world.collision_objects.push_back(co);
+    // planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = true;
+    for (const auto& [id, object] : collision_object_map_) {
+        planning_scene.world.collision_objects.push_back(object);
+    }
     
     planning_scene_->usePlanningSceneMsg(planning_scene);
     planning_scene_diff_ = planning_scene;
@@ -436,8 +434,11 @@ void MoveitInstance::removeObject(const std::string& name) {
     co.operation = co.REMOVE;
     
     moveit_msgs::msg::PlanningScene planning_scene;
-    planning_scene.world.collision_objects.push_back(co);
     planning_scene.is_diff = true;
+    // planning_scene.world.collision_objects.push_back(co);
+    for (const auto& [id, object] : collision_object_map_) {
+        planning_scene.world.collision_objects.push_back(object);
+    }
     
     planning_scene_->usePlanningSceneMsg(planning_scene);
     planning_scene_diff_ = planning_scene;
@@ -588,15 +589,11 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
             
             moveit_trajectory.joint_trajectory.points.push_back(point);
         }
-        
-        log("MoveitControl::move - Executing trajectory with " + std::to_string(moveit_trajectory.joint_trajectory.points.size()) + " points", LogLevel::INFO);
-        
+                
         // Execute the trajectory
         auto result = move_group->execute(moveit_trajectory);
         
-        if (result == moveit::core::MoveItErrorCode::SUCCESS) {
-            log("MoveitControl::move - Trajectory execution successful", LogLevel::INFO);
-            
+        if (result == moveit::core::MoveItErrorCode::SUCCESS) {            
             // Add a small delay to ensure motion completes
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             
@@ -620,6 +617,8 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
     try {
         const moveit::core::JointModelGroup* joint_model_group = 
             robot_model_->getJointModelGroup(robot_name);
+        std::cout << "JOINT MODEL GROUP FOR " << robot_name << ": " 
+                  << joint_model_group->getName() << std::endl;
         
         if (!joint_model_group) {
             log("Joint model group not found for " + robot_name, LogLevel::ERROR);
@@ -637,7 +636,7 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
                 std::to_string(seed_joints.size()) + ", expected " + 
                 std::to_string(joint_model_group->getActiveJointModelNames().size()) + 
                 "), using default positions", LogLevel::WARN);
-            robot_state.setToDefaultValues();
+            robot_state.setToDefaultValues(joint_model_group, "Home");
         }
         
 
@@ -654,11 +653,6 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
             target_pose.position.y,
             target_pose.position.z
         );
-        // target_transform.translation() = Eigen::Vector3d(
-        //      -0.442,
-        //      -0.022,
-        //      1.217
-        //  );
         
         target_transform.linear() = Eigen::Quaterniond(
             target_pose.orientation.w,
@@ -666,12 +660,6 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
             target_pose.orientation.y,
             target_pose.orientation.z
         ).toRotationMatrix();
-        // target_transform.linear() = Eigen::Quaterniond(
-        //     0.013,
-        //     -0.707,
-        //     0.707,
-        //     -0.013
-        // ).toRotationMatrix();
 
         // Apply gripper offset
         // double gripper_offset_z = 0.1628; // BASED ON ROBOTIQ 2F85 CLOSED LENGTH
@@ -684,11 +672,13 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
         std::string base_link;
         if (robot_name == "left_arm") {
             tip_link = "left_end_effector_link";
+            base_link = "left_base_link";
         } else if (robot_name == "right_arm") {
             tip_link = "right_end_effector_link";
             base_link = "right_base_link";
         } else if (robot_name == "center_arm") {
             tip_link = "center_end_effector_link";
+            base_link = "center_base_link";
         } else {
             // Fallback to the last link in the group
             const std::vector<std::string>& link_names = joint_model_group->getLinkModelNames();
@@ -699,9 +689,7 @@ bool MoveitInstance::solveIK(const std::string& robot_name,
                 return false;
             }
         }
-        
-        log("Using tip link: " + tip_link + " for IK solving", LogLevel::DEBUG);
-
+    
         const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
         Eigen::Isometry3d target_transform_world = ee_to_world * target_transform;
         std::cout << "Target transform in world frame: " << target_transform_world.translation() << std::endl;
@@ -751,10 +739,7 @@ bool MoveitInstance::getCurrentJointValues(const std::string& robot_name,
         // Get current state from planning scene
         moveit::core::RobotState current_state = planning_scene_->getCurrentState();
         current_state.copyJointGroupPositions(joint_model_group, current_joints);
-        
-        log("Retrieved current joint values for " + robot_name + " with " + 
-            std::to_string(current_joints.size()) + " joints", LogLevel::DEBUG);
-        
+
         return true;
     } catch (const std::exception& e) {
         log("Error getting current joint values for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
@@ -816,12 +801,64 @@ void MoveitInstance::executeJointTrajectory(const std::string& robot_name,
             
             // Sleep for step duration
             std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step_duration * 1000)));
-        }
-        
-        log("Joint trajectory execution completed for " + robot_name, LogLevel::INFO);
-        
+        }        
     } catch (const std::exception& e) {
         log("Error executing joint trajectory for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
     }
+}
+
+bool MoveitInstance::transformRobotToWorld(const std::string& robot_name, const geometry_msgs::msg::Pose& target_pose, geometry_msgs::msg::Pose& target_transform_world) {
+    const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(robot_name);
+    std::cout << "JOINT MODEL GROUP FOR " << robot_name << ": " 
+                << joint_model_group->getName() << std::endl;
+    
+    if (!joint_model_group) {
+        log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+
+    // Create a robot state
+    moveit::core::RobotState robot_state(robot_model_);
+
+    // Convert geometry_msgs::Pose to Eigen::Isometry3d
+    Eigen::Isometry3d target_transform = Eigen::Isometry3d::Identity();
+    target_transform.translation() = Eigen::Vector3d(
+        target_pose.position.x,
+        target_pose.position.y,
+        target_pose.position.z
+    );
+    
+    target_transform.linear() = Eigen::Quaterniond(
+        target_pose.orientation.w,
+        target_pose.orientation.x,
+        target_pose.orientation.y,
+        target_pose.orientation.z
+    ).toRotationMatrix();
+
+    std::string base_link;
+    if (robot_name == "left_arm") {
+        base_link = "left_base_link";
+    } else if (robot_name == "right_arm") {
+        base_link = "right_base_link";
+    } else if (robot_name == "center_arm") {
+        base_link = "center_base_link";
+    } else {
+        return false;
+    }
+
+    const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
+    Eigen::Isometry3d eigen_target_transform_world = ee_to_world * target_transform;
+
+    target_transform_world.position.x = eigen_target_transform_world.translation().x();
+    target_transform_world.position.y = eigen_target_transform_world.translation().y();
+    target_transform_world.position.z = eigen_target_transform_world.translation().z();
+
+    Eigen::Quaterniond quaternion(eigen_target_transform_world.rotation());
+    target_transform_world.orientation.x = quaternion.x();
+    target_transform_world.orientation.y = quaternion.y();
+    target_transform_world.orientation.z = quaternion.z();
+    target_transform_world.orientation.w = quaternion.w();
+
+    return true;
 }
 } // namespace skillgraph

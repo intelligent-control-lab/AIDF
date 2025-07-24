@@ -105,10 +105,15 @@ public:
                                const std::vector<std::vector<double>>& joint_trajectory,
                                double step_duration = 0.1);
 
+    bool transformRobotToWorld(const std::string& robot_name, const geometry_msgs::msg::Pose& target_pose, geometry_msgs::msg::Pose& target_transform_world);
+
+
     // Friend class declaration
     friend class MoveitControl;
 
 private:
+    std::map<std::string, moveit_msgs::msg::CollisionObject> collision_object_map_;
+
     // ROS 2 node
     rclcpp::Node::SharedPtr node_;
 

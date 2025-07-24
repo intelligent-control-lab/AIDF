@@ -21,6 +21,12 @@ namespace skillgraph {
             virtual ~MagBlockSkillGraph() = default;
 
             /**
+             * @brief Get the initial state with properly initialized robot states.
+             * @return Initial state with robot states initialized.
+             */
+            State get_initial_state();
+
+            /**
              * @brief Parse the environment configuration.
              * @param root_config Root JSON configuration.
              */
@@ -83,15 +89,6 @@ namespace skillgraph {
              * @param env_config Environment configuration JSON.
              */
             void setEnvironmentConfig(const Json::Value& env_config);
-            
-            /**
-             * @brief Get optimal robot for given block coordinates.
-             * @param x_blocks X coordinate in block frame.
-             * @param y_blocks Y coordinate in block frame.
-             * @param z_blocks Z coordinate in block frame.
-             * @return Robot ID (0=left, 1=center, 2=right).
-             */
-            int getOptimalRobot(double x_blocks, double y_blocks, double z_blocks);
             
             /**
              * @brief Transform block coordinates to robot frame - renamed for clarity.
@@ -174,16 +171,6 @@ namespace skillgraph {
              */
             SkillPtr generateAtomicSkill(Skill::Type skill_type, const State& state, 
                                        TaskPtr current_task, int robot_id);
-
-        private:
-            /**
-             * @brief Determine which robot to use for a given location.
-             * @param x World x coordinate.
-             * @param y World y coordinate.
-             * @param z World z coordinate.
-             * @return Robot ID (0, 1, or 2).
-             */
-            int determineRobotForLocation(double x, double y, double z);
 
             // Assembly task data
             Json::Value assembly_tasks_;

@@ -109,7 +109,8 @@ namespace skillgraph {
                                  int press_face,
                                  std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
     
-    bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
+    bool planTransit(skillgraph::RobotState robot_state,
+                             std::shared_ptr<MoveitInstance> moveit_instance,
                              const std::string& robot_name,
                              const geometry_msgs::msg::Pose& goal_pose,
                              std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
@@ -175,6 +176,10 @@ namespace skillgraph {
                              const Json::Value& task_constraints,
                              const std::string& robot_name, 
                              geometry_msgs::msg::Pose& approach_pose);
+    
+    std::string getRobotNameFromId(int robot_id);
+
+    int getRobotIdFromName(const std::string& robot_name);
 
     /**
      * @brief Planning algorithms for magnetic block assembly.

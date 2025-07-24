@@ -37,7 +37,7 @@
     },
     "robots": {
         "numRobot": 3,
-        "names": ["left_arm", "right_arm", "center_arm"],
+        "names": ["center_arm", "left_arm", "right_arm"],
         "type": ["gen3", "gen3", "gen3"],
         "gripperTypes": ["two_finger", "two_finger", "two_finger"],
         "sensorTypes": ["none", "none", "none"],
@@ -63,13 +63,13 @@
             "moveit_group_name": "all_arms",
             "l1_vmax": 1.0
         },
-        "object_library": "config/mag_block_tasks/env_setup/env_setup_I.json",
+        "object_library": "config/mag_block_tasks/env_setup/env_setup_three_I.json",
         "robot_properties": "config/mag_block_tasks/robot_properties.json"
     },
     "tasks": {
         "type": "MagBlock",
         "name": "I",
-        "assembly_seq": "config/mag_block_tasks/assembly_tasks/I.json",
+        "assembly_seq": "config/mag_block_tasks/assembly_tasks/three_I.json",
         "assemble": "true"
     }
 }

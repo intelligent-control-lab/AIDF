@@ -17,6 +17,34 @@ MagBlockSkillGraph::MagBlockSkillGraph(const std::string &config_file) : SkillGr
 }
 
 /**
+ * @brief Get the initial state with properly initialized robot states.
+ * @return Initial state with robot states initialized.
+ */
+State MagBlockSkillGraph::get_initial_state() {
+    // Get base initial state
+    State initial_state = SkillGraph::get_initial_state();
+    
+    // Initialize robot states
+    initial_state.robot_states.clear();
+    for (int i = 0; i < robots.size(); i++) {
+        RobotState robot_state;
+        robot_state.robot_id = i;
+        robot_state.robot_name = robots[i]->robot_name;
+        robot_state.attributes["at_approach_position"] = false;
+        
+        // Initialize joint values to zeros (or home position)
+        int dof = robots[i]->getDOF();
+        robot_state.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.57};
+        
+        initial_state.robot_states.push_back(robot_state);
+    }
+    
+    log("Initialized robot states for " + std::to_string(robots.size()) + " robots", LogLevel::INFO);
+    
+    return initial_state;
+}
+
+/**
  * @brief Parse the environment configuration for the MagBlock skill graph.
  *
  * This method sets up the backend, MoveIt instance, and robot parameters from the JSON configuration
@@ -50,7 +78,17 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         plan_instance_->setVmax(backend_config["l1_vmax"].asDouble());
     }
     
+    initial_state_ = get_initial_state();
     env_->setBackend(plan_instance_);
+    for (int i = 0; i < num_robots_; i++) {
+        // print the initial robot state
+        std::cout << "Initial state for robot " << i << ": " << std::endl;
+        for (const auto& joint_value : initial_state_.robot_states[i].joint_values) {
+            std::cout << joint_value << " ";
+        }
+        std::cout << std::endl;
+        env_->backend_->moveRobot(i, initial_state_.robot_states[i]);
+    }
     
     log("MagBlock environment initialized with " + std::to_string(num_robots_) + " robots", LogLevel::INFO);
 
@@ -80,7 +118,7 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         double y = block["y"].asDouble();
         double z = block["z"].asDouble();
         std::cout << x << " " << y << " " << z << std::endl;
-        // TO DO: GET ROBOT BASE LINK, GET BLOCK TO ROBOT
+        // GET ROBOT BASE LINK, GET BLOCK TO ROBOT
         // const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
         // Eigen::Isometry3d target_transform_world = ee_to_world * target_transform;
 
@@ -88,17 +126,50 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         ObjPtr mag_block = std::make_shared<Object>();
         mag_block->name = key;
         mag_block->state = Object::State::Static;
-        mag_block->parent_link = "world";  // assuming world frame
+        mag_block->parent_link = "world";
         mag_block->shape = Object::Shape::Box;  
 
+        double block_in_robot_x, block_in_robot_y, block_in_robot_z, rx_deg, ry_deg, rz_deg;
+        transformSkillgraphToRobot("right_arm", x, y, z, 
+                              block_in_robot_x, block_in_robot_y, block_in_robot_z, rx_deg, ry_deg, rz_deg);
+
+        std::cout << "BLOCK IN ROBOT FRAME: " 
+                  << block_in_robot_x << " "
+                  << block_in_robot_y << " "
+                  << block_in_robot_z << std::endl;
+
+        geometry_msgs::msg::Pose target_transform_world;
+        geometry_msgs::msg::Pose target_pose;
+        target_pose.position.x = block_in_robot_x;
+        target_pose.position.y = block_in_robot_y;
+        target_pose.position.z = block_in_robot_z;
+        target_pose.orientation.x = 0.0;
+        target_pose.orientation.y = 0.0;
+        target_pose.orientation.z = 0.0;
+        target_pose.orientation.w = 1.0;
+        auto moveit_backend = std::dynamic_pointer_cast<MoveitInstance>(env_->backend_);
+        if (moveit_backend) {
+            moveit_backend->transformRobotToWorld("right_arm", target_pose, target_transform_world);
+        } else {
+            log("Failed to cast backend_ to MoveitInstance", LogLevel::ERROR);
+        }
+
+        std::cout << "WORLD POSE BEING USED FOR BLOCK PLACEMENT: " 
+                  << target_transform_world.position.x << " "
+                  << target_transform_world.position.y << " "
+                  << target_transform_world.position.z << std::endl;
+        
         // Set position
-        mag_block->x = x;
-        mag_block->y = y;
-        mag_block->z = z;
-        mag_block->qx = 0.0;
-        mag_block->qy = 0.0;
-        mag_block->qz = 0.0;
-        mag_block->qw = 1.0;
+        mag_block->x = target_transform_world.position.x;
+        mag_block->y = target_transform_world.position.y;
+        mag_block->z = target_transform_world.position.z - 0.159;
+        mag_block->qx = target_transform_world.orientation.x;
+        mag_block->qy = target_transform_world.orientation.y;
+        mag_block->qz = target_transform_world.orientation.z;
+        mag_block->qw = target_transform_world.orientation.w;
+        mag_block->length = 0.025;
+        mag_block->width = 0.025;
+        mag_block->height = 0.025;
 
         // Add to MoveIt and initial environment state
         env_->backend_->addMoveableObject(*mag_block);
@@ -107,7 +178,6 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
 
     // Update planning scene
     env_->backend_->updateScene();
-    std::dynamic_pointer_cast<MoveitInstance>(env_->backend_)->setObjectColor("b1", 0.0, 1.0, 0.0, 0.0); // optional coloring
 
     // Save as initial environment state
     env_->setState(init_state);
@@ -156,15 +226,18 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     // Get task constraints for robot and position information
     const Json::Value& constraints = current_task->post_condition->constraints_json;
     const std::vector<Skill::Type>& allowed_skills = current_task->post_condition->allowed_skill_type;
+
+    // GETTING HARDCODED ROBOT ID
+    int assigned_robot_id = constraints.get("robot_id", 2).asInt();
+    std::string robot_name = get_robot_names()[assigned_robot_id];
+
+    std::cout << "FEASIBLE U ROBOT ID: " << assigned_robot_id << std::endl;
+    std::cout << "FEASIBLE U ROBOT NAME: " << robot_name << std::endl;
     
     // Extract target positions from constraints
     double target_x = constraints.get("x", 0.0).asDouble();
     double target_y = constraints.get("y", 0.0).asDouble();
     double target_z = constraints.get("z", 0.0).asDouble();
-    
-    // Determine optimal robot for this position
-    int optimal_robot_id = determineRobotForLocation(target_x, target_y, target_z);
-    std::string robot_name = get_robot_names()[optimal_robot_id];
     
     log("Processing task " + std::to_string(assembled_steps) + " at position (" + 
         std::to_string(target_x) + "," + std::to_string(target_y) + "," + std::to_string(target_z) + 
@@ -172,11 +245,11 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     
     // Check robot's current state and position
     bool robot_at_approach_position = false;
-    if (optimal_robot_id < state.robot_states.size()) {
-        robot_at_approach_position = isRobotAtApproachPosition(state.robot_states[optimal_robot_id], 
+    if (assigned_robot_id < state.robot_states.size()) {
+        robot_at_approach_position = isRobotAtApproachPosition(state.robot_states[assigned_robot_id], 
                                                                target_x, target_y, target_z, robot_name);
     } else {
-        log("Warning: Robot states not initialized properly. Robot ID " + std::to_string(optimal_robot_id) + 
+        log("Warning: Robot states not initialized properly. Robot ID " + std::to_string(assigned_robot_id) + 
             " >= state.robot_states.size() " + std::to_string(state.robot_states.size()), LogLevel::WARN);
         // Robot states not initialized - assume robot is not at approach position
         robot_at_approach_position = false;
@@ -199,14 +272,14 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
         // Handle different skill types with specific logic
         if (skill_type == Skill::Type::PickAndPlace) {
             // For meta skills, generate and validate complete skill sequence
-            auto meta_skill = generateMetaSkill(skill_type, state, current_task, optimal_robot_id);
+            auto meta_skill = generateMetaSkill(skill_type, state, current_task, assigned_robot_id);
             if (meta_skill) {
                 feasible_skills.push_back(meta_skill);
                 log("Added feasible meta skill: PickAndPlace for robot " + robot_name, LogLevel::INFO);
             }
         } else {
             // For atomic skills, create with proper validation
-            auto atomic_skill = generateAtomicSkill(skill_type, state, current_task, optimal_robot_id);
+            auto atomic_skill = generateAtomicSkill(skill_type, state, current_task, assigned_robot_id);
             if (atomic_skill) {
                 feasible_skills.push_back(atomic_skill);
                 log("Added feasible atomic skill: " + skillTypeToString(skill_type) + " for robot " + robot_name, LogLevel::INFO);
@@ -218,7 +291,7 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     // add a Transit skill to move robot to approach position
     if (feasible_skills.empty() && !robot_at_approach_position) {
         log("No allowed skills feasible and robot not at approach - adding Transit skill", LogLevel::INFO);
-        auto transit_skill = generateAtomicSkill(Skill::Type::Transit, state, current_task, optimal_robot_id);
+        auto transit_skill = generateAtomicSkill(Skill::Type::Transit, state, current_task, assigned_robot_id);
         if (transit_skill) {
             feasible_skills.push_back(transit_skill);
             log("Added Transit skill to move robot to approach position", LogLevel::INFO);
@@ -235,7 +308,7 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
         // Force add the first allowed skill for debugging
         if (!allowed_skills.empty()) {
             log("Force-adding first allowed skill for debugging", LogLevel::WARN);
-            auto debug_skill = generateAtomicSkill(allowed_skills[0], state, current_task, optimal_robot_id);
+            auto debug_skill = generateAtomicSkill(allowed_skills[0], state, current_task, assigned_robot_id);
             if (debug_skill) {
                 feasible_skills.push_back(debug_skill);
             }
@@ -258,6 +331,59 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
 bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next_state, double &cost) {
     // Copy current state
     next_state = state;
+
+    int executing_robot_id = -1;
+    std::string executing_robot_name;
+
+    auto atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs);
+    auto meta_skill = std::dynamic_pointer_cast<MetaSkill>(gs);
+
+    if (atomic_skill && atomic_skill->robot) {
+        executing_robot_name = atomic_skill->robot->robot_name;
+        executing_robot_id = getRobotIdFromName(executing_robot_name);
+    } else if (meta_skill && !meta_skill->robots.empty()) {
+        executing_robot_name = meta_skill->robots[0]->robot_name; // Use first robot in meta skill
+        executing_robot_id = getRobotIdFromName(executing_robot_name);
+    } else {
+        // Try to get from executor's post-condition
+        if (atomic_skill && atomic_skill->executor && atomic_skill->executor->post_condition) {
+            executing_robot_id = atomic_skill->executor->post_condition->constraints_json.get("robot_id", -1).asInt();
+            executing_robot_name = getRobotNameFromId(executing_robot_id);
+        }
+    }
+
+    std::cout << "ROBOT ID: " << executing_robot_id << std::endl;
+    std::cout << "ROBOT NAME: " << executing_robot_name << std::endl;
+
+    // Ensure robot states are initialized
+    if (next_state.robot_states.empty()) {
+        log("Initializing robot states for state tracking", LogLevel::INFO);
+        for (int i = 0; i < robots.size(); i++) {
+            RobotState robot_state;
+            robot_state.robot_id = i;
+            robot_state.robot_name = robots[i]->robot_name;
+            robot_state.attributes["at_approach_position"] = false;
+            
+            // Initialize joint values to current robot state or default home position
+            robot_state.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.57};
+            
+            next_state.robot_states.push_back(robot_state);
+        }
+    }
+    
+    // Update robot joint states with current values from backend if available -- ADDED WITH EMPTY SEED FIX
+    if (executing_robot_id >= 0 && executing_robot_id < next_state.robot_states.size() && env_->backend_) {
+        auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(env_->backend_);
+        if (moveit_instance) {
+            std::vector<double> current_joints;
+            if (moveit_instance->getCurrentJointValues(executing_robot_name, current_joints)) {
+                next_state.robot_states[executing_robot_id].joint_values = current_joints;
+                log("Updated robot " + executing_robot_name + " joint values from MoveIt backend", LogLevel::DEBUG);
+            } else {
+                log("Failed to get current joint values for " + executing_robot_name + ", keeping previous values", LogLevel::WARN);
+            }
+        }
+    }
     
     // Handle different skill types differently for state updates
     if (gs->type == Skill::Type::Transit) {
@@ -265,31 +391,10 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
         // Transit is a positioning skill that prepares for the actual task
         log("Transit skill completed - robot is now at approach position", LogLevel::INFO);
         
-        // Update robot state to indicate it's now at approach position
-        auto atomic_skill = std::dynamic_pointer_cast<AtomicSkill>(gs);
-        if (atomic_skill && atomic_skill->robot) {
-            // Ensure robot states are initialized
-            if (next_state.robot_states.empty()) {
-                log("Initializing robot states for state tracking", LogLevel::INFO);
-                // Initialize robot states for all robots
-                for (int i = 0; i < robots.size(); i++) {
-                    RobotState robot_state;
-                    robot_state.robot_id = i;
-                    robot_state.robot_name = robots[i]->robot_name;
-                    robot_state.attributes["at_approach_position"] = false;
-                    next_state.robot_states.push_back(robot_state);
-                }
-            }
-            
-            // Find the robot in the state and update its attributes
-            for (auto& robot_state : next_state.robot_states) {
-                if (robot_state.robot_name == atomic_skill->robot->robot_name) {
-                    robot_state.attributes["at_approach_position"] = true;
-                    log("Updated robot " + robot_state.robot_name + " approach position status to TRUE", LogLevel::INFO);
-                    log("Robot is now ready for Pick/Place operations", LogLevel::INFO);
-                    break;
-                }
-            }
+        if (executing_robot_id >= 0 && executing_robot_id < next_state.robot_states.size()) {
+            // Set robot at approach position
+            next_state.robot_states[executing_robot_id].attributes["at_approach_position"] = true;
+            std::cout << "ROBOT AT APPROACH POSITION SET TO TRUE" << std::endl;
         }
         
         // Don't increment assembled_steps for transit - it's preparatory
@@ -302,9 +407,92 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
         log("Task skill completed, advanced from step " + std::to_string(state.assembled_steps) + 
             " to " + std::to_string(next_state.assembled_steps), LogLevel::INFO);
             
+        // Update object positions in EnvState and sync with MoveIt backend
+        if (gs->type == Skill::Type::Pick || gs->type == Skill::Type::PlaceTop || 
+            gs->type == Skill::Type::PlaceBottom || gs->type == Skill::Type::PickAndPlace) {
+            
+            // Get target position from executor's post-condition
+            TaskParamPtr post_condition = nullptr;
+            if (atomic_skill && atomic_skill->executor) {
+                post_condition = atomic_skill->executor->post_condition;
+            } else if (meta_skill && meta_skill->executor) {
+                post_condition = meta_skill->executor->post_condition;
+            }
+            
+            if (post_condition) {
+                const Json::Value& constraints = post_condition->constraints_json;
+                
+                // Find the object being manipulated (use first object for now, can be enhanced)
+                if (!next_state.env_state.objects.empty()) {
+                    auto& target_object = next_state.env_state.objects[0]; // Get first object
+                    
+                    // For Pick skills, object stays in current position (robot picks it up)
+                    if (gs->type == Skill::Type::Pick) {
+                        log("Pick skill - object " + target_object->name + " picked up by " + executing_robot_name, LogLevel::INFO);
+                        // Object position doesn't change in world frame when picked
+                    }
+                    // For Place skills or PickAndPlace, move object to target position
+                    else if (gs->type == Skill::Type::PlaceTop || gs->type == Skill::Type::PlaceBottom || 
+                             gs->type == Skill::Type::PickAndPlace) {
+                        
+                        // Get target coordinates from constraints
+                        if (constraints.isMember("x") && constraints.isMember("y") && constraints.isMember("z")) {
+                            double target_x = constraints["x"].asDouble();
+                            double target_y = constraints["y"].asDouble(); 
+                            double target_z = constraints["z"].asDouble();
+                            
+                            // Transform from skillgraph coordinates to world frame
+                            double world_x, world_y, world_z, rx_deg, ry_deg, rz_deg;
+                            transformSkillgraphToRobot(executing_robot_name, target_x, target_y, target_z,
+                                                     world_x, world_y, world_z, rx_deg, ry_deg, rz_deg);
+                            
+                            // Transform to world coordinates using MoveIt backend
+                            geometry_msgs::msg::Pose robot_pose, world_pose;
+                            robot_pose.position.x = world_x;
+                            robot_pose.position.y = world_y;
+                            robot_pose.position.z = world_z;
+                            robot_pose.orientation.x = 0.0;
+                            robot_pose.orientation.y = 0.0;
+                            robot_pose.orientation.z = 0.0;
+                            robot_pose.orientation.w = 1.0;
+                            
+                            auto moveit_backend = std::dynamic_pointer_cast<MoveitInstance>(env_->backend_);
+                            if (moveit_backend) {
+                                moveit_backend->transformRobotToWorld(executing_robot_name, robot_pose, world_pose);
+                                
+                                // Update object position in EnvState
+                                target_object->x = world_pose.position.x;
+                                target_object->y = world_pose.position.y;
+                                target_object->z = world_pose.position.z - 0.159; // Adjust for block height
+                                target_object->qx = world_pose.orientation.x;
+                                target_object->qy = world_pose.orientation.y;
+                                target_object->qz = world_pose.orientation.z;
+                                target_object->qw = world_pose.orientation.w;
+                                
+                                // Sync with MoveIt backend using moveObject
+                                moveit_backend->moveObject(*target_object);
+                                log("Moved object " + target_object->name + " to position (" + 
+                                    std::to_string(world_pose.position.x) + "," + 
+                                    std::to_string(world_pose.position.y) + "," + 
+                                    std::to_string(world_pose.position.z - 0.159) + ")", LogLevel::INFO);
+                                
+                                // Update the environment state in the backend
+                                env_->setState(next_state.env_state);
+                                moveit_backend->updateScene();
+                            } else {
+                                log("Failed to cast backend to MoveitInstance for object movement", LogLevel::ERROR);
+                            }
+                        } else {
+                            log("Missing target coordinates in constraints for place operation", LogLevel::WARN);
+                        }
+                    }
+                }
+            }
+        }
+            
         // Reset approach position status for next task
-        for (auto& robot_state : next_state.robot_states) {
-            robot_state.attributes["at_approach_position"] = false;
+        if (executing_robot_id >= 0 && executing_robot_id < next_state.robot_states.size()) {
+            next_state.robot_states[executing_robot_id].attributes["at_approach_position"] = false;
         }
     }
     
@@ -329,7 +517,7 @@ bool MagBlockSkillGraph::is_feasible(const State&state, Json::Value &skill_confi
         gs = gs_meta;
         
         // Set robot for the skill
-        int rid = skill_config.get("robot_id", 0).asInt();
+        int rid = skill_config.get("robot_id", 2).asInt();
         skillgraph::RobotPtr robot = robots[rid];
         gs_meta->set_robot({robot});
         
@@ -434,21 +622,6 @@ bool MagBlockSkillGraph::is_feasible(const State&state, Json::Value &skill_confi
     return true;
 }
 
-/**
- * @brief Determine which robot to use for a given location.
- */
-int MagBlockSkillGraph::determineRobotForLocation(double x, double y, double z) {
-    // Simple workspace-based robot selection
-    if (x < 10) {
-        return 0;  // left_arm
-    } else if (x > 20) {
-        return 2;  // right_arm
-    } else {
-        return 1;  // center_arm
-    }
-}
-
-
 
 /**
  * @brief Load assembly task from JSON file.
@@ -508,13 +681,6 @@ void MagBlockSkillGraph::setEnvironmentConfig(const Json::Value& env_config) {
 }
 
 /**
- * @brief Get optimal robot for given block coordinates.
- */
-int MagBlockSkillGraph::getOptimalRobot(double x_blocks, double y_blocks, double z_blocks) {
-    return determineRobotForLocation(x_blocks, y_blocks, z_blocks);
-}
-
-/**
  * @brief Transform block coordinates to robot frame - renamed for clarity.
  */
 bool MagBlockSkillGraph::transformBlockToRobot(const std::string& robot_name, 
@@ -547,7 +713,6 @@ bool MagBlockSkillGraph::isRobotAtApproachPosition(const RobotState& robot_state
     if (attr_it != robot_state.attributes.end()) {
         try {
             bool at_approach = std::any_cast<bool>(attr_it->second);
-            log("Robot " + robot_name + " approach status from attributes: " + (at_approach ? "YES" : "NO"), LogLevel::DEBUG);
             return at_approach;
         } catch (const std::bad_any_cast& e) {
             log("Failed to cast approach position attribute", LogLevel::WARN);
@@ -568,7 +733,6 @@ bool MagBlockSkillGraph::checkSkillPreconditions(Skill::Type skill_type, bool ro
         case Skill::Type::PickAndPlace:
             // Pick operations require robot to be at approach position
             if (!robot_at_approach) {
-                log("Pick skill requires robot at approach position - transit needed first", LogLevel::DEBUG);
                 return false;
             }
             return true;
@@ -577,7 +741,6 @@ bool MagBlockSkillGraph::checkSkillPreconditions(Skill::Type skill_type, bool ro
         case Skill::Type::PlaceBottom:
             // Place operations require robot to be holding an object and at approach position
             if (!robot_at_approach) {
-                log("Place skill requires robot at approach position - transit needed first", LogLevel::DEBUG);
                 return false;
             }
             // TODO: Add check for robot holding object

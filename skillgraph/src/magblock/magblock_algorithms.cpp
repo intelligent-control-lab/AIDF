@@ -92,7 +92,7 @@ void loadRobotProperties() {
 Json::Value loadEnvironmentSetup() {
     // loadTaskConfig();
     // std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
-    std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
+    std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_three_I.json";
     
     std::ifstream env_file(env_path);
     Json::Value env_setup;
@@ -119,7 +119,7 @@ Json::Value loadEnvironmentSetup() {
 Json::Value loadAssemblyInstructions() {
     // loadTaskConfig();
     // std::string assembly_path = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
-    std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
+    std::string assembly_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/three_I.json";
     
     std::ifstream assembly_file(assembly_path);
     Json::Value assembly_data;
@@ -198,13 +198,13 @@ void transformSkillgraphToRobot(const std::string& robot_name,
     } else if (robot_name == "left_arm") {
         // For left arm: +X robot = +X block, +Y robot = -Y block
         // Block frame origin is at (40cm, 113.5cm) in robot frame
-        x_robot = 0.40 + (x_sg * block_size);      // Block X maps to robot X
-        y_robot = 1.135 + (-y_sg * block_size);    // Block -Y maps to robot Y
+        x_robot = 1.135 + (-y_sg * block_size);      // Block X maps to robot X
+        y_robot = 0.40 + (-x_sg * block_size);    // Block -Y maps to robot Y
     } else if (robot_name == "center_arm") {
         // For center arm: +X robot = -Y block, +Y robot = -X block  
         // Block frame origin is at (88.5cm, 50cm) in robot frame
-        x_robot = 0.885 + (-y_sg * block_size);    // Block -Y maps to robot X
-        y_robot = 0.50 + (-x_sg * block_size);     // Block -X maps to robot Y
+        x_robot = 0.93 + (-x_sg * block_size);    // Block -Y maps to robot X
+        y_robot = -0.50 + (y_sg * block_size);     // Block -X maps to robot Y
     } else {
         // For other robots, use the standard transformation with direction vectors
         x_robot = offset_x + (x_direction * x_sg * block_size);
@@ -217,13 +217,9 @@ void transformSkillgraphToRobot(const std::string& robot_name,
     // Default orientation (gripper pointing down)
     rx = 0.0; ry = 0.0; rz = 0.0;
     
-    log("Detailed coordinate transformation for " + robot_name + ":", LogLevel::DEBUG);
-    log("  Input skillgraph coords: (" + std::to_string(x_sg) + ", " + std::to_string(y_sg) + ", " + std::to_string(z_sg) + ")", LogLevel::DEBUG);
-    log("  Block size: " + std::to_string(block_size), LogLevel::DEBUG);
-    log("  Block height offset: " + std::to_string(block_height_offset), LogLevel::DEBUG);
-    log("  Offsets: (" + std::to_string(offset_x) + ", " + std::to_string(offset_y) + ", " + std::to_string(offset_z) + ")", LogLevel::DEBUG);
-    log("  Direction vectors: (" + std::to_string(x_direction) + ", " + std::to_string(y_direction) + ", " + std::to_string(z_direction) + ")", LogLevel::DEBUG);
-    log("  Final robot coords: (" + std::to_string(x_robot) + ", " + std::to_string(y_robot) + ", " + std::to_string(z_robot) + ")", LogLevel::DEBUG);
+    std::cout << "Transformed to robot frame: "
+              << "x_robot=" << x_robot << ", y_robot=" << y_robot << ", z_robot=" << z_robot
+              << ", rx=" << rx << ", ry=" << ry << ", rz=" << rz << std::endl;
 }
 
 /**
@@ -290,11 +286,11 @@ std::tuple<double, double, double> getPlaceApproachOffset(const std::string& rob
     } else if (robot_name == "left_arm") {
         switch(press_face) {
             case 0: return {0.0, 0.0, approach_distance}; // +Z approach to press -Z
-            case 1: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
-            case 2: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
+            case 1: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
+            case 2: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
             case 3: return {0.0, 0.0, -approach_distance}; // -Z approach to press +Z
-            case 4: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
-            case 5: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
+            case 4: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
+            case 5: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
             default: 
                 log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
                 return {0.0, 0.0, approach_distance};
@@ -302,11 +298,11 @@ std::tuple<double, double, double> getPlaceApproachOffset(const std::string& rob
     } else if (robot_name == "center_arm") {
         switch(press_face) {
             case 0: return {0.0, 0.0, approach_distance}; // +Z approach to press -Z
-            case 1: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
-            case 2: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
+            case 1: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
+            case 2: return {0.0, -approach_distance, 0.0}; // -Y approach to press +Y
             case 3: return {0.0, 0.0, -approach_distance}; // -Z approach to press +Z
-            case 4: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
-            case 5: return {-approach_distance, 0.0, 0.0}; // -X approach to press +X
+            case 4: return {approach_distance, 0.0, 0.0}; // +X approach to press -X
+            case 5: return {0.0, approach_distance, 0.0}; // +Y approach to press -Y
             default: 
                 log("Unknown press_face=" + std::to_string(press_face) + ", defaulting to +Z approach", LogLevel::WARN);
                 return {0.0, 0.0, approach_distance};
@@ -494,7 +490,8 @@ bool getBlockPlacePosition(const std::string& block_name, double& x, double& y, 
 /**
  * @brief Plan transit trajectory
  */
-bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
+bool planTransit(skillgraph::RobotState robot_state,
+                             std::shared_ptr<MoveitInstance> moveit_instance,
                              const std::string& robot_name,
                              const geometry_msgs::msg::Pose& goal_pose,
                              std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories) {
@@ -505,11 +502,17 @@ bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
 
     trajectories.clear();
 
+    std::vector<double> current_joints = robot_state.joint_values;
     // Get current joint values as seed for IK
-    std::vector<double> current_joints;
-    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
-        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
-        return false;
+    // std::vector<double> current_joints;
+    // if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+    //     log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+    //     return false;   
+    // }
+
+    std::cout << "CURRENT JOINT VALUES IN PLANTRANSIT: " << current_joints.size() << " joints" << std::endl;
+    for (const auto& joint : current_joints) {
+        std::cout << " - Joint: " << joint << std::endl;
     }
 
     std::vector<double> solution_joints;
@@ -526,13 +529,6 @@ bool planTransit(std::shared_ptr<MoveitInstance> moveit_instance,
     std::vector<std::vector<double>> segment = moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment);
     // Execute the joint trajectory
     moveit_instance->executeJointTrajectory(robot_name, segment, step_duration);
-    for (const auto& joint_values : segment) {
-        std::cout << "Joint values: ";
-        for (const auto& value : joint_values) {
-            std::cout << value << " ";
-        }
-        std::cout << std::endl;
-    }
     return true;
 }
 
@@ -696,8 +692,8 @@ std::vector<double> getCurrentJointState(std::shared_ptr<MoveitInstance> moveit_
     // Get the robot name based on robot_id
     std::string robot_name;
     switch(robot_id) {
-        case 0: robot_name = "left_arm"; break;
-        case 1: robot_name = "center_arm"; break;
+        case 0: robot_name = "center_arm"; break;
+        case 1: robot_name = "left_arm"; break;
         case 2: robot_name = "right_arm"; break;
         default: robot_name = "right_arm"; break;
     }
@@ -727,8 +723,8 @@ void interpolateAndMoveRobot(std::shared_ptr<MoveitInstance> moveit_instance,
     // Get robot name based on robot_id
     std::string robot_name;
     switch(robot_id) {
-        case 0: robot_name = "left_arm"; break;
-        case 1: robot_name = "center_arm"; break;
+        case 0: robot_name = "center_arm"; break;
+        case 1: robot_name = "left_arm"; break;
         case 2: robot_name = "right_arm"; break;
         default: robot_name = "right_arm"; break;
     }
@@ -888,6 +884,7 @@ bool calculateApproachPose(std::shared_ptr<PlanInstance> backend,
     double target_x = task_constraints.get("x", 0.0).asDouble();
     double target_y = task_constraints.get("y", 0.0).asDouble();
     double target_z = task_constraints.get("z", 0.0).asDouble();
+    std::cout << "TARGET POSITION BEING GIVEN TO TRANSFORM FUNC: " << target_x << ", " << target_y << ", " << target_z << std::endl;
     
     // Transform to robot coordinates using the existing transform function
     double robot_x, robot_y, robot_z, rx_deg, ry_deg, rz_deg;
@@ -933,6 +930,32 @@ bool calculateApproachPose(std::shared_ptr<PlanInstance> backend,
         std::to_string(approach_pose.orientation.z) + ")", LogLevel::INFO);
     
     return true;
+}
+
+/**
+ * @brief Convert robot ID to robot name
+ */
+std::string getRobotNameFromId(int robot_id) {
+    switch(robot_id) {
+        case 0: return "center_arm";
+        case 1: return "left_arm";
+        case 2: return "right_arm";
+        default: 
+            log("Unknown robot_id=" + std::to_string(robot_id) + ", defaulting to right_arm", LogLevel::WARN);
+            return "right_arm";
+    }
+}
+
+/**
+ * @brief Convert robot name to robot ID
+ */
+int getRobotIdFromName(const std::string& robot_name) {
+    if (robot_name == "left_arm") return 1;
+    if (robot_name == "center_arm") return 0;
+    if (robot_name == "right_arm") return 2;
+    
+    log("Unknown robot_name=" + robot_name + ", defaulting to right_arm (id=2)", LogLevel::WARN);
+    return 2;
 }
 
 } // namespace skillgraph

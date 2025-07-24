@@ -42,8 +42,8 @@ std::string MagBlockSkillExecutor::getRobotName() const {
     if (post_condition && post_condition->constraints_json.isMember("robot_id")) {
         int robot_id = post_condition->constraints_json["robot_id"].asInt();
         switch (robot_id) {
-            case 0: return "left_arm";
-            case 1: return "center_arm";
+            case 0: return "center_arm";
+            case 1: return "left_arm";
             case 2: return "right_arm";
             default: return "right_arm"; // Default fallback
         }
@@ -83,10 +83,10 @@ bool MagBlockSkillExecutor::execute(State &current_state) {
         bool success = controller_->move(post_condition, planned_trajectory_);
         
         // Update state after successful execution
-        if (success) {
-            current_state.robot_states = post_condition->target_state.robot_states;
-            current_state.env_state = post_condition->target_state.env_state;
-        }
+        // if (success) {
+        //     current_state.robot_states = post_condition->target_state.robot_states;
+        //     current_state.env_state = post_condition->target_state.env_state;
+        // }
         
         // Brief pause for stability
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -144,9 +144,9 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, pick_pose, place_pose, object_name, press_face, trajectories);
     
     if (success) {
-        // Update state to reflect picked object
-        current_state.robot_states = post_condition->target_state.robot_states;
-        current_state.env_state = post_condition->target_state.env_state;
+        // // Update state to reflect picked object
+        // current_state.robot_states = post_condition->target_state.robot_states;
+        // current_state.env_state = post_condition->target_state.env_state;
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     } else {
         log("Pick skill execution failed", LogLevel::ERROR);
@@ -198,10 +198,10 @@ bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
     bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, approach_pose, place_pose, object_name, press_face, trajectories);
     
     if (success) {
-        // Update state to reflect placed object
-        current_state.robot_states = post_condition->target_state.robot_states;
-        current_state.env_state = post_condition->target_state.env_state;
-        current_state.assembled_steps++; // Increment assembly progress
+        // Note: State updates including assembled_steps are handled by MagBlockSkillGraph::get_next_state()
+        // current_state.robot_states = post_condition->target_state.robot_states;
+        // current_state.env_state = post_condition->target_state.env_state;
+        // current_state.assembled_steps++;
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     } else {
         log("Place skill execution failed", LogLevel::ERROR);
@@ -268,11 +268,12 @@ bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
     
     // Plan trajectory to target pose
     std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
-    bool success = skillgraph::planTransit(moveit_instance, robot_name, pick_pose, trajectories);
+    auto robot = current_state.robot_states[getRobotIdFromName(robot_name)];
+    bool success = skillgraph::planTransit(robot, moveit_instance, robot_name, pick_pose, trajectories);
     if (success) {
-        // Update state after complete transit
-        current_state.robot_states = post_condition->target_state.robot_states;
-        current_state.env_state = post_condition->target_state.env_state;
+        // // Update state after complete transit
+        // current_state.robot_states = post_condition->target_state.robot_states;
+        // current_state.env_state = post_condition->target_state.env_state;
         
         log("Transit executed successfully", LogLevel::INFO);
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -344,10 +345,10 @@ bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state) {
     bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, pick_pose, place_pose, object_name, press_face, trajectories);
     
     if (success) {
-        // Update state after complete pick and place
-        current_state.robot_states = post_condition->target_state.robot_states;
-        current_state.env_state = post_condition->target_state.env_state;
-        current_state.assembled_steps++; // Increment assembly progress
+        // Note: State updates are handled by MagBlockSkillGraph::get_next_state()
+        // current_state.robot_states = post_condition->target_state.robot_states;
+        // current_state.env_state = post_condition->target_state.env_state;
+        // current_state.assembled_steps++;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     } else {
         log("Pick and place skill execution failed", LogLevel::ERROR);

@@ -6,7 +6,7 @@
         "z": 0,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 2
+        "robot_id": 2
     },
     "2": {
         "type": "primitive",
@@ -15,7 +15,7 @@
         "z": 0,
         "gripper_ori": 0,
         "press_face": 4,
-        "robot": 1
+        "robot_id": 0
     },
     "3": {
         "type": "primitive",
@@ -24,7 +24,7 @@
         "z": 0,
         "gripper_ori": 0,
         "press_face": 1,
-        "robot": 0
+        "robot_id": 1
     },
     "4": {
         "type": "primitive",
@@ -33,7 +33,7 @@
         "z": 0,
         "gripper_ori": 0,
         "press_face": 4,
-        "robot": 2
+        "robot_id": 2
     },
     "5": {
         "type": "primitive",
@@ -42,7 +42,7 @@
         "z": 0,
         "gripper_ori": 0,
         "press_face": 1,
-        "robot": 1
+        "robot_id": 0
     },
     "6": {
         "type": "primitive",
@@ -51,7 +51,7 @@
         "z": 1,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 0
+        "robot_id": 1
     },
     "7": {
         "type": "primitive",
@@ -60,7 +60,7 @@
         "z": 2,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 2
+        "robot_id": 2
     },
     "8": {
         "type": "primitive",
@@ -69,7 +69,7 @@
         "z": 3,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 1
+        "robot_id": 0
     },
     "9": {
         "type": "primitive",
@@ -78,7 +78,7 @@
         "z": 4,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 0
+        "robot_id": 1
     },
     "10": {
         "type": "primitive",
@@ -87,7 +87,7 @@
         "z": 5,
         "gripper_ori": 0,
         "press_face": 0,
-        "robot": 2
+        "robot_id": 2
     },
     "11": {
         "type": "primitive",
@@ -96,7 +96,7 @@
         "z": 5,
         "gripper_ori": 0,
         "press_face": 4,
-        "robot": 1
+        "robot_id": 0
     },
     "12": {
         "type": "primitive",
@@ -105,7 +105,7 @@
         "z": 5,
         "gripper_ori": 0,
         "press_face": 1,
-        "robot": 0
+        "robot_id": 1
     },
     "13": {
         "type": "primitive",
@@ -114,7 +114,7 @@
         "z": 5,
         "gripper_ori": 0,
         "press_face": 4,
-        "robot": 2
+        "robot_id": 2
     },
     "14": {
         "type": "primitive",
@@ -123,6 +123,6 @@
         "z": 5,
         "gripper_ori": 0,
         "press_face": 1,
-        "robot": 1
+        "robot_id": 0
     }
 }

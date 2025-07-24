@@ -105,7 +105,7 @@ public:
             
             // Set the assembly environment configuration
             // Load the environment setup file and pass it to the skillgraph
-            std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_I.json";
+            std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_three_I.json";
             // loadTaskConfig();
             // std::string env_path = PathResolver::resolvePath(task_config_["environment"]["object_library"].asString());
             std::ifstream env_file(env_path);
@@ -133,7 +133,7 @@ public:
             auto assembly_seq = std::make_shared<MagBlockAssemblySeq>(task_file);
             log("Assembly sequence loaded. Number of tasks: " + std::to_string(assembly_seq->num_tasks()), LogLevel::INFO);
             
-            // Set the assembly sequence in the skill graph (this was missing!)
+            // Set the assembly sequence in the skill graph
             skillgraph_->setAssemblySequence(assembly_seq);
             
             // Get initial state
@@ -173,6 +173,7 @@ public:
                     log("Failed to execute skill for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
+                std::cout << "CURRENT STATE: " << current_state.to_string() << std::endl;
                 
                 // Get next state after skill execution
                 State next_state;
@@ -214,7 +215,7 @@ public:
         log("Running MagBlock Assembly Test", LogLevel::INFO);
         
         // Test with a simple assembly sequence
-        std::string test_task = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/I.json";
+        std::string test_task = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/three_I.json";
         // loadTaskConfig();
         // std::string test_task = PathResolver::resolvePath(task_config_["tasks"]["assembly_seq"].asString());
         
