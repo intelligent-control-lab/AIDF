@@ -198,13 +198,13 @@ void transformSkillgraphToRobot(const std::string& robot_name,
     } else if (robot_name == "left_arm") {
         // For left arm: +X robot = +X block, +Y robot = -Y block
         // Block frame origin is at (40cm, 113.5cm) in robot frame
-        x_robot = 1.135 + (-y_sg * block_size);      // Block X maps to robot X
+        x_robot = 1.15 + (-y_sg * block_size);      // Block X maps to robot X
         y_robot = 0.40 + (-x_sg * block_size);    // Block -Y maps to robot Y
     } else if (robot_name == "center_arm") {
         // For center arm: +X robot = -Y block, +Y robot = -X block  
         // Block frame origin is at (88.5cm, 50cm) in robot frame
-        x_robot = 0.93 + (-x_sg * block_size);    // Block -Y maps to robot X
-        y_robot = -0.50 + (y_sg * block_size);     // Block -X maps to robot Y
+        x_robot = 0.90 + (-x_sg * block_size);    // Block -Y maps to robot X
+        y_robot = -0.53 + (y_sg * block_size);     // Block -X maps to robot Y
     } else {
         // For other robots, use the standard transformation with direction vectors
         x_robot = offset_x + (x_direction * x_sg * block_size);

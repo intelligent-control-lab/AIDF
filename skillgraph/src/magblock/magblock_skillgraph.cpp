@@ -133,11 +133,6 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         transformSkillgraphToRobot("right_arm", x, y, z, 
                               block_in_robot_x, block_in_robot_y, block_in_robot_z, rx_deg, ry_deg, rz_deg);
 
-        std::cout << "BLOCK IN ROBOT FRAME: " 
-                  << block_in_robot_x << " "
-                  << block_in_robot_y << " "
-                  << block_in_robot_z << std::endl;
-
         geometry_msgs::msg::Pose target_transform_world;
         geometry_msgs::msg::Pose target_pose;
         target_pose.position.x = block_in_robot_x;
@@ -153,11 +148,6 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         } else {
             log("Failed to cast backend_ to MoveitInstance", LogLevel::ERROR);
         }
-
-        std::cout << "WORLD POSE BEING USED FOR BLOCK PLACEMENT: " 
-                  << target_transform_world.position.x << " "
-                  << target_transform_world.position.y << " "
-                  << target_transform_world.position.z << std::endl;
         
         // Set position
         mag_block->x = target_transform_world.position.x;
@@ -230,9 +220,6 @@ std::vector<SkillPtr> MagBlockSkillGraph::feasible_u(const State &state) {
     // GETTING HARDCODED ROBOT ID
     int assigned_robot_id = constraints.get("robot_id", 2).asInt();
     std::string robot_name = get_robot_names()[assigned_robot_id];
-
-    std::cout << "FEASIBLE U ROBOT ID: " << assigned_robot_id << std::endl;
-    std::cout << "FEASIBLE U ROBOT NAME: " << robot_name << std::endl;
     
     // Extract target positions from constraints
     double target_x = constraints.get("x", 0.0).asDouble();
@@ -352,9 +339,6 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
         }
     }
 
-    std::cout << "ROBOT ID: " << executing_robot_id << std::endl;
-    std::cout << "ROBOT NAME: " << executing_robot_name << std::endl;
-
     // Ensure robot states are initialized
     if (next_state.robot_states.empty()) {
         log("Initializing robot states for state tracking", LogLevel::INFO);
@@ -394,7 +378,6 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
         if (executing_robot_id >= 0 && executing_robot_id < next_state.robot_states.size()) {
             // Set robot at approach position
             next_state.robot_states[executing_robot_id].attributes["at_approach_position"] = true;
-            std::cout << "ROBOT AT APPROACH POSITION SET TO TRUE" << std::endl;
         }
         
         // Don't increment assembled_steps for transit - it's preparatory
@@ -424,7 +407,27 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
                 
                 // Find the object being manipulated (use first object for now, can be enhanced)
                 if (!next_state.env_state.objects.empty()) {
-                    auto& target_object = next_state.env_state.objects[0]; // Get first object
+                    ObjPtr target_object = nullptr;
+                    std::string target_name = "b" + std::to_string(next_state.assembled_steps);
+                    std::cout << "TARGET NAME: " << target_name << std::endl;
+
+                    for (const auto& obj : next_state.env_state.objects) {
+                        if (obj->name == target_name) {
+                            target_object = obj;
+                            break;
+                        }
+                    }
+                    std::cout << "TARGET OBJECT: " << target_object->name << std::endl;
+                    std::string block_name = constraints["block_name"].asString();
+                    std::cout << "CONSTRAINTS: " << constraints.toStyledString() << std::endl;
+                    std::cout << "ASSEMBLED STEPS: " << next_state.assembled_steps << std::endl;
+                    std::cout << "BLOCK NAME: " << block_name << std::endl;
+                    for (const auto& obj : next_state.env_state.objects) {
+                        std::cout << "OBJECT NAME: " << obj->name << std::endl;
+                    }
+
+                    //ObjPtr target_object = next_state.env_state.objects[state.assembled_steps];
+                    std::cout << "TARGET OBJECT NAME: " << target_object->name << std::endl;
                     
                     // For Pick skills, object stays in current position (robot picks it up)
                     if (gs->type == Skill::Type::Pick) {

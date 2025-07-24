@@ -462,13 +462,58 @@ void MoveitInstance::moveRobot(int robot_id, const skillgraph::RobotState& pose)
 
 // Stub implementations for other required methods
 void MoveitInstance::attachObjectToRobot(const std::string &name, int robot_id, const std::string &link_name, const skillgraph::RobotState &pose) {
-    // Simplified stub
-    log("AttachObjectToRobot called but not implemented", LogLevel::WARN);
+    if (collision_object_map_.find(name) == collision_object_map_.end()) {
+        log("AttachObjectToRobot: Object " + name + " not found in collision object map", LogLevel::ERROR);
+        return;
+    }
+
+    removeObject(name); // Ensure object is removed before attaching
+
+    moveit_msgs::msg::CollisionObject co = collision_object_map_[name];
+
+    moveit_msgs::msg::AttachedCollisionObject attached_object;
+    attached_object.link_name = link_name;
+    attached_object.object = co;
+    attached_object.object.header.frame_id = link_name;
+    attached_object.object.operation = moveit_msgs::msg::CollisionObject::ADD;
+
+    moveit_msgs::msg::PlanningScene planning_scene_msg;
+    planning_scene_msg.is_diff = true;
+    planning_scene_msg.robot_state.attached_collision_objects.push_back(attached_object);
+    planning_scene_msg.robot_state.is_diff = true;
+
+    // Joint state update for context
+    const auto* joint_model_group = planning_scene_->getRobotModel()->getJointModelGroup(robot_names_[robot_id]);
+    const auto& joint_names = joint_model_group->getActiveJointModelNames();
+    for (size_t i = 0; i < pose.joint_values.size(); ++i) {
+        planning_scene_msg.robot_state.joint_state.name.push_back(joint_names[i]);
+        planning_scene_msg.robot_state.joint_state.position.push_back(pose.joint_values[i]);
+    }
+
+    planning_scene_->usePlanningSceneMsg(planning_scene_msg);
+    planning_scene_diff_ = planning_scene_msg;
 }
 
 void MoveitInstance::detachObjectFromRobot(const std::string& name, const skillgraph::RobotState &pose) {
-    // Simplified stub
-    log("DetachObjectFromRobot called but not implemented", LogLevel::WARN);
+    moveit_msgs::msg::AttachedCollisionObject detach_object;
+    detach_object.object.id = name;
+    detach_object.link_name = "";
+    detach_object.object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
+
+    moveit_msgs::msg::PlanningScene planning_scene_msg;
+    planning_scene_msg.is_diff = true;
+    planning_scene_msg.robot_state.attached_collision_objects.push_back(detach_object);
+    planning_scene_msg.robot_state.is_diff = true;
+
+    const auto* joint_model_group = planning_scene_->getRobotModel()->getJointModelGroup(robot_names_[pose.robot_id]);
+    const auto& joint_names = joint_model_group->getActiveJointModelNames();
+    for (size_t i = 0; i < pose.joint_values.size(); ++i) {
+        planning_scene_msg.robot_state.joint_state.name.push_back(joint_names[i]);
+        planning_scene_msg.robot_state.joint_state.position.push_back(pose.joint_values[i]);
+    }
+
+    planning_scene_->usePlanningSceneMsg(planning_scene_msg);
+    planning_scene_diff_ = planning_scene_msg;
 }
 
 void MoveitInstance::setObjectColor(const std::string &name, double r, double g, double b, double a) {
