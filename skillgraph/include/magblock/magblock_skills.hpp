@@ -28,6 +28,7 @@ public:
      * @param current_state The current state to execute on.
      * @return True if execution was successful.
      */
+    virtual bool execute(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory);
     virtual bool execute(State &current_state) override;
 
 private:
@@ -58,28 +59,28 @@ private:
      * @param constraints JSON constraints for the skill.
      * @return True if successful.
      */
-    bool execute_pick_skill(State &current_state);
+    bool execute_pick_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory);
     
     /**
      * @brief Execute place skill for magnetic blocks.
      * @param current_state Current robot/environment state.
      * @return True if successful.
      */
-    bool execute_place_skill(State &current_state);
-    
+    bool execute_place_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory);
+
     /**
      * @brief Execute transit skill for magnetic blocks.
      * @param current_state Current robot/environment state.
      * @return True if successful.
      */
-    bool execute_transit_skill(State &current_state);
-    
+    bool execute_transit_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory);
+
     /**
      * @brief Execute pick and place skill for magnetic blocks.
      * @param current_state Current robot/environment state.
      * @return True if successful.
      */
-    bool execute_pick_and_place_skill(State &current_state);
+    bool execute_pick_and_place_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory);
 
     // Helper to get MoveitInstance from backend
     std::shared_ptr<MoveitInstance> getMoveitInstance() {

@@ -53,6 +53,12 @@ std::string MagBlockSkillExecutor::getRobotName() const {
     return "right_arm";
 }
 
+bool MagBlockSkillExecutor::execute(State& current_state) {
+    std::vector<skillgraph::RobotTrajectory> dummy;
+    return this->execute(current_state, dummy);
+}
+
+
 /**
  * @brief Execute the MagBlock skill on the current state.
  *
@@ -60,7 +66,7 @@ std::string MagBlockSkillExecutor::getRobotName() const {
  * @param current_state The current state to execute on.
  * @return True if execution was successful, false otherwise.
  */
-bool MagBlockSkillExecutor::execute(State &current_state) {
+bool MagBlockSkillExecutor::execute(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory) {
     // Check for valid post condition
     if (post_condition == nullptr) {
         log("Post condition is null", LogLevel::ERROR);
@@ -71,13 +77,13 @@ bool MagBlockSkillExecutor::execute(State &current_state) {
 
     // Handle specific skill types for magnetic blocks
     if (skill_type_ == Skill::Type::Pick) {
-        return execute_pick_skill(current_state);
+        return execute_pick_skill(current_state, planned_trajectory);
     } else if (skill_type_ == Skill::Type::PlaceTop || skill_type_ == Skill::Type::PlaceBottom) {
-        return execute_place_skill(current_state);
+        return execute_place_skill(current_state, planned_trajectory);
     } else if (skill_type_ == Skill::Type::Transit) {
-        return execute_transit_skill(current_state);
+        return execute_transit_skill(current_state, planned_trajectory);
     } else if (skill_type_ == Skill::Type::PickAndPlace) {
-        return execute_pick_and_place_skill(current_state);
+        return execute_pick_and_place_skill(current_state, planned_trajectory);
     } else {
         // Use MoveitControl for other skills
         bool success = controller_->move(post_condition, planned_trajectory_);
@@ -94,7 +100,7 @@ bool MagBlockSkillExecutor::execute(State &current_state) {
     }
 }
 
-bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
+bool MagBlockSkillExecutor::execute_pick_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory) {
     log("Executing pick skill for magnetic block", LogLevel::INFO);
     
     // Extract pick parameters from constraints
@@ -134,12 +140,11 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     
 
     // Plan and execute pick trajectory using joint-space IK planning
-    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
     
     auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend_);
     std::vector<double> final_joints;
-    bool success = skillgraph::planPickTrajectory(moveit_instance, robot_name, pick_pose, object_name, trajectories);
+    bool success = skillgraph::planPickTrajectory(moveit_instance, robot_name, pick_pose, object_name, planned_trajectory);
     
     if (success) {
         // // Update state to reflect picked object
@@ -153,7 +158,7 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     return success;
 }
 
-bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
+bool MagBlockSkillExecutor::execute_place_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory) {
     log("Executing place skill for magnetic block", LogLevel::INFO);
     
     // Extract place parameters from constraints
@@ -186,12 +191,17 @@ bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
     geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
     
     // Plan and execute place trajectory using joint-space IK planning
-    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
-    
+    // Get current joint values as seed for IK
     auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend_);
-    bool success = skillgraph::planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, trajectories);
+    std::vector<double> current_joints;
+    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
     
+    bool success = skillgraph::planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, current_joints, planned_trajectory);
+
     if (success) {
         // Note: State updates including assembled_steps are handled by MagBlockSkillGraph::get_next_state()
         // current_state.robot_states = post_condition->target_state.robot_states;
@@ -205,7 +215,7 @@ bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
     return success;
 }
 
-bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
+bool MagBlockSkillExecutor::execute_transit_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory) {
     // Extract parameters from constraints
     const Json::Value& constraints = post_condition->constraints_json;
     
@@ -262,9 +272,8 @@ bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
     }
     
     // Plan trajectory to target pose
-    std::vector<skillgraph::RobotTrajectory> trajectories;
     auto robot = current_state.robot_states[getRobotIdFromName(robot_name)];
-    bool success = skillgraph::planTransit(robot, moveit_instance, robot_name, pick_pose, trajectories);
+    bool success = skillgraph::planTransit(robot, moveit_instance, robot_name, pick_pose, planned_trajectory);
     if (success) {
         // // Update state after complete transit
         // current_state.robot_states = post_condition->target_state.robot_states;
@@ -279,7 +288,7 @@ bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
     return success;
 }
 
-bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state) {
+bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state, std::vector<skillgraph::RobotTrajectory> &planned_trajectory) {
     log("Executing pick and place skill for magnetic block", LogLevel::INFO);
     
     // Extract parameters from constraints
@@ -332,13 +341,12 @@ bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state) {
     // as those are handled by the transit skills in the sequence.
     
     // Plan and execute the core pick and place trajectory 
-    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
     
     // Use a simplified pick-place trajectory since transit skills handle approach/retreat
     auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend_);
-    bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, pick_pose, place_pose, object_name, press_face, trajectories);
-    
+    bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, pick_pose, place_pose, object_name, press_face, planned_trajectory);
+
     if (success) {
         // Note: State updates are handled by MagBlockSkillGraph::get_next_state()
         // current_state.robot_states = post_condition->target_state.robot_states;

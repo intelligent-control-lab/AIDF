@@ -523,7 +523,7 @@ bool planTransit(skillgraph::RobotState robot_state,
 
     trajectories.push_back(moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment, robot_name, 1));  // 1 = transit to pre-pick
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(trajectories, step_duration);
+    // moveit_instance->executeJointTrajectory(trajectories, step_duration);
     return true;
 }
 
@@ -636,7 +636,7 @@ bool planPickTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     // trajectories.push_back(waypoint_joints.back());
     
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(trajectories, step_duration);
+    // moveit_instance->executeJointTrajectory(trajectories, step_duration);
 
     log("Completed pick trajectory execution for " + object_name + " with " + 
         std::to_string(trajectories.size()) + " trajectory points", LogLevel::INFO);
@@ -650,6 +650,7 @@ bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
                                  const geometry_msgs::msg::Pose& place_pose,
                                  const std::string& object_name,
                                  int press_face,
+                                 std::vector<double> seed_joints,
                                  std::vector<skillgraph::RobotTrajectory>& trajectories) {
 
     if (!moveit_instance) {
@@ -662,11 +663,11 @@ bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     trajectories.clear();
     
     // Get current joint values as seed for IK
-    std::vector<double> current_joints;
-    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
-        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
-        return false;
-    }
+    // std::vector<double> current_joints;
+    // if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+    //     log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+    //     return false;
+    // }
 
     geometry_msgs::msg::Pose retract_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.15);
 
@@ -676,7 +677,7 @@ bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     std::vector<std::string> waypoint_names = {"place", "retract"};
     std::vector<int> waypoint_act_ids = {5, 6}; // 5 = place, 6 = post-place
     
-    std::vector<double> seed_joints = current_joints;
+    // std::vector<double> seed_joints = current_joints;
 
     for (size_t i = 0; i < waypoints.size(); ++i) {
         std::vector<double> solution_joints;
@@ -753,7 +754,7 @@ bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     // trajectories.push_back(waypoint_joints.back());
     
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(trajectories, step_duration);
+    // moveit_instance->executeJointTrajectory(trajectories, step_duration);
 
     log("Completed place trajectory execution for " + object_name + " with " +
         std::to_string(trajectories.size()) + " trajectory points", LogLevel::INFO);
@@ -806,12 +807,20 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     
     std::vector<skillgraph::RobotTrajectory> transit_trajectory_vec;
     transit_trajectory_vec.push_back(transit_trajectory);
+
+    std::vector<double> end_joints;
+    if (!transit_trajectory.trajectory.empty()) {
+        end_joints = transit_trajectory.trajectory.back().joint_values;
+    } else {
+        log("Transit trajectory is empty, cannot extract final joint state", LogLevel::ERROR);
+        return false;
+    }
     
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(transit_trajectory_vec, step_duration);
+    // moveit_instance->executeJointTrajectory(transit_trajectory_vec, step_duration);
 
     std::vector<skillgraph::RobotTrajectory> place_trajectories;
-    planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, place_trajectories);
+    planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, end_joints,place_trajectories);
 
     // Combine pick, transit, and place trajectories
     trajectories.clear();

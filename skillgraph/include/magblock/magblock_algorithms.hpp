@@ -109,6 +109,7 @@ namespace skillgraph {
                                  const geometry_msgs::msg::Pose& place_pose,
                                  const std::string& object_name,
                                  int press_face,
+                                 std::vector<double> seed_joints,
                                  std::vector<skillgraph::RobotTrajectory>& trajectories);
 
     /**

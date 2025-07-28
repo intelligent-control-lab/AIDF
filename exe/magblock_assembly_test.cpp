@@ -169,11 +169,13 @@ public:
                 }
                 
                 // Execute the skill
-                if (!skill_executor->execute(current_state)) {
+                std::vector<skillgraph::RobotTrajectory> planned_trajectory;
+                if (!skill_executor->execute(current_state, planned_trajectory)) {
                     log("Failed to execute skill for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
-                std::cout << "CURRENT STATE: " << current_state.to_string() << std::endl;
+                
+                moveit_backend_->executeJointTrajectory(planned_trajectory, 0.1);
                 
                 // Get next state after skill execution
                 State next_state;
