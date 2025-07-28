@@ -115,7 +115,6 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     
     // Get press_face from constraints (for orientation calculation)
     int press_face = constraints.get("press_face", 0).asInt();
-    int gripper_ori = constraints.get("gripper_ori", 0).asInt();
 
     // Determine robot name from skill configuration
     std::string robot_name = getRobotName();
@@ -133,15 +132,14 @@ bool MagBlockSkillExecutor::execute_pick_skill(State &current_state) {
     geometry_msgs::msg::Pose pick_pose = createPoseWithOrientation(x_robot, y_robot, z_robot, 
                                                                   pick_thetax, pick_thetay, pick_thetaz);
     
-    // Create place pose (this is simplified - in practice would come from task constraints)
-    geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
-    
+
     // Plan and execute pick trajectory using joint-space IK planning
-    std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
+    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
     
     auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend_);
-    bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, pick_pose, place_pose, object_name, press_face, trajectories);
+    std::vector<double> final_joints;
+    bool success = skillgraph::planPickTrajectory(moveit_instance, robot_name, pick_pose, object_name, trajectories);
     
     if (success) {
         // // Update state to reflect picked object
@@ -187,15 +185,12 @@ bool MagBlockSkillExecutor::execute_place_skill(State &current_state) {
     double pick_thetaz = findOptimalThetaZ(robot_name, press_face);
     geometry_msgs::msg::Pose place_pose = createPlacePose(robot_name, x_robot, y_robot, z_robot, press_face, gripper_ori, pick_thetaz);
     
-    // For place skill, we assume object is already in hand, so create approach pose
-    geometry_msgs::msg::Pose approach_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.1);
-    
     // Plan and execute place trajectory using joint-space IK planning
-    std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
+    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
     
     auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(backend_);
-    bool success = skillgraph::planPickPlaceTrajectory(moveit_instance, robot_name, approach_pose, place_pose, object_name, press_face, trajectories);
+    bool success = skillgraph::planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, trajectories);
     
     if (success) {
         // Note: State updates including assembled_steps are handled by MagBlockSkillGraph::get_next_state()
@@ -267,7 +262,7 @@ bool MagBlockSkillExecutor::execute_transit_skill(State &current_state) {
     }
     
     // Plan trajectory to target pose
-    std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
+    std::vector<skillgraph::RobotTrajectory> trajectories;
     auto robot = current_state.robot_states[getRobotIdFromName(robot_name)];
     bool success = skillgraph::planTransit(robot, moveit_instance, robot_name, pick_pose, trajectories);
     if (success) {
@@ -337,7 +332,7 @@ bool MagBlockSkillExecutor::execute_pick_and_place_skill(State &current_state) {
     // as those are handled by the transit skills in the sequence.
     
     // Plan and execute the core pick and place trajectory 
-    std::vector<moveit_msgs::msg::RobotTrajectory> trajectories;
+    std::vector<skillgraph::RobotTrajectory> trajectories;
     std::string object_name = "block_" + std::to_string(current_state.assembled_steps);
     
     // Use a simplified pick-place trajectory since transit skills handle approach/retreat

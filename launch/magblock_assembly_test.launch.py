@@ -99,7 +99,7 @@ def launch_setup(context, *args, **kwargs):
                 executable="magblock_assembly_test",
                 name="magblock_assembly_test",
                 output="screen",
-                #prefix="xterm -e gdb --args",
+                prefix="xterm -e gdb --args",
                 parameters=[
                     moveit_config.to_dict(),
                     {"use_sim_time": use_sim_time},

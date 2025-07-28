@@ -96,13 +96,14 @@ public:
     bool getCurrentJointValues(const std::string& robot_name, 
                               std::vector<double>& current_joints);
     
-    std::vector<std::vector<double>> interpolateJointTrajectory(
+    skillgraph::RobotTrajectory interpolateJointTrajectory(
         const std::vector<double>& start_joints,
         const std::vector<double>& end_joints,
-        int num_steps);
-    
-    void executeJointTrajectory(const std::string& robot_name,
-                               const std::vector<std::vector<double>>& joint_trajectory,
+        int num_steps,
+        const std::string& robot_name,
+        int act_id);
+
+    void executeJointTrajectory(const std::vector<skillgraph::RobotTrajectory>& robot_trajectories,
                                double step_duration = 0.1);
 
     bool transformRobotToWorld(const std::string& robot_name, const geometry_msgs::msg::Pose& target_pose, geometry_msgs::msg::Pose& target_transform_world);

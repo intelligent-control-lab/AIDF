@@ -98,6 +98,19 @@ namespace skillgraph {
     bool getBlockPlacePosition(const std::string& block_name, double& x, double& y, double& z, 
                                int& press_face, int& gripper_ori);
 
+    bool planPickTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 const std::string& robot_name,
+                                 const geometry_msgs::msg::Pose& pick_pose,
+                                 const std::string& object_name,
+                                 std::vector<skillgraph::RobotTrajectory>& trajectories);
+
+    bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 const std::string& robot_name,
+                                 const geometry_msgs::msg::Pose& place_pose,
+                                 const std::string& object_name,
+                                 int press_face,
+                                 std::vector<skillgraph::RobotTrajectory>& trajectories);
+
     /**
      * @brief Plan pick-place trajectory using MoveIt planning and execution
      */
@@ -107,28 +120,18 @@ namespace skillgraph {
                                  const geometry_msgs::msg::Pose& place_pose,
                                  const std::string& object_name,
                                  int press_face,
-                                 std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
-    
+                                 std::vector<skillgraph::RobotTrajectory>& trajectories);
+
     bool planTransit(skillgraph::RobotState robot_state,
                              std::shared_ptr<MoveitInstance> moveit_instance,
                              const std::string& robot_name,
                              const geometry_msgs::msg::Pose& goal_pose,
-                             std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories);
+                             std::vector<skillgraph::RobotTrajectory>& trajectories);
 
     /**
      * @brief Get the current joint state for a robot to ensure trajectory continuity
      */
     std::vector<double> getCurrentJointState(std::shared_ptr<MoveitInstance> moveit_instance, int robot_id);
-
-    /**
-     * @brief Interpolate between two joint configurations and move robot for visualization
-     */
-    void interpolateAndMoveRobot(std::shared_ptr<MoveitInstance> moveit_instance,
-                                 int robot_id,
-                                 const std::vector<double>& start_joints,
-                                 const std::vector<double>& end_joints,
-                                 int steps,
-                                 int delay_ms);
 
     // ===============================
     // Planning Algorithm Classes

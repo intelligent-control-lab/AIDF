@@ -494,7 +494,7 @@ bool planTransit(skillgraph::RobotState robot_state,
                              std::shared_ptr<MoveitInstance> moveit_instance,
                              const std::string& robot_name,
                              const geometry_msgs::msg::Pose& goal_pose,
-                             std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories) {
+                             std::vector<skillgraph::RobotTrajectory>& trajectories) {
     if (!moveit_instance) {
         log("No MoveitInstance backend available for transit planning", LogLevel::ERROR);
         return false;
@@ -510,10 +510,6 @@ bool planTransit(skillgraph::RobotState robot_state,
     //     return false;   
     // }
 
-    std::cout << "CURRENT JOINT VALUES IN PLANTRANSIT: " << current_joints.size() << " joints" << std::endl;
-    for (const auto& joint : current_joints) {
-        std::cout << " - Joint: " << joint << std::endl;
-    }
 
     std::vector<double> solution_joints;
     if (!moveit_instance->solveIK(robot_name, goal_pose, current_joints, solution_joints)) {
@@ -524,31 +520,144 @@ bool planTransit(skillgraph::RobotState robot_state,
     // Create interpolated trajectories between waypoints
     int steps_per_segment = 10;
     double step_duration = 0.1;  // 100ms per step
-    
-    std::vector<std::vector<double>> full_trajectory;
-    std::vector<std::vector<double>> segment = moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment);
+
+    trajectories.push_back(moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment, robot_name, 1));  // 1 = transit to pre-pick
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(robot_name, segment, step_duration);
+    moveit_instance->executeJointTrajectory(trajectories, step_duration);
     return true;
 }
 
-/**
- * @brief Plan pick-place trajectory
- */
-bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
-                             const std::string& robot_name,
-                             const geometry_msgs::msg::Pose& pick_pose,
-                             const geometry_msgs::msg::Pose& place_pose,
-                             const std::string& object_name,
-                             int press_face,
-                             std::vector<moveit_msgs::msg::RobotTrajectory>& trajectories) {
-    
+bool planPickTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 const std::string& robot_name,
+                                 const geometry_msgs::msg::Pose& pick_pose,
+                                 const std::string& object_name,
+                                 std::vector<skillgraph::RobotTrajectory>& trajectories) {
+
     if (!moveit_instance) {
-        log("No MoveitInstance backend available", LogLevel::ERROR);
+        log("No MoveitInstance backend available for pick planning", LogLevel::ERROR);
         return false;
     }
+
+    log("Planning pick trajectory for " + robot_name + " with object " + object_name, LogLevel::INFO);
+
+    trajectories.clear();
+
+    // Get current joint values as seed for IK
+    std::vector<double> current_joints;
+    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+
+    // Create waypoint pose for pick sequence
+    geometry_msgs::msg::Pose approach_pose = pick_pose;
+    approach_pose.position.z += 0.15;  // 15cm above pick
+    geometry_msgs::msg::Pose lift_pose = approach_pose;
     
-    log("Planning pick-place trajectory for " + robot_name + " with object " + object_name, LogLevel::INFO);
+    // Solve IK for each waypoint
+    std::vector<std::vector<double>> waypoint_joints;
+    std::vector<geometry_msgs::msg::Pose> waypoints = {approach_pose, pick_pose, lift_pose};
+    std::vector<std::string> waypoint_names = {"approach", "pick", "lift"};
+    std::vector<int> waypoint_act_ids = {1, 2, 3}; // 1 = transit to pre-pick, 2 = pick, 3 = post-pick
+
+    std::vector<double> seed_joints = current_joints;
+    // Print seed joints
+    std::cout << "Seed joints for pick trajectory: ";
+    for (const auto& joint : seed_joints) {
+        std::cout << joint << " ";
+    }
+    std::cout << std::endl;
+    
+    for (size_t i = 0; i < waypoints.size(); ++i) {
+        std::vector<double> solution_joints;
+        if (!moveit_instance->solveIK(robot_name, waypoints[i], seed_joints, solution_joints)) {
+            log("IK planning failed for " + waypoint_names[i], LogLevel::WARN);
+                        
+                // Try with a more relaxed orientation - modify the pose to have less strict orientation
+                log("Trying with relaxed orientation...", LogLevel::WARN);
+                geometry_msgs::msg::Pose relaxed_pose = waypoints[i];
+                
+                // Use a more achievable orientation - slightly tilted instead of straight down
+                double relaxed_thetax = 10.0;  // Small tilt
+                double relaxed_thetay = 170.0; // Not quite straight down
+                double relaxed_thetaz = 0.0;   // No rotation around Z
+                
+                // Convert to quaternion
+                tf2::Quaternion relaxed_quat;
+                relaxed_quat.setRPY(relaxed_thetax * M_PI / 180.0, 
+                                    relaxed_thetay * M_PI / 180.0, 
+                                    relaxed_thetaz * M_PI / 180.0);
+                
+                relaxed_pose.orientation.x = relaxed_quat.x();
+                relaxed_pose.orientation.y = relaxed_quat.y();
+                relaxed_pose.orientation.z = relaxed_quat.z();
+                relaxed_pose.orientation.w = relaxed_quat.w();
+                
+                log("Relaxed orientation: roll=" + std::to_string(relaxed_thetax) + 
+                    " pitch=" + std::to_string(relaxed_thetay) + " yaw=" + std::to_string(relaxed_thetaz), LogLevel::DEBUG);
+                
+                // Try enhanced planning with relaxed pose first
+                if (!moveit_instance->solveIK(robot_name, relaxed_pose, seed_joints, solution_joints)) {
+                    log("IK planning with relaxed orientation failed, trying basic IK...", LogLevel::WARN);
+                    
+                } else {
+                    log("Relaxed orientation IK succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+                    waypoints[i] = relaxed_pose; // Update the waypoint to use the successful pose
+                    trajectories.push_back(moveit_instance->interpolateJointTrajectory(
+                        seed_joints, solution_joints, 10, robot_name, waypoint_act_ids[i]));
+                }
+        } else {
+            log("IK planning succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+            trajectories.push_back(moveit_instance->interpolateJointTrajectory(
+                        seed_joints, solution_joints, 10, robot_name, waypoint_act_ids[i]));
+        }
+
+        // waypoint_joints.push_back(solution_joints);
+        seed_joints = solution_joints;  // Use previous solution as seed for next IK
+        
+        log("IK solved for " + waypoint_names[i] + " pose", LogLevel::DEBUG);
+    }
+
+    // Create interpolated trajectories between waypoints
+    // int steps_per_segment = 10;
+    double step_duration = 0.1;  // 100ms per step
+        
+    // for (size_t i = 0; i < waypoint_joints.size() - 1; ++i) {
+    //     skillgraph::RobotTrajectory segment = moveit_instance->interpolateJointTrajectory(
+    //         waypoint_joints[i], waypoint_joints[i + 1], steps_per_segment, robot_name, waypoint_act_ids[i]);
+        
+    //     // Add all points except the last one (to avoid duplication)
+    //     for (size_t j = 0; j < segment.size() - 1; ++j) {
+    //         trajectories.push_back(segment[j]);
+    //     }
+    // }
+    
+    // // Add the final waypoint
+    // trajectories.push_back(waypoint_joints.back());
+    
+    // Execute the joint trajectory
+    moveit_instance->executeJointTrajectory(trajectories, step_duration);
+
+    log("Completed pick trajectory execution for " + object_name + " with " + 
+        std::to_string(trajectories.size()) + " trajectory points", LogLevel::INFO);
+
+    return true;
+
+}
+
+bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                                 const std::string& robot_name,
+                                 const geometry_msgs::msg::Pose& place_pose,
+                                 const std::string& object_name,
+                                 int press_face,
+                                 std::vector<skillgraph::RobotTrajectory>& trajectories) {
+
+    if (!moveit_instance) {
+        log("No MoveitInstance backend available for place planning", LogLevel::ERROR);
+        return false;
+    }
+
+    log("Planning place trajectory for " + robot_name + " with object " + object_name, LogLevel::INFO);
     
     trajectories.clear();
     
@@ -558,52 +667,19 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
         log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
         return false;
     }
-    
-    log("Current joint values: " + std::to_string(current_joints.size()) + " joints", LogLevel::DEBUG);
-    
-    // Create waypoint poses for pick and place sequence
-    geometry_msgs::msg::Pose approach_pose = pick_pose;
-    approach_pose.position.z += 0.15;  // 15cm above pick
-    
-    geometry_msgs::msg::Pose lift_pose = pick_pose;
-    lift_pose.position.z += 0.1;  // 10cm lift
-    
-    geometry_msgs::msg::Pose transport_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.15);
-    geometry_msgs::msg::Pose retract_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.1);
-    
+
+    geometry_msgs::msg::Pose retract_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.15);
+
     // Solve IK for each waypoint
     std::vector<std::vector<double>> waypoint_joints;
-    std::vector<geometry_msgs::msg::Pose> waypoints = {approach_pose, pick_pose, lift_pose, transport_pose, place_pose, retract_pose};
-    std::vector<std::string> waypoint_names = {"approach", "pick", "lift", "transport", "place", "retract"};
+    std::vector<geometry_msgs::msg::Pose> waypoints = {place_pose, retract_pose};
+    std::vector<std::string> waypoint_names = {"place", "retract"};
+    std::vector<int> waypoint_act_ids = {5, 6}; // 5 = place, 6 = post-place
     
     std::vector<double> seed_joints = current_joints;
-    
+
     for (size_t i = 0; i < waypoints.size(); ++i) {
         std::vector<double> solution_joints;
-        
-        // Log pose being solved with full orientation details
-        log("Solving IK for " + waypoint_names[i] + " pose: [" + 
-            std::to_string(waypoints[i].position.x) + ", " + 
-            std::to_string(waypoints[i].position.y) + ", " + 
-            std::to_string(waypoints[i].position.z) + "]", LogLevel::DEBUG);
-            
-        // Also log orientation quaternion
-        log("  Orientation quat: [" + 
-            std::to_string(waypoints[i].orientation.x) + ", " + 
-            std::to_string(waypoints[i].orientation.y) + ", " + 
-            std::to_string(waypoints[i].orientation.z) + ", " + 
-            std::to_string(waypoints[i].orientation.w) + "]", LogLevel::DEBUG);
-            
-        // Convert quaternion back to Euler for debugging
-        tf2::Quaternion q(waypoints[i].orientation.x, waypoints[i].orientation.y, 
-                         waypoints[i].orientation.z, waypoints[i].orientation.w);
-        double roll, pitch, yaw;
-        tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);
-        log("  Euler angles (rad): roll=" + std::to_string(roll) + 
-            " pitch=" + std::to_string(pitch) + " yaw=" + std::to_string(yaw), LogLevel::DEBUG);
-        log("  Euler angles (deg): roll=" + std::to_string(roll * 180.0 / M_PI) + 
-            " pitch=" + std::to_string(pitch * 180.0 / M_PI) + " yaw=" + std::to_string(yaw * 180.0 / M_PI), LogLevel::DEBUG);
-        
         // First try the enhanced IK solver using MoveGroupInterface planning
         if (!moveit_instance->solveIK(robot_name, waypoints[i], seed_joints, solution_joints)) {
             log("IK planning failed for " + waypoint_names[i] + " pose, trying basic IK solver...", LogLevel::WARN);
@@ -638,45 +714,111 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
                 } else {
                     log("Relaxed orientation IK succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
                     waypoints[i] = relaxed_pose; // Update the waypoint to use the successful pose
+                    trajectories.push_back(moveit_instance->interpolateJointTrajectory(
+                        seed_joints, solution_joints, 10, robot_name, waypoint_act_ids[i]));
                 }
         } else {
             log("IK planning succeeded for " + waypoint_names[i] + " pose", LogLevel::INFO);
+            trajectories.push_back(moveit_instance->interpolateJointTrajectory(
+                        seed_joints, solution_joints, 10, robot_name, waypoint_act_ids[i]));
         }
     
 
-        waypoint_joints.push_back(solution_joints);
+        // waypoint_joints.push_back(solution_joints);
         seed_joints = solution_joints;  // Use previous solution as seed for next IK
         
         log("IK solved for " + waypoint_names[i] + " pose", LogLevel::DEBUG);
     }
 
-    waypoint_joints.push_back({0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570});
+    trajectories.push_back(moveit_instance->interpolateJointTrajectory(
+        seed_joints, {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570}, 10, robot_name, 0)); // 0 = transit home
+    
+    // waypoint_joints.push_back({0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570});
     
     // Create interpolated trajectories between waypoints
-    int steps_per_segment = 10;
+    // int steps_per_segment = 10;
     double step_duration = 0.1;  // 100ms per step
     
-    std::vector<std::vector<double>> full_trajectory;
-    
-    for (size_t i = 0; i < waypoint_joints.size() - 1; ++i) {
-        auto segment = moveit_instance->interpolateJointTrajectory(
-            waypoint_joints[i], waypoint_joints[i + 1], steps_per_segment);
+    // for (size_t i = 0; i < waypoint_joints.size() - 1; ++i) {
+    //     skillgraph::RobotTrajectory segment = moveit_instance->interpolateJointTrajectory(
+    //         waypoint_joints[i], waypoint_joints[i + 1], steps_per_segment, robot_name, waypoint_act_ids[i]);
         
-        // Add all points except the last one (to avoid duplication)
-        for (size_t j = 0; j < segment.size() - 1; ++j) {
-            full_trajectory.push_back(segment[j]);
-        }
-    }
+    //     // Add all points except the last one (to avoid duplication)
+    //     for (size_t j = 0; j < segment.size() - 1; ++j) {
+    //         trajectories.push_back(segment[j]);
+    //     }
+    // }
     
-    // Add the final waypoint
-    full_trajectory.push_back(waypoint_joints.back());
+    // // Add the final waypoint
+    // trajectories.push_back(waypoint_joints.back());
     
     // Execute the joint trajectory
-    moveit_instance->executeJointTrajectory(robot_name, full_trajectory, step_duration);
+    moveit_instance->executeJointTrajectory(trajectories, step_duration);
+
+    log("Completed place trajectory execution for " + object_name + " with " +
+        std::to_string(trajectories.size()) + " trajectory points", LogLevel::INFO);
+
+    return true;
+}
+
+/**
+ * @brief Plan pick-place trajectory
+ */
+bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
+                             const std::string& robot_name,
+                             const geometry_msgs::msg::Pose& pick_pose,
+                             const geometry_msgs::msg::Pose& place_pose,
+                             const std::string& object_name,
+                             int press_face,
+                             std::vector<skillgraph::RobotTrajectory>& trajectories) {
     
-    log("Completed pick-place trajectory execution for " + object_name + " with " + 
-        std::to_string(full_trajectory.size()) + " trajectory points", LogLevel::INFO);
+    if (!moveit_instance) {
+        log("No MoveitInstance backend available", LogLevel::ERROR);
+        return false;
+    }
     
+    log("Planning pick-place trajectory for " + robot_name + " with object " + object_name, LogLevel::INFO);
+    
+    std::vector<skillgraph::RobotTrajectory> pick_trajectories;
+    // std::vector<double> current_joints;
+    planPickTrajectory(moveit_instance, robot_name, pick_pose, object_name, pick_trajectories);
+    
+    // Get current joint values
+    std::vector<double> current_joints;
+    if (!moveit_instance->getCurrentJointValues(robot_name, current_joints)) {
+        log("Failed to get current joint values for " + robot_name, LogLevel::ERROR);
+        return false;
+    }
+    
+    geometry_msgs::msg::Pose transit_pose = createPlaceApproachPose(robot_name, place_pose, press_face, 0.15);
+    std::vector<double> solution_joints;
+    if (!moveit_instance->solveIK(robot_name, transit_pose, current_joints, solution_joints)) {
+        log("IK planning failed for transit pose", LogLevel::ERROR);
+        return false;
+    }
+
+    // Create interpolated trajectory
+    int steps_per_segment = 10;
+    double step_duration = 0.1;  // 100ms per step
+        
+    skillgraph::RobotTrajectory transit_trajectory = moveit_instance->interpolateJointTrajectory(
+        current_joints, solution_joints, steps_per_segment, robot_name, 4);
+    
+    std::vector<skillgraph::RobotTrajectory> transit_trajectory_vec;
+    transit_trajectory_vec.push_back(transit_trajectory);
+    
+    // Execute the joint trajectory
+    moveit_instance->executeJointTrajectory(transit_trajectory_vec, step_duration);
+
+    std::vector<skillgraph::RobotTrajectory> place_trajectories;
+    planPlaceTrajectory(moveit_instance, robot_name, place_pose, object_name, press_face, place_trajectories);
+
+    // Combine pick, transit, and place trajectories
+    trajectories.clear();
+    trajectories.insert(trajectories.end(), pick_trajectories.begin(), pick_trajectories.end());
+    trajectories.insert(trajectories.end(), transit_trajectory_vec.begin(), transit_trajectory_vec.end());
+    trajectories.insert(trajectories.end(), place_trajectories.begin(), place_trajectories.end());
+
     return true;
 }
 
@@ -711,31 +853,6 @@ std::vector<double> getCurrentJointState(std::shared_ptr<MoveitInstance> moveit_
     return current_joints;
 }
 
-/**
- * @brief Interpolate between two joint configurations and move robot for visualization
- */
-void interpolateAndMoveRobot(std::shared_ptr<MoveitInstance> moveit_instance,
-                             int robot_id,
-                             const std::vector<double>& start_joints,
-                             const std::vector<double>& end_joints,
-                             int steps,
-                             int delay_ms) {
-    // Get robot name based on robot_id
-    std::string robot_name;
-    switch(robot_id) {
-        case 0: robot_name = "center_arm"; break;
-        case 1: robot_name = "left_arm"; break;
-        case 2: robot_name = "right_arm"; break;
-        default: robot_name = "right_arm"; break;
-    }
-    
-    // Generate interpolated trajectory
-    auto trajectory = moveit_instance->interpolateJointTrajectory(start_joints, end_joints, steps);
-    
-    // Execute with specified delay
-    double step_duration = delay_ms / 1000.0;  // Convert to seconds
-    moveit_instance->executeJointTrajectory(robot_name, trajectory, step_duration);
-}
 
 // ===============================
 // Original Planning Algorithm Classes

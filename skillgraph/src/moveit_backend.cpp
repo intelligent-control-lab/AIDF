@@ -792,16 +792,22 @@ bool MoveitInstance::getCurrentJointValues(const std::string& robot_name,
     }
 }
 
-std::vector<std::vector<double>> MoveitInstance::interpolateJointTrajectory(
+skillgraph::RobotTrajectory MoveitInstance::interpolateJointTrajectory(
     const std::vector<double>& start_joints,
     const std::vector<double>& end_joints,
-    int num_steps) {
+    int num_steps,
+    const std::string& robot_name,
+    int act_id) {
     
-    std::vector<std::vector<double>> trajectory;
+    // Get robot ID from robot name
+    int robot_id = (robot_name == "left_arm") ? 0 : (robot_name == "center_arm") ? 1 : 2;
+    skillgraph::RobotTrajectory traj;
+    traj.robot_id = robot_id;
+    traj.cost = 0.0;
     
     if (start_joints.size() != end_joints.size()) {
         log("Joint vector size mismatch in interpolation", LogLevel::ERROR);
-        return trajectory;
+        return traj;
     }
     
     for (int i = 0; i <= num_steps; ++i) {
@@ -811,44 +817,44 @@ std::vector<std::vector<double>> MoveitInstance::interpolateJointTrajectory(
         for (size_t j = 0; j < start_joints.size(); ++j) {
             interpolated_joints[j] = start_joints[j] + t * (end_joints[j] - start_joints[j]);
         }
+
+        skillgraph::RobotState state;
+        state.robot_id = robot_id;
+        state.robot_name = robot_name;
+        state.joint_values = interpolated_joints;
+        state.hand_values = {};
         
-        trajectory.push_back(interpolated_joints);
+        traj.trajectory.push_back(state);
+        traj.times.push_back(t);
+        traj.act_ids.push_back(act_id);
     }
-    
-    return trajectory;
+
+    return traj;
 }
 
-void MoveitInstance::executeJointTrajectory(const std::string& robot_name,
-                                          const std::vector<std::vector<double>>& joint_trajectory,
+void MoveitInstance::executeJointTrajectory(const std::vector<skillgraph::RobotTrajectory>& robot_trajectories,
                                           double step_duration) {
     try {
-        const moveit::core::JointModelGroup* joint_model_group = 
-            robot_model_->getJointModelGroup(robot_name);
-        
-        if (!joint_model_group) {
-            log("Joint model group not found for " + robot_name, LogLevel::ERROR);
-            return;
-        }
-        
-        // Get robot ID from robot name
-        int robot_id = (robot_name == "left_arm") ? 0 : (robot_name == "center_arm") ? 1 : 2;
-        
-        // Execute trajectory by updating robot state at each step
-        for (size_t i = 0; i < joint_trajectory.size(); ++i) {
-            skillgraph::RobotState robot_state;
-            robot_state.robot_name = robot_name;
-            robot_state.robot_id = robot_id;
-            robot_state.joint_values = joint_trajectory[i];
+        for (const auto& traj : robot_trajectories) {
+            const std::string& robot_name = traj.trajectory.front().robot_name;
+            int robot_id = traj.robot_id;
             
-            // Update the robot position
-            moveRobot(robot_id, robot_state);
-            updateScene();
-            
-            // Sleep for step duration
-            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step_duration * 1000)));
-        }        
+            const moveit::core::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(robot_name);
+        
+            if (!joint_model_group) {
+                log("Joint model group not found for " + robot_name, LogLevel::ERROR);
+                return;
+            }
+
+            for (const auto& robot_state : traj.trajectory) {
+                moveRobot(robot_id, robot_state);
+                updateScene();
+                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(step_duration * 1000)));
+            }
+
+        } 
     } catch (const std::exception& e) {
-        log("Error executing joint trajectory for " + robot_name + ": " + std::string(e.what()), LogLevel::ERROR);
+        log("Error executing joint trajectory: " + std::string(e.what()), LogLevel::ERROR);
     }
 }
 
