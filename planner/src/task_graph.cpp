@@ -38,6 +38,10 @@ const std::map<Activity::Type, std::string> Activity::enumStringMap = {
     {Activity::Type::receive_place, "receive_place"},
     {Activity::Type::press_up, "press_up"},
     {Activity::Type::press_down, "press_down"},
+    {Activity::Type::pick_pre, "pick_pre"},
+    {Activity::Type::pick_post, "pick_post"},
+    {Activity::Type::place_pre, "place_pre"},
+    {Activity::Type::place_post, "place_post"},
 
 };
 
@@ -256,6 +260,13 @@ bool ActivityGraph::saveGraphToFile(const std::string &filename) const {
         out << "subgraph cluster_" << i << " {" << std::endl;
         out << "label = \"Robot " << i << "\";" << std::endl;
         out << "rank=same;" << std::endl;
+
+        if (activities_[i].empty()) {
+            out << "}\n";
+            continue;  // Skip robot if it has no activities
+        }
+
+        
         for (int j = 0; j < activities_[i].size(); j++) {
             ActPtr act = activities_[i][j];
             out << "a" << i << "_" << act->act_id << " [label=\"" << act->type_string() << "\"];" << std::endl;

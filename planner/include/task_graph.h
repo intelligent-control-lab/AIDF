@@ -84,6 +84,10 @@ namespace skillgraph
             receive_place = 32, // lego
             press_up = 33, // lego
             press_down = 34, // lego
+            pick_pre = 35, // magblock
+            pick_post = 36, // magblock
+            place_pre = 37, // magblock
+            place_post = 38, // magblock
         };
 
         static const std::map<Type, std::string> enumStringMap;

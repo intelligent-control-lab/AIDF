@@ -248,9 +248,19 @@ ament_target_dependencies(plan_magblock
 # )
 
 # MagBlock Assembly Test executable
-add_executable(magblock_assembly_test exe/magblock_assembly_test.cpp)
-target_link_libraries(magblock_assembly_test ${PROJECT_NAME}_lib yaml-cpp)
-ament_target_dependencies(magblock_assembly_test
+# add_executable(magblock_assembly_test exe/magblock_assembly_test.cpp)
+# target_link_libraries(magblock_assembly_test ${PROJECT_NAME}_lib yaml-cpp)
+# ament_target_dependencies(magblock_assembly_test
+#   rclcpp
+#   moveit_core
+#   moveit_ros_planning_interface
+#   moveit_visual_tools
+#   geometry_msgs
+# )
+
+add_executable(magblock_tpg exe/magblock_tpg.cpp)
+target_link_libraries(magblock_tpg ${PROJECT_NAME}_lib yaml-cpp)
+ament_target_dependencies(magblock_tpg
   rclcpp
   moveit_core
   moveit_ros_planning_interface
@@ -258,8 +268,8 @@ ament_target_dependencies(magblock_assembly_test
   geometry_msgs
 )
 
-# Install MagBlock executables
-install(TARGETS plan_magblock magblock_assembly_test
+# Install MagBlock executables SWITCH BACK TO MAGBLOCK_ASSEMBLY_TEST
+install(TARGETS plan_magblock magblock_tpg
     DESTINATION lib/${PROJECT_NAME}
 )
 

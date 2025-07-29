@@ -2181,6 +2181,10 @@ void TPG::updateCollisionCheckMatrix(int robot_i, int robot_j, const Eigen::Matr
 
 bool TPG::saveToDotFile(const std::string& filename) const {
     std::ofstream out(filename);
+    if (!out.is_open()) {
+        std::cerr << "Failed to open output file: " << filename << std::endl;
+        return false;
+    }
     out << "digraph G {" << std::endl;
 
     // define node attributes here
@@ -2225,6 +2229,10 @@ bool TPG::saveToDotFile(const std::string& filename) const {
 
     std::string command = "dot -Tpng " + filename + " -o " + filename + ".png";
     int result = system(command.c_str());
+
+    if (result != 0) {
+        std::cerr << "Failed to generate PNG from dot file: " << filename << std::endl;
+    }
 
     return result == 0;
 }

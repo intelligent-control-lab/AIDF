@@ -96,8 +96,10 @@ def launch_setup(context, *args, **kwargs):
         actions=[
             Node(
                 package="aidf",
-                executable="magblock_assembly_test",
-                name="magblock_assembly_test",
+                # executable="magblock_assembly_test",
+                # name="magblock_assembly_test",
+                executable="magblock_tpg",
+                name="magblock_tpg",
                 output="screen",
                 prefix="xterm -e gdb --args",
                 parameters=[

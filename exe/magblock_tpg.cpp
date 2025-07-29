@@ -1,18 +1,8 @@
 /**
- * @brief MagBlock Assembly Test Executable with TPG Construction
+ * @brief MagBlock Assembly Test Executable
  * 
- * This is a modified test executable that demonstrates the restructured MagBlock
+ * This is a simple test executable that demonstrates the restructured MagBlock
  * assembly functionality using the skillgraph infrastructure with MoveIt backend.
- * 
- * Key modifications for TPG construction:
- * - Collects solution trajectories from skill execution
- * - Creates activities for each skill segment (transit, approach pick, pick, retract pick, 
- *   transit, approach place, place, retract place)
- * - Builds a TPG (Task Planning Graph) from the collected trajectories
- * - Provides access to the TPG for potential ADG (Assembly Dependency Graph) construction
- * 
- * The execute method now returns solution trajectories that can be used for TPG construction,
- * where each skill/segment of the total robot trajectory becomes an 'activity' in the TPG.
  */
 
 #include <rclcpp/rclcpp.hpp>
@@ -29,6 +19,7 @@
 #include "Utils/Logger.hpp"
 #include "tpg.h"
 #include "task_graph.h"
+#include "adg.h"
 // #include "Utils/PathUtils.hpp"
 // using skillgraph::utils::PathResolver;
 
@@ -66,9 +57,6 @@ public:
         
         // Initialize MoveIt backend for simulation
         initializeMoveitBackend();
-        
-        // Initialize TPG configuration
-        initializeTPGConfig();
         
         log("MagBlock Assembly Test initialized successfully", LogLevel::INFO);
     }
@@ -140,20 +128,6 @@ public:
         }
     }
     
-    void initializeTPGConfig() {
-        // Initialize TPG configuration with default settings
-        tpg_config_.shortcut = true;
-        tpg_config_.random_shortcut = true;
-        tpg_config_.forward_singleloop = true;
-        tpg_config_.tight_shortcut = true;
-        tpg_config_.dt = 0.1;
-        tpg_config_.shortcut_time = 1.0;
-        tpg_config_.joint_state_thresh = 0.1;
-        tpg_config_.seed = 1;
-        
-        log("TPG configuration initialized", LogLevel::INFO);
-    }
-    
     bool executeAssemblyTask(const std::string& task_file) {
         log("Executing assembly task from: " + task_file, LogLevel::INFO);
         
@@ -168,12 +142,10 @@ public:
             // Get initial state
             State current_state = skillgraph_->get_initial_state();
             
-            // Initialize data structures for TPG construction
-            skillgraph::MRTrajectory complete_trajectory;
-            std::vector<std::shared_ptr<skillgraph::Activity>> activities;
-            int activity_counter = 0;
-            
-            // Execute assembly tasks and collect trajectories
+            skillgraph::MRTrajectory sync_solution(3); // Assuming 3 robots
+            std::shared_ptr<ActivityGraph> act_graph = std::make_shared<ActivityGraph>(3);
+
+            // Execute assembly tasks using skill execution loop
             while (!skillgraph_->at_target(current_state)) {
                 int current_task_num = current_state.assembled_steps + 1;
                 auto task = assembly_seq->get_task_at(current_state.assembled_steps);
@@ -202,25 +174,82 @@ public:
                     skill_executor->post_condition = selected_skill->executor->post_condition;
                 }
                 
-                // Execute the skill and collect trajectory
-                if (!skill_executor->execute(current_state)) {
+                // Execute the skill
+                std::vector<skillgraph::RobotTrajectory> planned_trajectory;
+                if (!skill_executor->execute(current_state, planned_trajectory)) {
                     log("Failed to execute skill for task " + std::to_string(current_task_num), LogLevel::ERROR);
                     return false;
                 }
                 
-                // Get the trajectory from the skill execution
-                // Note: This would need to be implemented in the skill executor
-                // For now, we'll create a placeholder trajectory segment
-                skillgraph::RobotTrajectory skill_trajectory = getSkillTrajectory(skill_executor, current_state);
+
+                // -------------------------- Construct synchronous solution and activity graph -------------------------- //
+                // setup new activity
+                for (const auto& traj : planned_trajectory) {
+                    for (auto act_id : traj.act_ids) {
+                        auto activity = std::make_shared<Activity>();
+                        activity->robot_id = traj.robot_id;
+                        activity->act_id = act_id;
+                        activity->type = static_cast<Activity::Type>(act_id);
+                        act_graph->add_act(traj.robot_id, activity->type);
+                    }
                 
-                // Add trajectory segment to complete trajectory
-                appendTrajectorySegment(complete_trajectory, skill_trajectory);
-                
-                // Create activity for this skill
-                auto activity = createActivityForSkill(selected_skill, activity_counter++, skill_trajectory);
-                activities.push_back(activity);
-                
-                log("Skill trajectory collected for activity: " + activity->type_string(), LogLevel::INFO);
+                    // determine active robot trajectory duration
+                    double skill_duration = traj.times.back() - traj.times.front();
+                    double time_start = sync_solution[traj.robot_id].times.empty() ? 0.0 : sync_solution[traj.robot_id].times.back();
+
+                    int robot_id = traj.robot_id;
+                    skillgraph::RobotTrajectory &traj_accum = sync_solution[robot_id];
+                    traj_accum.robot_id = robot_id;
+
+                    // handle active robot
+                    for (size_t i = 0; i < traj.trajectory.size(); ++i) {
+                        traj_accum.trajectory.push_back(traj.trajectory[i]);
+                        traj_accum.times.push_back(traj.times[i] + time_start);
+                        traj_accum.act_ids.push_back(traj.act_ids.empty() ? i : traj.act_ids[i]);
+                    }
+                    traj_accum.cost += traj.cost;
+                    
+                    // handle idle robots
+                    for (int other_robot_id = 0; other_robot_id < sync_solution.size(); ++other_robot_id) {
+                        if (other_robot_id == robot_id) continue;
+
+                        // add idle activity
+                        auto idle_activity = std::make_shared<Activity>();
+                        idle_activity->robot_id = other_robot_id;
+                        idle_activity->act_id = 0; // 0 = home
+                        idle_activity->type = Activity::Type::home;
+                        idle_activity->start_pose.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570}; // hard coded home pose for now
+                        idle_activity->end_pose.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570}; // hard coded home pose for now
+                        act_graph->add_act(other_robot_id, Activity::Type::home);
+
+                        skillgraph::RobotTrajectory &other_traj = sync_solution[other_robot_id];
+                        other_traj.robot_id = other_robot_id;
+                        std::vector<double> home_pose = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570};  // hard coded home pose for now
+
+                        skillgraph::RobotState home_state;
+                        home_state.robot_id = other_robot_id;
+                        //home_state.robot_name = moveit_backend_->getRobotName(other_robot_id);
+                        home_state.joint_values = home_pose;
+
+                        double other_start_time = other_traj.times.empty() ? 0.0 : other_traj.times.back();
+
+                        // one waypoint at start of active robot execution
+                        other_traj.trajectory.push_back(home_state);
+                        other_traj.times.push_back(other_start_time);
+                        other_traj.act_ids.push_back(0); // 0 = home
+
+                        // one waypoint at end
+                        other_traj.trajectory.push_back(home_state);
+                        other_traj.times.push_back(other_start_time + skill_duration);
+                        other_traj.act_ids.push_back(0); // 0 = home
+
+                        other_traj.cost += other_traj.times.back();
+                    }
+                }
+                // ----------------------------------------------------------------------------------- //
+
+                // complete_trajectory.push_back(planned_trajectory);
+                moveit_backend_->executeJointTrajectory(planned_trajectory, 0.1);
                 
                 // Get next state after skill execution
                 State next_state;
@@ -249,14 +278,66 @@ public:
                 }
             }
             
-            // Build TPG from collected trajectories and activities
-            bool tpg_success = buildTPG(complete_trajectory, activities);
-            if (!tpg_success) {
-                log("Failed to build TPG from trajectories", LogLevel::ERROR);
+            log("All assembly tasks completed successfully!", LogLevel::INFO);
+
+            // int task_id = 0;
+            // std::shared_ptr<ActivityGraph> act_graph = std::make_shared<ActivityGraph>(3); // Assuming 3 robots
+            // std::vector<std::vector<skillgraph::RobotTrajectory>> robot_trajectories;
+
+            // // CREATE THE TAS GRAPH BASED ON THE COMPLETE TRAJECTORY
+            // for (const auto& multi_traj : complete_trajectory) {
+            //     for (const auto& traj : multi_traj) {
+            //         int robot_id = traj.robot_id;
+            //         const auto& robot_traj = traj.trajectory;
+            //         const auto& times = traj.times;
+            //         const auto& act_ids = traj.act_ids;
+
+            //         for (size_t i = 0; i + 1 < robot_traj.size(); ++i) {
+            //             auto act = std::make_shared<Activity>();
+            //             act->robot_id = robot_id;
+            //             act->start_pose.joint_values = robot_traj[i].joint_values;
+            //             act->end_pose.joint_values = robot_traj[i + 1].joint_values;
+            //             act->act_id = act_ids.empty() ? i : act_ids[i];
+            //             // Start time / end time?
+            //             act->type = static_cast<Activity::Type>(traj.act_ids.empty() ? i : act_ids[i]);
+
+            //             act_graph->add_act(robot_id, act->type, act);
+            //         }
+
+            //     }
+            // }
+
+            // skillgraph::MRTrajectory flat_trajectories;
+            // for (const auto& robot_trajs : complete_trajectory) {
+            //     flat_trajectories.insert(flat_trajectories.end(), robot_trajs.begin(), robot_trajs.end());
+            // }
+
+            // try {
+            //     act_graph->saveGraphToFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/activity_graph.txt");
+            // } catch (const std::exception& e) {
+            //     log("Error saving activity graph: " + std::string(e.what()), LogLevel::ERROR);
+            // }
+
+            tpg::TPG tpg;
+            std::cerr << "Dumping sync_solution before TPG init:\n";
+            for (int i = 0; i < sync_solution.size(); ++i) {
+                std::cerr << "- Robot " << i << " trajectory size: " << sync_solution[i].trajectory.size()
+                        << ", act_ids: " << sync_solution[i].act_ids.size()
+                        << ", cost: " << sync_solution[i].cost
+                        << ", robot_id in struct: " << sync_solution[i].robot_id << "\n";
+            }
+
+            bool success = tpg.init(moveit_backend_, sync_solution, tpg_config_);
+            if (!success) {
+                log("Failed to initialize TPG", LogLevel::ERROR);
                 return false;
             }
-            
-            log("All assembly tasks completed successfully and TPG constructed!", LogLevel::INFO);
+            tpg.saveToDotFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/tpg.dot");
+
+            auto adg = std::make_shared<tpg::ADG>(act_graph);
+            adg->init_from_asynctrajs(moveit_backend_, tpg_config_, sync_solution);
+            adg->saveToDotFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/adg.dot");
+
             return true;
             
         } catch (const std::exception& e) {
@@ -266,7 +347,7 @@ public:
     }
     
     void runTest() {
-        log("Running MagBlock Assembly Test with TPG Construction", LogLevel::INFO);
+        log("Running MagBlock Assembly Test", LogLevel::INFO);
         
         // Test with a simple assembly sequence
         std::string test_task = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/assembly_tasks/three_I.json";
@@ -275,16 +356,6 @@ public:
         
         if (executeAssemblyTask(test_task)) {
             log("MagBlock Assembly Test PASSED", LogLevel::INFO);
-            
-            // Demonstrate TPG access for potential ADG construction
-            log("TPG constructed and ready for ADG creation", LogLevel::INFO);
-            auto tpg_for_adg = getTPGForADG();
-            log("TPG object prepared for ADG construction", LogLevel::INFO);
-            
-            // TODO: Future ADG construction would use the TPG here
-            // auto adg = std::make_shared<ADG>(activity_graph);
-            // adg->init(tpg_for_adg, trajectory, config);
-            
         } else {
             log("MagBlock Assembly Test FAILED", LogLevel::ERROR);
         }
@@ -296,145 +367,7 @@ private:
     rclcpp::Node::SharedPtr node_;
     std::shared_ptr<MagBlockSkillGraph> skillgraph_;
     std::shared_ptr<MoveitInstance> moveit_backend_;
-    tpg::TPG tpg_;
     tpg::TPGConfig tpg_config_;
-    
-    skillgraph::RobotTrajectory getSkillTrajectory(
-        std::shared_ptr<MagBlockSkillExecutor> skill_executor, 
-        const State& state) {
-        // TODO: CRITICAL IMPLEMENTATION NEEDED
-        // The skill executor needs to be modified to store and return the actual 
-        // robot trajectory generated during skill execution. This is essential for 
-        // TPG construction as each skill segment becomes an activity in the TPG.
-        //
-        // Required changes to MagBlockSkillExecutor:
-        // 1. Store the planned trajectory during execute() method
-        // 2. Provide a getTrajectory() method to access the stored trajectory
-        // 3. Ensure trajectory includes proper timing and robot state information
-        
-        skillgraph::RobotTrajectory trajectory;
-        
-        // The skill executor should provide access to the planned trajectory
-        // This would typically be done by modifying the skill executor to store
-        // the trajectory during execution and provide a getter method
-        
-        log("Extracting trajectory from skill executor (placeholder implementation)", LogLevel::WARN);
-        log("TODO: Implement actual trajectory extraction from skill executor", LogLevel::WARN);
-        
-        return trajectory;
-    }
-    
-    void appendTrajectorySegment(skillgraph::MRTrajectory& complete_trajectory, 
-                                const skillgraph::RobotTrajectory& segment) {
-        // Append the trajectory segment to the complete multi-robot trajectory
-        // Handle proper timestep concatenation and robot assignment
-        
-        log("Appending trajectory segment to complete trajectory", LogLevel::DEBUG);
-        
-        // TODO: Implement proper trajectory concatenation
-        // This should handle:
-        // - Time alignment between segments
-        // - Robot assignment for multi-robot scenarios
-        // - Smooth transitions between skill segments
-    }
-    
-    std::shared_ptr<skillgraph::Activity> createActivityForSkill(
-        std::shared_ptr<Skill> skill, 
-        int activity_id, 
-        const skillgraph::RobotTrajectory& trajectory) {
-        
-        auto activity = std::make_shared<skillgraph::Activity>();
-        activity->act_id = activity_id;
-        activity->robot_id = 0; // TODO: Extract from skill or context
-        
-        // Map skill types to activity types
-        switch (skill->type) {
-            case Skill::Type::Transit:
-                activity->type = skillgraph::Activity::Type::home; // or appropriate transit type
-                break;
-            case Skill::Type::ApproachPick:
-                activity->type = skillgraph::Activity::Type::pick; // approach phase
-                break;
-            case Skill::Type::Pick:
-                activity->type = skillgraph::Activity::Type::pick;
-                break;
-            case Skill::Type::RetractPick:
-                activity->type = skillgraph::Activity::Type::pick; // retract phase
-                break;
-            case Skill::Type::ApproachPlace:
-                activity->type = skillgraph::Activity::Type::drop; // approach phase
-                break;
-            case Skill::Type::Place:
-                activity->type = skillgraph::Activity::Type::drop;
-                break;
-            case Skill::Type::RetractPlace:
-                activity->type = skillgraph::Activity::Type::drop; // retract phase
-                break;
-            default:
-                activity->type = skillgraph::Activity::Type::home;
-                log("Unknown skill type, defaulting to home activity", LogLevel::WARN);
-                break;
-        }
-        
-        // Set start and end poses from trajectory
-        if (!trajectory.empty()) {
-            activity->start_pose = trajectory.front();
-            activity->end_pose = trajectory.back();
-        }
-        
-        log("Created activity " + std::to_string(activity_id) + " for skill: " + skill->to_string(), LogLevel::INFO);
-        
-        return activity;
-    }
-    
-    bool buildTPG(const skillgraph::MRTrajectory& complete_trajectory, 
-                  const std::vector<std::shared_ptr<skillgraph::Activity>>& activities) {
-        
-        log("Building TPG from collected trajectories and activities", LogLevel::INFO);
-        
-        try {
-            // Initialize TPG
-            tpg_.reset();
-            
-            // Create plan instance for TPG construction
-            auto plan_instance = std::static_pointer_cast<skillgraph::PlanInstance>(moveit_backend_);
-            
-            // Initialize TPG with the complete trajectory
-            bool success = tpg_.init(plan_instance, complete_trajectory, tpg_config_);
-            if (!success) {
-                log("Failed to initialize TPG with trajectory", LogLevel::ERROR);
-                return false;
-            }
-            
-            // TODO: Associate activities with TPG nodes
-            // This would involve mapping activities to specific time segments
-            // and nodes in the TPG structure
-            
-            log("TPG successfully constructed with " + std::to_string(activities.size()) + " activities", LogLevel::INFO);
-            
-            // Optionally save TPG to file for inspection
-            std::string tpg_save_path = "/tmp/magblock_assembly_tpg.dot";
-            if (tpg_.saveToDotFile(tpg_save_path)) {
-                log("TPG saved to: " + tpg_save_path, LogLevel::INFO);
-            }
-            
-            return true;
-            
-        } catch (const std::exception& e) {
-            log("Error building TPG: " + std::string(e.what()), LogLevel::ERROR);
-            return false;
-        }
-    }
-    
-    // Getter method to access the constructed TPG
-    const tpg::TPG& getTPG() const {
-        return tpg_;
-    }
-    
-    // Method to get TPG for potential ADG construction
-    std::shared_ptr<tpg::TPG> getTPGForADG() {
-        return std::make_shared<tpg::TPG>(tpg_);
-    }
 };
 
 int main(int argc, char** argv) {
