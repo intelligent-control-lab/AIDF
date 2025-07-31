@@ -2255,8 +2255,41 @@ bool TPG::moveit_execute(std::shared_ptr<MoveitInstance> instance,
         executed_steps_.push_back(std::make_unique<std::atomic<int>>(start_t));
     }
 
+    std::cerr << "Joint names: ";
+    for (const auto& name : joint_traj.joint_names) {
+        std::cerr << name << " ";
+    }
+    std::cerr << std::endl;
+    std::cerr << "Trajectory points: " << joint_traj.points.size() << std::endl;
+    for (size_t i = 0; i < joint_traj.points.size(); ++i) {
+        std::cerr << "  Point " << i << ": [";
+        for (auto pos : joint_traj.points[i].positions) {
+            std::cerr << pos << " ";
+        }
+        std::cerr << "] time_from_start = " 
+                << joint_traj.points[i].time_from_start.sec << "s\n";
+    }
+
+    move_group->setStartStateToCurrentState();
+
+    const auto& first_point = joint_traj.points.front();
+    std::map<std::string, double> start_joint_positions;
+    for (size_t i = 0; i < joint_traj.joint_names.size(); ++i) {
+        start_joint_positions[joint_traj.joint_names[i]] = first_point.positions[i];
+    }
+
+    // Set joint target
+    move_group->setJointValueTarget(start_joint_positions);
+
+    // Move to that state
+    move_group->move();
+    
     // execute the plan
-    move_group->execute(my_plan);
+    auto result = move_group->execute(my_plan);
+    if (!result) {
+        std::cerr << "MoveGroup execution failed with code: " << result.val << std::endl;
+    }
+
 
     return true;
 }
@@ -2333,9 +2366,18 @@ void TPG::setSyncJointTrajectory(trajectory_msgs::msg::JointTrajectory &joint_tr
         point.positions.resize(joint_traj.joint_names.size());
         point.velocities.resize(joint_traj.joint_names.size());
         point.accelerations.resize(joint_traj.joint_names.size());
-        point.time_from_start = builtin_interfaces::msg::Duration();
-        point.time_from_start.sec = static_cast<int32_t>(j * dt_);
-        point.time_from_start.nanosec = static_cast<uint32_t>((j * dt_ - point.time_from_start.sec) * 1e9);
+        const int64_t nanoseconds_per_point = static_cast<int64_t>(dt_ * 1e9);
+        int64_t total_nanoseconds = j * nanoseconds_per_point;
+        point.time_from_start.sec = static_cast<int32_t>(total_nanoseconds / 1'000'000'000);
+        point.time_from_start.nanosec = static_cast<uint32_t>(total_nanoseconds % 1'000'000'000);
+
+
+
+        // point.time_from_start = builtin_interfaces::msg::Duration();
+        // point.time_from_start.sec = static_cast<int32_t>(j * dt_);
+        // point.time_from_start.nanosec = static_cast<uint32_t>((j * dt_ - point.time_from_start.sec) * 1e9);
+        // double t = joint_traj.points.size() * dt_;
+        // point.time_from_start = rclcpp::Duration::from_seconds(t);
         joint_traj.points.push_back(point);
 
         int dof_s = 0;
@@ -2390,6 +2432,18 @@ void TPG::setSyncJointTrajectory(trajectory_msgs::msg::JointTrajectory &joint_tr
             joint_traj.points[i].accelerations[j] = (joint_traj.points[i+1].positions[j] - 2 * joint_traj.points[i].positions[j] + joint_traj.points[i-1].positions[j]) / (dt_ * dt_);
         }
     }
+
+    double last_time = -1;
+    for (size_t i = 0; i < joint_traj.points.size(); ++i) {
+        double current_time = joint_traj.points[i].time_from_start.sec +
+                            joint_traj.points[i].time_from_start.nanosec * 1e-9;
+        if (current_time <= last_time) {
+            RCLCPP_ERROR(rclcpp::get_logger("TPG"),
+                "Non-increasing timestamp at point %zu: %f <= %f", i, current_time, last_time);
+        }
+        last_time = current_time;
+    }
+
 
     return;
 

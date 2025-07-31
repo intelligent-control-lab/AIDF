@@ -68,7 +68,7 @@ def launch_setup(context, *args, **kwargs):
     
     # Arm controllers
     arm_controllers = []
-    controller_names = ["left_arm_controller", "right_arm_controller", "center_arm_controller"]
+    controller_names = ["all_arms_controller"]
     for controller_name in controller_names:
         arm_controllers.append(
             Node(
@@ -86,6 +86,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             moveit_config.to_dict(),
             {"use_sim_time": use_sim_time},
+            {"trajectory_execution.allowed_start_tolerance": 0.05},
         ],
         arguments=['--ros-args', '--log-level', 'moveit_ros.planning_scene_monitor.planning_scene_monitor:=error']
     )

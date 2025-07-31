@@ -24,6 +24,8 @@
 // using skillgraph::utils::PathResolver;
 
 using namespace skillgraph;
+const std::string PLANNING_GROUP = "all_arms";
+const std::vector<double> HOME_POSE = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570};  // hard coded home pose for now
 
 // static Json::Value task_config_;
 // static bool task_config_loaded_ = false;
@@ -100,19 +102,9 @@ public:
             }
             
             log("MoveIt services found, initializing MoveIt backend...", LogLevel::INFO);
-            
-            // Initialize MoveIt backend for three-arm system using the same node
-            // This ensures the MoveitInstance has access to the robot description
-            // std::string move_group_name = "all_arms";
-            // auto move_group = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
         
-            moveit_backend_ = std::make_shared<MoveitInstance>(node_, "all_arms", "kortex_description");
-            // print robot names
-            std::cout << "ROBOT NAMES: ";
-            for (const auto& robot_name : skillgraph_->get_robot_names()) {
-                std::cout << robot_name << " ";
-            }
-            std::cout << std::endl;
+            moveit_backend_ = std::make_shared<MoveitInstance>(node_, PLANNING_GROUP, "kortex_description");
+            
             moveit_backend_->setNumberOfRobots(3);  // hardcoded :(
             // get robot names from moveit control
             std::vector<std::string> robot_names = {"left_arm", "center_arm", "right_arm"};
@@ -121,10 +113,6 @@ public:
             for (int i = 0; i < 3; ++i) {  // hardcoded :(
                 moveit_backend_->setRobotDOF(i, 7);
             }
-
-            // for (int i = 0; i < 3; ++i) {
-            //     std::cout << "Robot " << i << " name: " << moveit_backend_->getRobotName(i) << std::endl;
-            // }
 
 
             // Set the assembly environment configuration
@@ -244,10 +232,9 @@ public:
 
                         skillgraph::RobotTrajectory &other_traj = sync_solution[other_robot_id];
                         other_traj.robot_id = other_robot_id;
-                        std::vector<double> home_pose = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570};  // hard coded home pose for now
 
                         skillgraph::RobotState home_state = moveit_backend_->initRobotState(other_robot_id);
-                        home_state.joint_values = home_pose;
+                        home_state.joint_values = HOME_POSE;
 
                         double other_start_time = time_start;
 
@@ -324,6 +311,30 @@ public:
             auto adg = std::make_shared<tpg::ADG>(act_graph);
             adg->init_from_asynctrajs(moveit_backend_, tpg_config_, sync_solution);
             adg->saveToDotFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/adg.dot");
+
+            // Move all robots to home before executing ADG
+            std::vector<skillgraph::RobotTrajectory> to_home_trajectories(3); // 3 robots
+
+            for (int robot_id = 0; robot_id < 3; ++robot_id) {
+                skillgraph::RobotTrajectory traj;
+                traj.robot_id = robot_id;
+
+                skillgraph::RobotState home_state = moveit_backend_->initRobotState(robot_id);
+                home_state.joint_values = HOME_POSE;
+
+                traj.trajectory.push_back(home_state);
+                traj.times.push_back(0.0);  // execute immediately
+                traj.act_ids.push_back(-1); // dummy act id
+                traj.cost = 0.0;
+
+                to_home_trajectories[robot_id] = traj;
+            }
+
+            moveit_backend_->executeJointTrajectory(to_home_trajectories, 0.5); // 0.5s pause between each robot
+
+            std::cout << "ALL ROBOTS moved to home position." << std::endl;
+            std::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node_, PLANNING_GROUP);
+            adg->moveit_execute(moveit_backend_, move_group_);
 
             return true;
             
