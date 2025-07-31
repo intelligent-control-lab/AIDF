@@ -25,14 +25,5 @@
         "gripper_ori": 0,
         "press_face": 1,
         "robot_id": 1
-    },
-    "4": {
-        "type": "primitive",
-        "x": 13,
-        "y": 21,
-        "z": 0,
-        "gripper_ori": 0,
-        "press_face": 4,
-        "robot_id": 2
     }
 }

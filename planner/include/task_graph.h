@@ -88,6 +88,7 @@ namespace skillgraph
             pick_post = 36, // magblock
             place_pre = 37, // magblock
             place_post = 38, // magblock
+            transit = 39 // magblock
         };
 
         static const std::map<Type, std::string> enumStringMap;

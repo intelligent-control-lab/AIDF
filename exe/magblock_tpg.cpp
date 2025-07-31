@@ -103,9 +103,30 @@ public:
             
             // Initialize MoveIt backend for three-arm system using the same node
             // This ensures the MoveitInstance has access to the robot description
-            // Use "right_arm" as the primary group for this test
-            moveit_backend_ = std::make_shared<MoveitInstance>(node_, "right_arm", "kortex_description");
-            
+            // std::string move_group_name = "all_arms";
+            // auto move_group = std::make_shared<moveit::planning_interface::MoveGroupInterface>(move_group_name);
+        
+            moveit_backend_ = std::make_shared<MoveitInstance>(node_, "all_arms", "kortex_description");
+            // print robot names
+            std::cout << "ROBOT NAMES: ";
+            for (const auto& robot_name : skillgraph_->get_robot_names()) {
+                std::cout << robot_name << " ";
+            }
+            std::cout << std::endl;
+            moveit_backend_->setNumberOfRobots(3);  // hardcoded :(
+            // get robot names from moveit control
+            std::vector<std::string> robot_names = {"left_arm", "center_arm", "right_arm"};
+            moveit_backend_->setRobotNames(robot_names);
+
+            for (int i = 0; i < 3; ++i) {  // hardcoded :(
+                moveit_backend_->setRobotDOF(i, 7);
+            }
+
+            // for (int i = 0; i < 3; ++i) {
+            //     std::cout << "Robot " << i << " name: " << moveit_backend_->getRobotName(i) << std::endl;
+            // }
+
+
             // Set the assembly environment configuration
             // Load the environment setup file and pass it to the skillgraph
             std::string env_path = "/home/arcs-arm/threearm_moveit_ws/src/AIDF/config/mag_block_tasks/env_setup/env_setup_three_I.json";
@@ -185,14 +206,13 @@ public:
                 // -------------------------- Construct synchronous solution and activity graph -------------------------- //
                 // setup new activity
                 for (const auto& traj : planned_trajectory) {
-                    for (auto act_id : traj.act_ids) {
-                        auto activity = std::make_shared<Activity>();
-                        activity->robot_id = traj.robot_id;
-                        activity->act_id = act_id;
-                        activity->type = static_cast<Activity::Type>(act_id);
-                        act_graph->add_act(traj.robot_id, activity->type);
+                    if (traj.act_ids.empty()) {
+                        log("No action ID found in trajectory for robot " + std::to_string(traj.robot_id), LogLevel::ERROR);
+                        return false; // Skip if no action ID is present
                     }
-                
+                    Activity::Type act_type = static_cast<Activity::Type>(traj.act_ids[0]);
+                    ActPtr act = act_graph->add_act(traj.robot_id, act_type);
+
                     // determine active robot trajectory duration
                     double skill_duration = traj.times.back() - traj.times.front();
                     double time_start = sync_solution[traj.robot_id].times.empty() ? 0.0 : sync_solution[traj.robot_id].times.back();
@@ -205,7 +225,7 @@ public:
                     for (size_t i = 0; i < traj.trajectory.size(); ++i) {
                         traj_accum.trajectory.push_back(traj.trajectory[i]);
                         traj_accum.times.push_back(traj.times[i] + time_start);
-                        traj_accum.act_ids.push_back(traj.act_ids.empty() ? i : traj.act_ids[i]);
+                        traj_accum.act_ids.push_back(act->act_id);
                     }
                     traj_accum.cost += traj.cost;
                     
@@ -216,7 +236,7 @@ public:
                         // add idle activity
                         auto idle_activity = std::make_shared<Activity>();
                         idle_activity->robot_id = other_robot_id;
-                        idle_activity->act_id = 0; // 0 = home
+                        idle_activity->act_id = act->act_id;
                         idle_activity->type = Activity::Type::home;
                         idle_activity->start_pose.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570}; // hard coded home pose for now
                         idle_activity->end_pose.joint_values = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570}; // hard coded home pose for now
@@ -226,22 +246,20 @@ public:
                         other_traj.robot_id = other_robot_id;
                         std::vector<double> home_pose = {0.0, 0.0, 0.0, 2.5299, 0.0, 0.6120, 1.570};  // hard coded home pose for now
 
-                        skillgraph::RobotState home_state;
-                        home_state.robot_id = other_robot_id;
-                        //home_state.robot_name = moveit_backend_->getRobotName(other_robot_id);
+                        skillgraph::RobotState home_state = moveit_backend_->initRobotState(other_robot_id);
                         home_state.joint_values = home_pose;
 
-                        double other_start_time = other_traj.times.empty() ? 0.0 : other_traj.times.back();
+                        double other_start_time = time_start;
 
                         // one waypoint at start of active robot execution
                         other_traj.trajectory.push_back(home_state);
                         other_traj.times.push_back(other_start_time);
-                        other_traj.act_ids.push_back(0); // 0 = home
+                        other_traj.act_ids.push_back(act->act_id);
 
                         // one waypoint at end
                         other_traj.trajectory.push_back(home_state);
                         other_traj.times.push_back(other_start_time + skill_duration);
-                        other_traj.act_ids.push_back(0); // 0 = home
+                        other_traj.act_ids.push_back(act->act_id);
 
                         other_traj.cost += other_traj.times.back();
                     }
@@ -280,59 +298,28 @@ public:
             
             log("All assembly tasks completed successfully!", LogLevel::INFO);
 
-            // int task_id = 0;
-            // std::shared_ptr<ActivityGraph> act_graph = std::make_shared<ActivityGraph>(3); // Assuming 3 robots
-            // std::vector<std::vector<skillgraph::RobotTrajectory>> robot_trajectories;
-
-            // // CREATE THE TAS GRAPH BASED ON THE COMPLETE TRAJECTORY
-            // for (const auto& multi_traj : complete_trajectory) {
-            //     for (const auto& traj : multi_traj) {
-            //         int robot_id = traj.robot_id;
-            //         const auto& robot_traj = traj.trajectory;
-            //         const auto& times = traj.times;
-            //         const auto& act_ids = traj.act_ids;
-
-            //         for (size_t i = 0; i + 1 < robot_traj.size(); ++i) {
-            //             auto act = std::make_shared<Activity>();
-            //             act->robot_id = robot_id;
-            //             act->start_pose.joint_values = robot_traj[i].joint_values;
-            //             act->end_pose.joint_values = robot_traj[i + 1].joint_values;
-            //             act->act_id = act_ids.empty() ? i : act_ids[i];
-            //             // Start time / end time?
-            //             act->type = static_cast<Activity::Type>(traj.act_ids.empty() ? i : act_ids[i]);
-
-            //             act_graph->add_act(robot_id, act->type, act);
-            //         }
-
-            //     }
-            // }
-
-            // skillgraph::MRTrajectory flat_trajectories;
-            // for (const auto& robot_trajs : complete_trajectory) {
-            //     flat_trajectories.insert(flat_trajectories.end(), robot_trajs.begin(), robot_trajs.end());
-            // }
-
-            // try {
-            //     act_graph->saveGraphToFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/activity_graph.txt");
-            // } catch (const std::exception& e) {
-            //     log("Error saving activity graph: " + std::string(e.what()), LogLevel::ERROR);
-            // }
-
-            tpg::TPG tpg;
-            std::cerr << "Dumping sync_solution before TPG init:\n";
-            for (int i = 0; i < sync_solution.size(); ++i) {
-                std::cerr << "- Robot " << i << " trajectory size: " << sync_solution[i].trajectory.size()
-                        << ", act_ids: " << sync_solution[i].act_ids.size()
-                        << ", cost: " << sync_solution[i].cost
-                        << ", robot_id in struct: " << sync_solution[i].robot_id << "\n";
+            try {
+                act_graph->saveGraphToFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/activity_graph.txt");
+            } catch (const std::exception& e) {
+                log("Error saving activity graph: " + std::string(e.what()), LogLevel::ERROR);
             }
 
-            bool success = tpg.init(moveit_backend_, sync_solution, tpg_config_);
-            if (!success) {
-                log("Failed to initialize TPG", LogLevel::ERROR);
-                return false;
-            }
-            tpg.saveToDotFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/tpg.dot");
+            // tpg::TPG tpg;
+            // std::cerr << "Dumping sync_solution before TPG init:\n";
+            // for (int i = 0; i < sync_solution.size(); ++i) {
+            //     std::cerr << "- Robot " << i << " trajectory size: " << sync_solution[i].trajectory.size()
+            //             << ", act_ids: " << sync_solution[i].act_ids.size()
+            //             << ", cost: " << sync_solution[i].cost
+            //             << ", robot_id in struct: " << sync_solution[i].robot_id << "\n";
+            // }
+
+            // bool success = tpg.init(moveit_backend_, sync_solution, tpg_config_);
+            // if (!success) {
+            //     log("Failed to initialize TPG", LogLevel::ERROR);
+            //     return false;
+            // }
+            // std::cout << "TPG initialized successfully" << std::endl;
+            // tpg.saveToDotFile("/home/arcs-arm/threearm_moveit_ws/src/AIDF/test_tpg_output/tpg.dot");
 
             auto adg = std::make_shared<tpg::ADG>(act_graph);
             adg->init_from_asynctrajs(moveit_backend_, tpg_config_, sync_solution);

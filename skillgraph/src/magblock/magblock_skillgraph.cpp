@@ -81,12 +81,6 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
     initial_state_ = get_initial_state();
     env_->setBackend(plan_instance_);
     for (int i = 0; i < num_robots_; i++) {
-        // print the initial robot state
-        std::cout << "Initial state for robot " << i << ": " << std::endl;
-        for (const auto& joint_value : initial_state_.robot_states[i].joint_values) {
-            std::cout << joint_value << " ";
-        }
-        std::cout << std::endl;
         env_->backend_->moveRobot(i, initial_state_.robot_states[i]);
     }
     
@@ -117,7 +111,6 @@ void MagBlockSkillGraph::parse_env(const Json::Value &root_config) {
         double x = block["x"].asDouble();
         double y = block["y"].asDouble();
         double z = block["z"].asDouble();
-        std::cout << x << " " << y << " " << z << std::endl;
         // GET ROBOT BASE LINK, GET BLOCK TO ROBOT
         // const Eigen::Isometry3d& ee_to_world = robot_state.getGlobalLinkTransform(base_link);
         // Eigen::Isometry3d target_transform_world = ee_to_world * target_transform;
@@ -409,7 +402,6 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
                 if (!next_state.env_state.objects.empty()) {
                     ObjPtr target_object = nullptr;
                     std::string target_name = "b" + std::to_string(next_state.assembled_steps);
-                    std::cout << "TARGET NAME: " << target_name << std::endl;
 
                     for (const auto& obj : next_state.env_state.objects) {
                         if (obj->name == target_name) {
@@ -417,17 +409,6 @@ bool MagBlockSkillGraph::get_next_state(const State& state, SkillPtr gs, State &
                             break;
                         }
                     }
-                    std::cout << "TARGET OBJECT: " << target_object->name << std::endl;
-                    std::string block_name = constraints["block_name"].asString();
-                    std::cout << "CONSTRAINTS: " << constraints.toStyledString() << std::endl;
-                    std::cout << "ASSEMBLED STEPS: " << next_state.assembled_steps << std::endl;
-                    std::cout << "BLOCK NAME: " << block_name << std::endl;
-                    for (const auto& obj : next_state.env_state.objects) {
-                        std::cout << "OBJECT NAME: " << obj->name << std::endl;
-                    }
-
-                    //ObjPtr target_object = next_state.env_state.objects[state.assembled_steps];
-                    std::cout << "TARGET OBJECT NAME: " << target_object->name << std::endl;
                     
                     // For Pick skills, object stays in current position (robot picks it up)
                     if (gs->type == Skill::Type::Pick) {

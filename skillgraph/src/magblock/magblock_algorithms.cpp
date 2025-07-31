@@ -216,10 +216,6 @@ void transformSkillgraphToRobot(const std::string& robot_name,
     
     // Default orientation (gripper pointing down)
     rx = 0.0; ry = 0.0; rz = 0.0;
-    
-    std::cout << "Transformed to robot frame: "
-              << "x_robot=" << x_robot << ", y_robot=" << y_robot << ", z_robot=" << z_robot
-              << ", rx=" << rx << ", ry=" << ry << ", rz=" << rz << std::endl;
 }
 
 /**
@@ -521,7 +517,7 @@ bool planTransit(skillgraph::RobotState robot_state,
     int steps_per_segment = 10;
     double step_duration = 0.1;  // 100ms per step
 
-    trajectories.push_back(moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment, robot_name, 1));  // 1 = transit to pre-pick
+    trajectories.push_back(moveit_instance->interpolateJointTrajectory(current_joints, solution_joints, steps_per_segment, robot_name, 39));  // 39 = transit
     // Execute the joint trajectory
     // moveit_instance->executeJointTrajectory(trajectories, step_duration);
     return true;
@@ -558,15 +554,9 @@ bool planPickTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     std::vector<std::vector<double>> waypoint_joints;
     std::vector<geometry_msgs::msg::Pose> waypoints = {approach_pose, pick_pose, lift_pose};
     std::vector<std::string> waypoint_names = {"approach", "pick", "lift"};
-    std::vector<int> waypoint_act_ids = {1, 2, 3}; // 1 = transit to pre-pick, 2 = pick, 3 = post-pick
+    std::vector<int> waypoint_act_ids = {35, 15, 36}; // pre-pick, pick, post-pick
 
     std::vector<double> seed_joints = current_joints;
-    // Print seed joints
-    std::cout << "Seed joints for pick trajectory: ";
-    for (const auto& joint : seed_joints) {
-        std::cout << joint << " ";
-    }
-    std::cout << std::endl;
     
     for (size_t i = 0; i < waypoints.size(); ++i) {
         std::vector<double> solution_joints;
@@ -675,7 +665,7 @@ bool planPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     std::vector<std::vector<double>> waypoint_joints;
     std::vector<geometry_msgs::msg::Pose> waypoints = {place_pose, retract_pose};
     std::vector<std::string> waypoint_names = {"place", "retract"};
-    std::vector<int> waypoint_act_ids = {5, 6}; // 5 = place, 6 = post-place
+    std::vector<int> waypoint_act_ids = {16, 38}; // drop, post-place
     
     // std::vector<double> seed_joints = current_joints;
 
@@ -803,7 +793,7 @@ bool planPickPlaceTrajectory(std::shared_ptr<MoveitInstance> moveit_instance,
     double step_duration = 0.1;  // 100ms per step
         
     skillgraph::RobotTrajectory transit_trajectory = moveit_instance->interpolateJointTrajectory(
-        current_joints, solution_joints, steps_per_segment, robot_name, 4);
+        current_joints, solution_joints, steps_per_segment, robot_name, 37); // 37 = transit to pre-place
     
     std::vector<skillgraph::RobotTrajectory> transit_trajectory_vec;
     transit_trajectory_vec.push_back(transit_trajectory);
@@ -1010,7 +1000,6 @@ bool calculateApproachPose(std::shared_ptr<PlanInstance> backend,
     double target_x = task_constraints.get("x", 0.0).asDouble();
     double target_y = task_constraints.get("y", 0.0).asDouble();
     double target_z = task_constraints.get("z", 0.0).asDouble();
-    std::cout << "TARGET POSITION BEING GIVEN TO TRANSFORM FUNC: " << target_x << ", " << target_y << ", " << target_z << std::endl;
     
     // Transform to robot coordinates using the existing transform function
     double robot_x, robot_y, robot_z, rx_deg, ry_deg, rz_deg;

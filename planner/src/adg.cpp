@@ -652,7 +652,12 @@ void ADG::findCollisionDepsTask(int i, int j, ActPtr act_i, ActPtr act_j,
                 if (config_.print_contact) {
                     //instance->printKnownObjects();
                     instance->checkCollision({iter_node_i->pose, iter_node_j->pose}, true, true);
+                    
                 }
+                instance->moveRobot(i, iter_node_i->pose);
+                instance->updateScene();
+                instance->moveRobot(j, iter_node_j->pose);
+                instance->updateScene();
                 inCollision = true;
             }
             else if (inCollision) {

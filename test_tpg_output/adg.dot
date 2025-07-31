@@ -1,0 +1,71 @@
+digraph G {
+node [shape=ellipse];
+rankdir=LR;
+subgraph cluster_0 {
+label = "Robot 0";
+rank=same;
+n0_0 [label="home0"];
+n0_1 [label="home1"];
+n0_9 [label="transit9"];
+n0_12 [label="transit12"];
+n0_23 [label="pick_pre23"];
+n0_25 [label="pick25"];
+n0_34 [label="pick34"];
+n0_45 [label="pick_post45"];
+n0_48 [label="place_pre48"];
+n0_56 [label="place_pre56"];
+n0_67 [label="drop67"];
+n0_78 [label="place_post78"];
+n0_84 [label="home84"];
+n0_86 [label="home86"];
+n0_89 [label="home89"];
+n0_0 -> n0_1 -> n0_9 -> n0_12 -> n0_23 -> n0_25 -> n0_34 -> n0_45 -> n0_48 -> n0_56 -> n0_67 -> n0_78 -> n0_84 -> n0_86 -> n0_89;
+}
+subgraph cluster_1 {
+label = "Robot 1";
+rank=same;
+n1_0 [label="home0"];
+n1_1 [label="home1"];
+n1_12 [label="transit12"];
+n1_23 [label="pick_pre23"];
+n1_34 [label="pick34"];
+n1_45 [label="pick_post45"];
+n1_52 [label="place_pre52"];
+n1_53 [label="place_pre53"];
+n1_55 [label="place_pre55"];
+n1_56 [label="place_pre56"];
+n1_67 [label="drop67"];
+n1_78 [label="place_post78"];
+n1_80 [label="home80"];
+n1_86 [label="home86"];
+n1_89 [label="home89"];
+n1_0 -> n1_1 -> n1_12 -> n1_23 -> n1_34 -> n1_45 -> n1_52 -> n1_53 -> n1_55 -> n1_56 -> n1_67 -> n1_78 -> n1_80 -> n1_86 -> n1_89;
+}
+subgraph cluster_2 {
+label = "Robot 2";
+rank=same;
+n2_0 [label="transit0"];
+n2_10 [label="transit10"];
+n2_21 [label="pick_pre21"];
+n2_32 [label="pick32"];
+n2_43 [label="pick_post43"];
+n2_54 [label="place_pre54"];
+n2_65 [label="drop65"];
+n2_74 [label="place_post74"];
+n2_76 [label="place_post76"];
+n2_78 [label="home78"];
+n2_81 [label="home81"];
+n2_83 [label="home83"];
+n2_84 [label="home84"];
+n2_87 [label="home87"];
+n2_0 -> n2_10 -> n2_21 -> n2_32 -> n2_43 -> n2_54 -> n2_65 -> n2_74 -> n2_76 -> n2_78 -> n2_81 -> n2_83 -> n2_84 -> n2_87;
+}
+n1_52 -> n0_9;
+n1_53 -> n0_25;
+n1_86 -> n0_48;
+n2_83 -> n0_84;
+n2_84 -> n0_86;
+n2_74 -> n1_55;
+n2_78 -> n1_56;
+n2_81 -> n1_80;
+}

@@ -435,12 +435,14 @@ bool TPG::init(std::shared_ptr<PlanInstance> instance, const MRTrajectory &solut
             while (ind + 1 < solution_[i].times.size() && solution_[i].times[ind+1] <= time) {
                 ind++;
             }
+
             RobotState pose_j = instance->initRobotState(i);
             if (ind + 1 == solution_[i].times.size()) {
                 // assuming obstacle stays at the end of the trajectory
                 pose_j = solution_[i].trajectory[ind];
             } else {
                 double alpha = (time - solution_[i].times[ind]) / (solution_[i].times[ind + 1] - solution_[i].times[ind]);
+                solution_[i].trajectory[ind].robot_name = pose_j.robot_name;
                 pose_j = instance->interpolate(solution_[i].trajectory[ind], solution_[i].trajectory[ind + 1], alpha);
             }
 

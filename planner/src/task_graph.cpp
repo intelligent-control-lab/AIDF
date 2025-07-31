@@ -42,6 +42,7 @@ const std::map<Activity::Type, std::string> Activity::enumStringMap = {
     {Activity::Type::pick_post, "pick_post"},
     {Activity::Type::place_pre, "place_pre"},
     {Activity::Type::place_post, "place_post"},
+    {Activity::Type::transit, "transit"}
 
 };
 
