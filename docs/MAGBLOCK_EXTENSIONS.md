@@ -83,10 +83,10 @@ ros2 launch aidf magblock_tpg.launch.py
 ## Example Workflow
 1. Prepare the environment
 
-   Modify or create an environment file in mag_block_tasks/envs/.
+   Modify or create an environment file in `mag_block_tasks/envs/`.
 2. Define an assembly task
    
-    Create a JSON assembly description in mag_block_tasks/assemblies/ with press_face and gripper_ori defined for each step.
+    Create a JSON assembly description in `mag_block_tasks/assemblies/` with `press_face` and `gripper_ori` defined for each step.
 3. Launch simulation
    
     Run one of the provided launch files to start the MoveIt 2-based simulation.
