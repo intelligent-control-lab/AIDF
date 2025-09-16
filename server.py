@@ -263,22 +263,28 @@ def run_real_robot():
     target = data.get("target")
     skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
-    if skill != "base":
-        input_file = './processed_cliff_meta_skills.json'
-        result = check_target(input_file, robot_id, obj, skill, target)
-        if result == "9" or result == "10" or result == "11":
-            num = result
-        else:
-            logging.error(f"Error found in log: error: not feasible {result}")
-            return jsonify({
-                "status": -1,
-                "output": "error: not feasible, reason: target location is not feasible!"
-            }), 400
-
-        # send the ros command to the real robot
-        command = f'roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
+    if 'DetectAndTransit' in skill:
+        if 'oneshot' in skill:
+            command = f'python ./demo/detectandtransit.py --mode one-time'
+        elif 'iterative' in skill:
+            command = f'python ./demo/detectandtransit.py --mode loop'
     else:
-        command = f'roslaunch mr_planner mfi_lego.launch task:=base'
+        if skill != "base":
+            input_file = './processed_cliff_meta_skills.json'
+            result = check_target(input_file, robot_id, obj, skill, target)
+            if result == "9" or result == "10" or result == "11":
+                num = result
+            else:
+                logging.error(f"Error found in log: error: not feasible {result}")
+                return jsonify({
+                    "status": -1,
+                    "output": "error: not feasible, reason: target location is not feasible!"
+                }), 400
+
+            # send the ros command to the real robot
+            command = f'roslaunch mr_planner mfi_lego.launch task:=cliff_{num}_{num}'
+        else:
+            command = f'roslaunch mr_planner mfi_lego.launch task:=base'
 
     logging.info(f"Executing command: {command}")
     

@@ -136,7 +136,12 @@
             },
             "Detection": {
                 "default_params": {
-                    "offset": 0.0
+                    "confidence_threshold": 0.5
+                }
+            },
+            "Align": {
+                "default_params": {
+                    "confidence_threshold": 0.5
                 }
             }
         }
@@ -263,7 +268,7 @@
                     }
                 }
             },
-            "DetectAndTransit-oneshot": {
+            "DetectAndTransit": {
                 "type": "functional",
                 "numRobot": 1,
                 "atomicSkills": [
@@ -271,6 +276,8 @@
                     "Transit"
                 ],
                 "robotId": [
+                    0,
+                    0,
                     0
                 ],
                 "sequential-roles": {
@@ -284,33 +291,55 @@
                     }
                 }
             },
-            "DetectAndTransit-iterative": {
+            "TransitwithAlignment": {
                 "type": "functional",
                 "numRobot": 1,
                 "atomicSkills": [
-                    "Detection",
-                    "Transit"
+                    "Transit",
+                    "Align"
                 ],
                 "robotId": [
+                    0,
                     0
                 ],
                 "sequential-roles": {
                     "state-estimator": {
-                        "name": "Detection",
-                        "execution-mode": "iterative"
+                        "name": "Align",
+                        "execution-mode": "closed-loop"
                     },
                     "action-executor": {
                         "name": "Transit",
-                        "execution-mode": "iterative"
+                        "execution-mode": "closed-loop"
+                    },
+                    "ending-flag": {
+                        "skill": "Align",
+                        "output": {
+                            "type": "bool",
+                            "value": true
+                        }
                     }
                 }
+            },
+            "DetectAndPlaceWithAlignment": {
+                "type": "temporal",
+                "numRobot": 1,
+                "atomicSkills": [
+                    "DetectAndTransit",
+                    "TransitwithAlignment",
+                    "Place-Down"
+                ],
+                "robotId": [
+                    0,
+                    0,
+                    0
+                ]
             }
         }
     },
     "tasks": {
         "type": "Lego",
-        "name": "faucet",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/faucet.json",
+        "name": "gate",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/gate.json",
         "assemble": "true"
     }
 }
