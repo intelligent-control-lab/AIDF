@@ -9,6 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <algorithm>
+#include "rrt_algorithm.hpp" // For RRTConnect
 
 namespace skillgraph {
 
@@ -65,6 +66,8 @@ MoveitInstance::MoveitInstance(robot_state::RobotStatePtr kinematic_state,
 {
     planning_scene_->getPlanningSceneMsg(original_scene_);
     //planning_scene_->setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorBullet::create(), true);
+    //add nh_
+    nh_ = std::make_shared<ros::NodeHandle>();
 }
 
 
@@ -225,7 +228,7 @@ bool MoveitInstance::checkCollision(const std::vector<RobotState> &poses, bool s
     c_req.group_name = joint_group_name_;
     if (debug) {
         c_req.contacts = true;
-        c_req.max_contacts = 10;
+        c_req.max_contacts = 100;
     }
 
     // set the robot state to the one we are checking
@@ -234,6 +237,24 @@ bool MoveitInstance::checkCollision(const std::vector<RobotState> &poses, bool s
     
     std::vector<double> all_joints;
     collision_detection::AllowedCollisionMatrix acm = planning_scene_->getAllowedCollisionMatrixNonConst();
+    acm.setEntry("left_arm_link_1", "left_arm_link_2", true);
+    acm.setEntry("left_arm_link_2", "left_arm_link_3", true);
+    acm.setEntry("left_arm_link_3", "left_arm_link_4", true);
+    acm.setEntry("left_arm_link_4", "left_arm_link_5", true);
+    acm.setEntry("left_arm_link_5", "left_arm_link_6", true);
+    acm.setEntry("left_arm_fts", "left_arm_link_5", true);
+    acm.setEntry("left_arm_fts", "left_arm_link_6", true);
+    acm.setEntry("left_arm_base_link", "left_arm_link_1", true);
+
+    // right arm 同理
+    acm.setEntry("right_arm_link_1", "right_arm_link_2", true);
+    acm.setEntry("right_arm_link_2", "right_arm_link_3", true);
+    acm.setEntry("right_arm_link_3", "right_arm_link_4", true);
+    acm.setEntry("right_arm_link_4", "right_arm_link_5", true);
+    acm.setEntry("right_arm_link_5", "right_arm_link_6", true);
+    acm.setEntry("right_arm_fts", "right_arm_link_5", true);
+    acm.setEntry("right_arm_fts", "right_arm_link_6", true);
+    acm.setEntry("right_arm_base_link", "right_arm_link_1", true);
 
     //print the acm entry names
     // std::vector<std::string> acm_names;
@@ -295,13 +316,37 @@ bool MoveitInstance::checkCollision(const std::vector<RobotState> &poses, bool s
     }
     num_collision_checks_++;
 
+    // if (debug) {
+    //     std::cout << "Number of contacts: " << c_res.contacts.size() << std::endl;
+    //     for (const auto &contact : c_res.contacts) {
+    //         std::cout << "Contact between " << contact.first.first << " and " << contact.first.second << std::endl;
+    //     }
+    // }
+
+
+
+    
     if (debug) {
-        std::cout << "Number of contacts: " << c_res.contacts.size() << std::endl;
-        for (const auto &contact : c_res.contacts) {
-            std::cout << "Contact between " << contact.first.first << " and " << contact.first.second << std::endl;
+    log("Number of contacts: ", LogLevel::INFO);
+    for (const auto &contact : c_res.contacts) {
+        std::string msg = "Contact between " + contact.first.first + " and " + contact.first.second;
+        log(msg, LogLevel::INFO);
         }
     }
 
+//     if (debug) {
+//     std::ofstream log_file("/home/lyjie/aidf_copy/src/AIDF/collision_debug.txt", std::ios::app);
+//   // 👈 追加写入日志文件
+//     log_file << "Number of contacts: " << c_res.contacts.size() << std::endl;
+
+//     for (const auto& contact : c_res.contacts) {
+//         log_file << "Contact between " << contact.first.first << " and " << contact.first.second << std::endl;
+//     }
+// }
+
+
+
+    
     return c_res.collision;
 }
 
@@ -1015,6 +1060,9 @@ void MoveitInstance::setState(const State &state) {
 
     planning_scene_->usePlanningSceneMsg(planning_scene);
     planning_scene_diff_ = planning_scene;
+
+    // update the last state added by Yijie Liao
+    last_state_ = state;
 }
 
 void MoveitInstance::printKnownObjects() const {
@@ -1159,16 +1207,133 @@ void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_
     obj.qw = rot.w();
 }
 
+
+
+
+
+//Help function written by Yijie
+ void MoveitInstance:: setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec){
+    for (int step =1; step <=steps; ++step){
+        State interp;
+        for (int i = 0; i < start.robot_states.size(); ++i) {
+            const auto &s = start.robot_states[i];
+            const auto &g = goal.robot_states[i];
+            RobotState r;
+            r.robot_id = s.robot_id;
+
+            // joint_values 插值
+            for (int j = 0; j < s.joint_values.size(); ++j) {
+                double val = s.joint_values[j] + (g.joint_values[j] - s.joint_values[j]) * ((double)step / steps);
+                r.joint_values.push_back(val);
+            }
+
+            // hand_values 插值
+            for (int j = 0; j < s.hand_values.size(); ++j) {
+                double val = s.hand_values[j] + (g.hand_values[j] - s.hand_values[j]) * ((double)step / steps);
+                r.hand_values.push_back(val);
+            }
+            if(step==1){
+                log("Interpolating robot",LogLevel::INFO);
+            }
+            interp.robot_states.push_back(r);
+        }
+
+        // interp.env_state = goal.env_state; // Assuming env_state does not change during interpolation
+        
+        for(int i = 0; i < goal.env_state.objects.size(); ++i) {
+            ObjPtr start_obj = (start.env_state.objects[i]);
+            ObjPtr goal_obj = (goal.env_state.objects[i]);
+            ObjPtr obj = goal.env_state.objects[i];
+            if(start_obj->state == Object::State::Attached) {
+
+                // Interpolate the attached object's pose
+                if(step==1){
+                log("Interpolating attached object " + obj->name, LogLevel::INFO);
+                computeRelativeTransform(*obj,start.robot_states[0]);
+            }
+                    // obj->x_attach = start.env_state.objects[i]->x_attach + 
+                    //                 (goal.env_state.objects[i]->x_attach - start.env_state.objects[i]->x_attach) * ((double)step / steps);
+                    // obj->y_attach = start.env_state.objects[i]->y_attach + 
+                    //                 (goal.env_state.objects[i]->y_attach - start.env_state.objects[i]->y_attach) * ((double)step / steps);
+                    // obj->z_attach = start.env_state.objects[i]->z_attach + 
+                    //                 (goal.env_state.objects[i]->z_attach - start.env_state.objects[i]->z_attach) * ((double)step / steps);
+                    // obj->qx_attach = start.env_state.objects[i]->qx_attach + 
+                    //                  (goal.env_state.objects[i]->qx_attach - start.env_state.objects[i]->qx_attach) * ((double)step / steps);
+                    // obj->qy_attach = start.env_state.objects[i]->qy_attach + 
+                    //                  (goal.env_state.objects[i]->qy_attach - start.env_state.objects[i]->qy_attach) * ((double)step / steps);
+                    // obj->qz_attach = start.env_state.objects[i]->qz_attach + 
+                    //                  (goal.env_state.objects[i]->qz_attach - start.env_state.objects[i]->qz_attach) * ((double)step / steps);
+                    // obj->qw_attach = start.env_state.objects[i]->qw_attach + 
+                    //                  (goal.env_state.objects[i]->qw_attach - start.env_state.objects[i]->qw_attach) * ((double)step / steps);
+                
+                computeWorldTransform(*obj, interp.robot_states[0]);
+                }
+            else {
+                // if(step==1){
+                // log("Interpolating static object " + obj->name, LogLevel::INFO);}
+                obj= std::make_shared<Object>(*goal.env_state.objects[i]);
+            }
+            // if(step==1){
+            //     log("Interpolating object",LogLevel::INFO);
+            // }
+            interp.env_state.objects.push_back(obj);
+        }
+
+
+
+
+
+        setState(interp);
+        updateScene();
+        // Sleep for the specified delay
+        ros::Duration(delay_sec).sleep();
+    }
+ }
+
+
+
+
+
 MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move) 
         : instance_(instance), fake_move_(fake_move) {
     // initialize the moveit instance
 
 }
 
-bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
+
+
+
+
+
+bool MoveitControl::move(State target_state, const RobotTrajectory &trajectory) {
     if (fake_move_) {
-        instance_->setState(post_condition->target_state);
+
+        // log("skill type"+ std::to_string(post_condition->skill_type), LogLevel::DEBUG);
+        // Add interpolation to avoid sudden move
+        //Added by Yijie Liao
+        State start_state = instance_->getLastState();
+        bool collision_check_start = instance_->checkCollision(start_state.robot_states, true);
+
+        // if (collision_check_start) {
+        //     log("Fake move failed due to collision at start state", LogLevel::ERROR);
+        //     return false;
+        // }
+        instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
+        log("Interpolating move", LogLevel::INFO);
+        // // add rrt for transit skill
+        // auto robot_model=instance_->getRobotModel();
+        // skillgraph::RRTConnect rrtplan(robot_model,instance_);
+        // RobotTrajectory traj;
+        // bool rrt_plan=rrtplan.plan(start_state, target_state, traj);
+        
+        instance_->setState(target_state);
         instance_->updateScene();
+
+        // bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
+        // if (collision_check_final) {
+        //     log("Fake move failed due to collision", LogLevel::ERROR);
+        //     return false;}
+
         return true;
     }
 
@@ -1182,6 +1347,85 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
     return true;
 
 }
+
+
+
+bool MoveitControl::transit_move(State target_state, const RobotTrajectory &trajectory) {
+   if (fake_move_) {
+
+        // log("skill type"+ std::to_string(post_condition->skill_type), LogLevel::DEBUG);
+        // Add interpolation to avoid sudden move
+        //Added by Yijie Liao
+        State start_state = instance_->getLastState();
+        // bool collision_check_start = instance_->checkCollision(start_state.robot_states, true);
+
+        // if (collision_check_start) {
+        //     log("Fake move failed due to collision at start state", LogLevel::ERROR);
+        //     return false;
+        // }
+        // instance_->setStateInterpolation(start_state, target_state, 10, 0.05); // 插值10步，每步间隔0.05秒
+        
+        // add rrt for transit skill
+        auto robot_model=instance_->getRobotModel();
+        skillgraph::RRTConnect rrtplan(robot_model,instance_);
+        RobotTrajectory traj;
+        bool rrt_plan=rrtplan.plan(start_state, target_state, traj);
+
+        if(rrt_plan == false) {
+            log("RRT plan failed", LogLevel::ERROR);
+            return false;
+        }else{
+            // log(std::to_string(traj.trajectory.size()) + " steps in the trajectory", LogLevel::DEBUG);
+            for(auto &robot_state : traj.trajectory) {
+                RobotState interp_state = robot_state;
+                State interp;
+                interp.robot_states.push_back(interp_state);
+                for (int i = 0; i < target_state.env_state.objects.size(); i++) {
+                    // compute the relative transform of the object in the robot end-effector frame
+
+                ObjPtr obj = start_state.env_state.objects[i];
+                    if(obj->state == Object::State::Attached) {
+                        // Interpolate the attached object's pose
+                        instance_->computeRelativeTransform(*obj, interp_state);
+                    }
+                    else {
+                        // if the object is static, just copy the object
+                        obj = std::make_shared<Object>(*target_state.env_state.objects[i]);
+                    }
+                    interp.env_state.objects.push_back(std::make_shared<Object>(*obj));
+                }
+                instance_->setState(interp);
+                instance_->updateScene();
+                ros::Duration(0.05).sleep();
+            }
+            
+        }
+        
+        instance_->setState(target_state);
+        instance_->updateScene();
+
+        // bool collision_check_final = instance_->checkCollision(post_condition->target_state.robot_states, true);
+        // if (collision_check_final) {
+        //     log("Fake move failed due to collision", LogLevel::ERROR);
+        //     return false;}
+
+        return true;
+    }
+
+    // check if the trajectory is valid
+    if (trajectory.trajectory.empty()) {
+        log("Trajectory is empty", LogLevel::ERROR);
+        return false;
+    }
+    
+
+    return true;
+
+}
+
+
+
+
 
 
 

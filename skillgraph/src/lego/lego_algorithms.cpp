@@ -113,9 +113,32 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
     return reachable;
 }
 
-bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
+bool LegoGraspGenerator::generate(const TaskParam &task_param, Skill::Type type, int skill_seq,
          State &goal_state) {
     
+   
+    // auto moveit_instance = std::dynamic_pointer_cast<MoveitInstance>(instance_);
+    // State current_state = moveit_instance->getLastState();
+    // if(skill_seq >0){
+    //     //check collision
+    //     bool collision_check_start = moveit_instance->checkCollision(current_state.robot_states, true);
+    //     if (collision_check_start) {
+    //         log("Collision detected at the start state for skill " + std::to_string(skill_seq) + " robot " 
+    //             + std::to_string(robot_->robot_id), LogLevel::ERROR);
+    //         return false;       
+    //     }
+    // }
+
+
+
+    //check whether it's collision free at begging
+    // bool collision_check_start = instance_->checkCollision({goal_state.robot_states[robot_->robot_id]}, true);
+
+
+
+
+    
+    log("generate function",LogLevel::INFO);
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
         + std::to_string(robot_->robot_id), LogLevel::INFO);
     RobotState &robot_goal_state = goal_state.robot_states[robot_->robot_id];
@@ -123,39 +146,40 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
     robot_goal_state = instance_->initRobotState(robot_->robot_id);
     
     // mandatory fields
-    int brick_id = constraint["brick_id"].asInt();
-    int brick_x = constraint["x"].asInt();
-    int brick_y = constraint["y"].asInt();
-    int brick_z = constraint["z"].asInt();
-    int ori = constraint["ori"].asInt();
-    int manip_type = constraint["manipulate_type"].asInt();
+    int brick_id = task_param.get("brick_id").asInt();
+    int brick_x = task_param.get("x").asInt();
+    int brick_y = task_param.get("y").asInt();
+    int brick_z = task_param.get("z").asInt();
+    int ori = task_param.get("ori").asInt();
+    int manip_type = task_param.get("manipulate_type").asInt();
     bool sup_req = false;
     
     // optional fields
     int press_x, press_y, press_z, press_ori, press_side, press_offset;
     int support_x, support_y, support_z, support_ori;
     int attack_dir = -1;
-    if (constraint.isMember("press_side")) {
-        press_side = constraint["press_side"].asInt();
-        press_offset = constraint["press_offset"].asInt();
+    if (task_param.has("press_side")) {
+        press_side = task_param.get("press_side").asInt();
+        press_offset = task_param.get("press_offset").asInt();
     }
-    if (constraint.isMember("press_x")) {
-        press_x = constraint["press_x"].asInt();
-        press_y = constraint["press_y"].asInt();
-        press_z = constraint["press_z"].asInt();
-        press_ori = constraint["press_ori"].asInt();
+    if (task_param.has("press_x")) {
+        press_x = task_param.get("press_x").asInt();
+        press_y = task_param.get("press_y").asInt();
+        press_z = task_param.get("press_z").asInt();
+        press_ori = task_param.get("press_ori").asInt();
     }
-    if (constraint.isMember("support_x")) {
-        support_x = constraint["support_x"].asInt();
-        support_y = constraint["support_y"].asInt();
-        support_z = constraint["support_z"].asInt();
-        support_ori = constraint["support_ori"].asInt();
+    if (task_param.has("support_x") && task_param.has("support_y") && task_param.has("support_z")
+        && task_param.has("support_ori")) {
+        support_x = task_param.get("support_x").asInt();
+        support_y = task_param.get("support_y").asInt();
+        support_z = task_param.get("support_z").asInt();
+        support_ori = task_param.get("support_ori").asInt();
         if (support_x != -1) {
             sup_req = true;
         }
     }
-    if (constraint.isMember("attack_dir")) {
-        attack_dir = constraint["attack_dir"].asInt();
+    if (task_param.has("attack_dir")) {
+        attack_dir = task_param.get("attack_dir").asInt();
     }
 
     // local helper variable to determine the skill type
@@ -241,6 +265,19 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
                     break;
                 }
             }
+
+            
+        // instance_->setState(goal_state);
+        // instance_->updateScene();
+        // bool hasCollision = instance_->checkCollision({robot_goal_state}, false);
+
+        // // instance_->updateScene();
+        // // bool hasCollision = instance_->checkCollision({robot_goal_state}, false);
+        // if (hasCollision) {
+        //     log("Collision detected in generate grasp pose for skill " + std::to_string(skill_seq) + " robot " 
+        //         + std::to_string(robot_->robot_id), LogLevel::WARN);
+        //     return false;
+        // }
         }
         if ((meta_skill_type == "pickplace" && skill_seq == 2) 
             || (meta_skill_type == "pickplacewithsupport" && skill_seq == 5)
@@ -562,6 +599,20 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         }
     }
 
+
+
+    // check collision at goal state
+    instance_->setState(goal_state);
+    bool collision_check = instance_->checkCollision({robot_goal_state}, false,true);
+    if (collision_check) {
+        log("Collision detected in generate grasp pose for skill in end" + std::to_string(skill_seq) + " robot " 
+            + std::to_string(robot_->robot_id), LogLevel::ERROR);
+        return false;
+    }    
+    // instance_->setState(current_state);
+
+   
+
     return true;
 }
 
@@ -634,8 +685,64 @@ void LegoGraspGenerator::calculateIKforLego(const Eigen::MatrixXd& T, const Eige
     // auto toc = std::chrono::high_resolution_clock::now();
     // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic).count() / 1000.0;
     // ik_reachability_time_ += duration;
+    
+        // instance_->updateScene();
+        
+        // bool hasCollision = instance_->checkCollision({robot_state}, false);
+        // reachable &= !hasCollision;
+        // if (hasCollision) {
+        //     log("Collision detected in calculateIKforLego", LogLevel::WARN);
+        // }
+    
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 LegoPlan::LegoPlan(std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr,
                     std::shared_ptr<skillgraph::PlanInstance> instance,
@@ -663,8 +770,12 @@ bool LegoPlan::plan_skill(const skillgraph::State &current_state, const skillgra
     else if (type == Skill::Type::Handover) {
         return plan_handover(current_state, task_param, traj);
     }
+    else if(type == Skill::Type::Transit || type == Skill::Type::align || type == Skill::Type::Translate || type == Skill::Type::Rotate) {
+        return true;
+    }
     else {
         throw std::runtime_error("Unsupported skill type: " + std::to_string(int(type)));
+        // return true; // For now, we return true for unsupported skills
     }
 }
 
@@ -722,6 +833,8 @@ void LegoPlan::calculateIKforLegoPlan(const Eigen::MatrixXd& T_target_pose, cons
         }
     }
 
+
+
     if (IK_status_out) {
         joint_q_deg_out = temp_joint_q_deg;
         robot_state_rad_out = instance_->initRobotState(robot_id); // Ensure it's properly sized
@@ -730,6 +843,12 @@ void LegoPlan::calculateIKforLegoPlan(const Eigen::MatrixXd& T_target_pose, cons
         }
 
         if (check_collision) {
+            //check start pose collision
+
+
+
+
+            //check target pose collision
             bool has_collision = instance_->checkCollision({robot_state_rad_out}, false);
             if (has_collision) {
                 IK_status_out = false;
@@ -743,6 +862,21 @@ void LegoPlan::interpolate_segment(const RobotState& start_pose_rad, const Robot
                                    skillgraph::RobotTrajectory &traj) {
     // Basic linear interpolation.
     // Timestamps are calculated based on dt and velocity.
+
+
+
+    
+        bool start_collision = instance_->checkCollision({start_pose_rad}, false);
+        bool end_collision = instance_->checkCollision({end_pose_rad}, false);
+
+        if (start_collision || end_collision) {
+            if (start_collision)
+                log("Start pose is in collision!", LogLevel::ERROR);
+            if (end_collision)
+                log("End pose is in collision!", LogLevel::ERROR);
+            return; // Skip interpolation due to collision
+        }
+    
 
     double total_duration = 0.0;
     if (!traj.times.empty()) {
@@ -822,22 +956,32 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     }
 
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("brick_id") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
-        log("Missing constraints (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
+    if (!task_param.has("brick_id") || !task_param.has("press_side") || !task_param.has("press_offset")) {
+        log("Missing params (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") || !constraints.isMember("brick_ori")) {
-        log("Missing constraints (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
+    // if (!task_param.has("brick_x") || !task_param.has("brick_y") || !task_param.has("brick_z") || !task_param.has("brick_ori")) {
+    //     log("Missing params (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
+    //     return false;
+    // }
+     if (!task_param.has("x") || !task_param.has("y") || !task_param.has("z") || !task_param.has("ori")) {
+        log("Missing params (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    int brick_id_val = constraints["brick_id"].asInt();
-    int press_side = constraints["press_side"].asInt();
-    int press_offset = constraints["press_offset"].asInt();
-    int brick_x = constraints["brick_x"].asInt();
-    int brick_y = constraints["brick_y"].asInt();
-    int brick_z = constraints["brick_z"].asInt();
-    int brick_ori = constraints["brick_ori"].asInt();
+    int brick_id_val = task_param.get("brick_id").asInt();
+    int press_side = task_param.get("press_side").asInt();
+    int press_offset = task_param.get("press_offset").asInt();
+    // int brick_x = task_param.get("brick_x").asInt();
+    // int brick_y = task_param.get("brick_y").asInt();
+    // int brick_z = task_param.get("brick_z").asInt();
+    // int brick_ori = task_param.get("brick_ori").asInt();
+
+
+
+    int brick_x = task_param.get("x").asInt();
+    int brick_y = task_param.get("y").asInt();
+    int brick_z = task_param.get("z").asInt();
+    int brick_ori = task_param.get("ori").asInt();
     
     std::string brick_name = object_->name;
     if (brick_name.empty()){
@@ -875,7 +1019,9 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
 
     lego_manipulation::math::VectorJd current_seed_q_deg(robot_dof, 1);
     if (current_robot_state_rad.joint_values.size() != static_cast<size_t>(current_seed_q_deg.rows())) {
-        log("Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
+        log(std::to_string(current_robot_state_rad.joint_values.size()) + " != " + std::to_string(current_seed_q_deg.rows()) + 
+            " in plan_pick: Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
+        // log("Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
         return false;
     }
     for(int i=0; i < current_seed_q_deg.rows(); ++i) {
@@ -909,7 +1055,11 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     // interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     // prev_interpolated_state_rad = state_out_rad;
     // current_seed_q_deg = q_out_deg;
-
+    std::vector<RobotState> check_states= {state_out_rad};;
+    if (instance_->checkCollision(check_states, false, false)) {
+        log("Pick Up state is in collision", LogLevel::WARN);
+        return false;
+    }
     // --- Pick Up ---
     double pick_up_lift_z = 0.01; 
     Eigen::Matrix4d target_T_pick_up = cart_T_grab_base;
@@ -917,17 +1067,64 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
 
     calculateIKforLegoPlan(target_T_pick_up, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Pick Up", LogLevel::WARN); return overall_reachable; }
+    
+    
+
+    
+    
+    
+    
+    
+    
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+    
+
+
+        // add collision check here
+    std::vector<RobotState> check_vec = {state_out_rad};
+    if (instance_->checkCollision(check_vec, false, false)) {
+        log("Pick Up state is in collision", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // --- Pick (at grab pose) ---
     Eigen::Matrix4d target_T_pick = cart_T_grab_base;
     calculateIKforLegoPlan(target_T_pick, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Pick (at grab pose)", LogLevel::WARN); return overall_reachable; }
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+// add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick (grab pose)", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
+
+
+
 
     // --- Pick Twist ---
     Eigen::Matrix4d fk_cart_T_for_twist;
@@ -946,6 +1143,15 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick Twist", LogLevel::WARN);
+        return false;
+    }
+
+
+
     // --- Pick Twist Up ---
     Eigen::Matrix4d fk_cart_T_twisted;
      if (robot_id == 0) {
@@ -961,6 +1167,16 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     // prev_interpolated_state_rad = state_out_rad; // Not strictly needed for the last segment
 
+//add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected after Pick Twist Up", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     return overall_reachable;
 }
 
@@ -974,20 +1190,19 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placedown
-    if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") ||
-        !constraints.isMember("brick_ori") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
-        log("Missing constraints for plan_placedown (brick_x,y,z,ori, press_side, press_offset).", LogLevel::ERROR);
+    if (!task_param.has("brick_x") || !task_param.has("brick_y") || !task_param.has("brick_z") ||
+        !task_param.has("brick_ori") || !task_param.has("press_side") || !task_param.has("press_offset")) {
+        log("Missing params for plan_placedown (brick_x,y,z,ori, press_side, press_offset).", LogLevel::ERROR);
         return false;
     }
-    int brick_x = constraints["brick_x"].asInt();
-    int brick_y = constraints["brick_y"].asInt();
-    int brick_z = constraints["brick_z"].asInt();
-    int brick_ori = constraints["brick_ori"].asInt();
-    int press_side = constraints["press_side"].asInt();
-    int press_offset_val = constraints["press_offset"].asInt();
-    int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
+    int brick_x = task_param.get("brick_x").asInt();
+    int brick_y = task_param.get("brick_y").asInt();
+    int brick_z = task_param.get("brick_z").asInt();
+    int brick_ori = task_param.get("brick_ori").asInt();
+    int press_side = task_param.get("press_side").asInt();
+    int press_offset_val = task_param.get("press_offset").asInt();
+    int attack_dir = task_param.has("attack_dir") ? task_param.get("attack_dir").asInt() : 1;
     std::string brick_name = object_->name;
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
@@ -1019,6 +1234,12 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     lego_ptr_->calc_brick_grab_pose(brick_name, 1, 0, brick_x, brick_y, brick_z, brick_ori, press_side, press_offset_val, cart_T_base_drop);
 
     // Sequence: r_offset_goal, r_drop_up_goal, r_drop_goal, r_drop_twist_goal, r_drop_twist_up_goal
+    std::vector<RobotState> check_states;
+        check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Offset Goal", LogLevel::WARN);
+        return false;
+    }
 
     // 1. Offset Goal (Approach to Drop Up)
     Eigen::Matrix4d target_T_offset = cart_T_base_drop;
@@ -1030,9 +1251,25 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     
     calculateIKforLegoPlan(target_T_offset, home_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status); // Seed with home
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceDown Offset Goal", LogLevel::WARN); return overall_reachable; }
+    
+    
+    
+    
+
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+
+
+    // add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Offset Goal", LogLevel::WARN);
+        return false;
+    }
+
 
     // 2. Drop Up Goal
     Eigen::Matrix4d target_T_drop_up = cart_T_base_drop;
@@ -1050,6 +1287,15 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    // add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Up Goal", LogLevel::WARN);
+        return false;
+    }
+
+
     // 3. Drop Goal (Contact Pose)
     Eigen::Matrix4d target_T_drop = cart_T_base_drop;
     calculateIKforLegoPlan(target_T_drop, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
@@ -1057,6 +1303,15 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+// add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Goal", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // 4. Drop Twist Goal
     Eigen::Matrix3d twist_R_place_mat = Eigen::Matrix3d::Identity();
@@ -1080,6 +1335,14 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Twist Goal", LogLevel::WARN);
+        return false;
+    }
+
+
     // 5. Drop Twist Up Goal
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with assemble tool (fk_type 1)
@@ -1093,6 +1356,13 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceDown Drop Twist Up Goal", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Drop Twist Up Goal", LogLevel::WARN);
+        return false;
+    }
+
     return overall_reachable;
 }
 
@@ -1105,19 +1375,18 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placeup
-    if (!constraints.isMember("press_x") || !constraints.isMember("press_y") || !constraints.isMember("press_z") ||
-        !constraints.isMember("press_ori") || !constraints.isMember("press_side") ) {
-        log("Missing constraints for plan_placeup (press_x,y,z,ori, press_side).", LogLevel::ERROR);
+    if (!task_param.has("press_x") || !task_param.has("press_y") || !task_param.has("press_z") ||
+        !task_param.has("press_ori") || !task_param.has("press_side") ) {
+        log("Missing params for plan_placeup (press_x,y,z,ori, press_side).", LogLevel::ERROR);
         return false;
     }
-    int press_x = constraints["press_x"].asInt();
-    int press_y = constraints["press_y"].asInt();
-    int press_z = constraints["press_z"].asInt(); // This is the target Z of the brick
-    int press_ori = constraints["press_ori"].asInt();
-    int press_side = constraints["press_side"].asInt(); // Used by assemble_pose_from_top
-    int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
+    int press_x = task_param.get("press_x").asInt();
+    int press_y = task_param.get("press_y").asInt();
+    int press_z = task_param.get("press_z").asInt(); // This is the target Z of the brick
+    int press_ori = task_param.get("press_ori").asInt();
+    int press_side = task_param.get("press_side").asInt(); // Used by assemble_pose_from_top
+    int attack_dir = task_param.has("attack_dir") ? task_param.get("attack_dir").asInt() : 1;
     // brick_name from object_->name if needed, but assemble_pose_from_top doesn't take it.
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1); // Seed for first IK
@@ -1159,7 +1428,12 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     cart_T_base_placeup = cart_T_base_placeup * y_s90 * z_180; // Transform for bottom placement
 
     // Sequence: r_place_tilt_down_pre, r_place_tilt_down, r_place_down, r_place_up, r_twist, r_twist_down
-
+    std::vector<RobotState> check_states;
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down Pre", LogLevel::WARN);
+        return false;
+    }
     // 1. Place Tilt Down Pre
     Eigen::Matrix4d target_T_tilt_down_pre = cart_T_base_placeup;
     Eigen::Matrix4d pre_transform = Eigen::Matrix4d::Identity();
@@ -1174,6 +1448,16 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+    //add collision check here
+    
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down Pre", LogLevel::WARN);
+        return false;
+    }
+
+
+
 
     // 2. Place Tilt Down
     Eigen::Matrix4d target_T_tilt_down = cart_T_base_placeup;
@@ -1189,6 +1473,17 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    //add collision check here
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Tilt Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
     // 3. Place Down (Contact)
     Eigen::Matrix4d target_T_place_down = cart_T_base_placeup;
     Eigen::Matrix4d contact_transform = Eigen::Matrix4d::Identity();
@@ -1200,6 +1495,16 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Place Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     
     // 4. Place Up (Retract after contact to base orientation for twist)
     Eigen::Matrix4d target_T_place_up = cart_T_base_placeup; // This is the pose before specific contact offsets
@@ -1208,6 +1513,14 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Place Up", LogLevel::WARN);
+        return false;
+    }
+
+
 
     // 5. Place Twist
     Eigen::Matrix3d twist_R_pick_mat = Eigen::Matrix3d::Identity(); // Same as pick twist
@@ -1228,6 +1541,14 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Twist", LogLevel::WARN);
+        return false;
+    }
+
+
     // 6. Place Twist Down
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with alt_assemble_tool (fk_type 4)
@@ -1243,8 +1564,21 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
     if (!ik_status) { overall_reachable = false; log("IK failed for PlaceUp Twist Down", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PlaceUp Twist Down", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     return overall_reachable;
 }
+
+
+
+
 
 bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1255,16 +1589,15 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("support_x") || !constraints.isMember("support_y") || 
-        !constraints.isMember("support_z") || !constraints.isMember("support_ori")) {
-        log("Missing constraints for plan_support (support_x,y,z,ori).", LogLevel::ERROR);
+    if (!task_param.has("support_x") || !task_param.has("support_y") || 
+        !task_param.has("support_z") || !task_param.has("support_ori")) {
+        log("Missing params for plan_support (support_x,y,z,ori).", LogLevel::ERROR);
         return false;
     }
-    int support_x = constraints["support_x"].asInt();
-    int support_y = constraints["support_y"].asInt();
-    int support_z = constraints["support_z"].asInt();
-    int support_ori = constraints["support_ori"].asInt();
+    int support_x = task_param.get("support_x").asInt();
+    int support_y = task_param.get("support_y").asInt();
+    int support_z = task_param.get("support_z").asInt();
+    int support_ori = task_param.get("support_ori").asInt();
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
     if (robot_dof == 6) home_q_deg << 0,0,0,0,-90,0;
@@ -1286,6 +1619,12 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     Eigen::Matrix4d sup_T = Eigen::Matrix4d::Identity();
     lego_ptr_->support_pose(support_x, support_y, support_z, support_ori, sup_T);
 
+
+    std::vector<RobotState> check_states={state_out_rad};
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pre-Pose", LogLevel::WARN);
+        return false;
+    }
     // 1. Pre-Support Pose
     Eigen::Matrix4d pre_sup_T = sup_T;
     // config_.pre_support_z_offset is -0.001. TaskAssignment uses sup_down_offset = -0.001 for pre-support.
@@ -1304,13 +1643,35 @@ bool LegoPlan::plan_support(const skillgraph::State &current_state, const skillg
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pre-Pose", LogLevel::WARN);
+        return false;
+    }
+
     // 2. Support Pose (Contact)
     calculateIKforLegoPlan(sup_T, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for Support Pose", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
 
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Support Pose", LogLevel::WARN);
+        return false;
+    }
+
     return overall_reachable;
 }
+
+
+
+
+
+
+
+
+
+
 
 bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1321,17 +1682,16 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     traj.robot_id = robot_id;
     int robot_dof = (robot_id == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
 
-    const Json::Value& constraints = task_param.constraints_json;
     // In LegoGraspGenerator, these are support_x,y,z,ori for the brick being pressed ON.
-    if (!constraints.isMember("support_x") || !constraints.isMember("support_y") || 
-        !constraints.isMember("support_z") || !constraints.isMember("support_ori")) {
-        log("Missing constraints for plan_pressdown (support_x,y,z,ori of the target brick).", LogLevel::ERROR);
+    if (!task_param.has("support_x") || !task_param.has("support_y") || 
+        !task_param.has("support_z") || !task_param.has("support_ori")) {
+        log("Missing params for plan_pressdown (support_x,y,z,ori of the target brick).", LogLevel::ERROR);
         return false;
     }
-    int target_brick_x = constraints["support_x"].asInt();
-    int target_brick_y = constraints["support_y"].asInt();
-    int target_brick_z = constraints["support_z"].asInt();
-    int target_brick_ori_type = constraints["support_ori"].asInt(); // This is the side of the target brick to press on.
+    int target_brick_x = task_param.get("support_x").asInt();
+    int target_brick_y = task_param.get("support_y").asInt();
+    int target_brick_z = task_param.get("support_z").asInt();
+    int target_brick_ori_type = task_param.get("support_ori").asInt(); // This is the side of the target brick to press on.
 
     lego_manipulation::math::VectorJd home_q_deg = Eigen::MatrixXd(robot_dof, 1);
     if (robot_dof == 6) home_q_deg << 0,0,0,0,-90,0;
@@ -1389,6 +1749,14 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     // Adjust Z for pressing tool
     press_T(2, 3) = press_T(2, 3) - lego_ptr_->brick_height() + lego_ptr_->lever_wall_height() + lego_ptr_->knob_height();
 
+
+
+     std::vector<RobotState> check_states;
+     check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Up-Pose", LogLevel::WARN);
+        return false;
+    }
     // 1. Press Up Pose
     Eigen::Matrix4d press_up_T = press_T;
     press_up_T(2, 3) += 0.005; // Lifted by 0.5cm
@@ -1399,13 +1767,59 @@ bool LegoPlan::plan_pressdown(const skillgraph::State &current_state, const skil
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+   
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Up-Pose", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     // 2. Press Down Pose (Contact)
     calculateIKforLegoPlan(press_T, current_seed_q_deg, robot_id, 0, true, q_out_deg, state_out_rad, ik_status);
     if (!ik_status) { overall_reachable = false; log("IK failed for PressDown Contact-Pose", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at PressDown Contact-Pose", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
+
     return overall_reachable;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj) {
     traj.trajectory.clear();
@@ -1417,12 +1831,11 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     int robot_dof = (robot_id_handovering == 0) ? lego_ptr_->robot_dof_1() : lego_ptr_->robot_dof_2();
     int robot_id_receiving = (robot_id_handovering == 0) ? 1 : 0;
 
-    const Json::Value& constraints = task_param.constraints_json;
-    if (!constraints.isMember("receive_q_joint_values")) {
-        log("Missing constraint 'receive_q_joint_values' for plan_handover.", LogLevel::ERROR);
+    if (!task_param.has("receive_q_joint_values")) {
+        log("Missing param 'receive_q_joint_values' for plan_handover.", LogLevel::ERROR);
         return false;
     }
-    Json::Value receive_q_json = constraints["receive_q"];
+    Json::Value receive_q_json = task_param.get("receive_q");
     if (!receive_q_json.isArray() || receive_q_json.size() != robot_dof) {
         log("Invalid 'receive_q' format or size.", LogLevel::ERROR);
         return false;
@@ -1466,6 +1879,13 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
 
     // Sequence: transfer_up, transfer_down, transfer_twist, transfer_twist_up
 
+
+        std::vector<RobotState> check_states;
+        check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Up", LogLevel::WARN);
+        return false;
+    }
     // 1. Transfer Up
     Eigen::Matrix4d target_T_transfer_up = cart_T_handover_base;
     target_T_transfer_up(2,3) += 0.015; // Lift 1.5cm
@@ -1477,6 +1897,15 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+
+    
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Up", LogLevel::WARN);
+        return false;
+    }
+
     // 2. Transfer Down (Contact)
     Eigen::Matrix4d target_T_transfer_down = cart_T_handover_base;
     calculateIKforLegoPlan(target_T_transfer_down, current_seed_q_deg, robot_id_handovering, 0, true, q_out_deg, state_out_rad, ik_status); // fk_type 0
@@ -1484,6 +1913,14 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
+
+
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Down", LogLevel::WARN);
+        return false;
+    }
 
     // 3. Transfer Twist
     Eigen::Matrix3d twist_R_handover_mat = Eigen::Matrix3d::Identity();
@@ -1505,6 +1942,15 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     prev_interpolated_state_rad = state_out_rad;
     current_seed_q_deg = q_out_deg;
 
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Twist", LogLevel::WARN);
+        return false;
+    }
+
+
+
+
     // 4. Transfer Twist Up
     Eigen::Matrix4d fk_cart_T_twisted;
     // FK with handover_assemble tool (fk_type 1)
@@ -1517,6 +1963,13 @@ bool LegoPlan::plan_handover(const skillgraph::State &current_state, const skill
     calculateIKforLegoPlan(target_T_transfer_twist_up, current_seed_q_deg, robot_id_handovering, 1, true, q_out_deg, state_out_rad, ik_status); // fk_type 1
     if (!ik_status) { overall_reachable = false; log("IK failed for Handover Transfer Twist Up", LogLevel::WARN); return overall_reachable; }
     interpolate_segment(prev_interpolated_state_rad, state_out_rad, traj);
+
+    check_states = { state_out_rad };
+    if (instance_->checkCollision(check_states, false)) {
+        log("Collision detected at Handover Transfer Twist Up", LogLevel::WARN);
+        return false;
+    }
+
 
     return overall_reachable;
 }

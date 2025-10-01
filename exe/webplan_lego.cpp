@@ -120,6 +120,11 @@ int main(int argc, char* argv[]) {
 
         State state = sg->get_initial_state();
 
+
+        //record the start state
+        State start_state = state;
+
+
         // Define a callback function to process the file when it changes
         auto processJsonFile = [&sg, &state, web_msg_json_path]() {
             std::ifstream file(web_msg_json_path);
@@ -149,11 +154,25 @@ int main(int argc, char* argv[]) {
             // }
             
             skillgraph::SkillPtr skill;
+            // skillgraph::RobotTrajectory &traj = skillgraph::RobotTrajectory::get_instance();
             bool success = sg->is_feasible(state, web_json, skill);
             if (success) {
                 std::cout << "Skill is feasible: " << skill->to_string() << std::endl;
                 // Execute the skill
+                
+
+
+                // bool start_set_success = skill->executor->setStartState(start_state);
+                // if (!start_set_success) {
+                //     log("Failed to set start state for skill executor", LogLevel::ERROR);
+                // }
+
                 success = skill->executor->execute(state);
+
+
+                // log("Executed skill: " + skill->to_string(), LogLevel::INFO);
+
+
                 if (!success) {
                     std::string msg;
                     getPastLog(msg);
@@ -166,6 +185,7 @@ int main(int argc, char* argv[]) {
             }
 
         };
+        
 
         // Setup file monitoring
         FileMonitor monitor(web_msg_json_path, processJsonFile);

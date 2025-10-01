@@ -11,6 +11,10 @@
 #include "metrics.hpp"
 #include "skills.hpp"
 
+
+//pddl_state written by yijie
+#include "symbolic_state.hpp"
+
 namespace skillgraph
 {
     /**
@@ -19,19 +23,33 @@ namespace skillgraph
      */
     class TaskParam {
         /*
-        * Task Parameters (for pre_conditions/post_condition of tasks, and inputs/outputs of algorithms)
+        * Task Parameters (for the configuration of tasks, such as grap pose param, allowed skills, approach pose, etc.)
         */
     public:
+        // Constructors
         TaskParam() = default;
+        TaskParam(const Json::Value &config) : config(config) {}
+        TaskParam(const Json::Value &config, const std::vector<Skill::Type> &allowed_skill_type);
 
-        Json::Value constraints_json; /**< JSON constraints for the task */
+        Json::Value get(const std::string &key) const;
+
+        bool has(const std::string &key) const;
+
+        void set(const std::string &key, const Json::Value &value);
+
+        void set(const Json::Value &keyValues);
+
+        void add_allowed_skill_type(Skill::Type skill_type);
+
+        void get_allowed_skill_type(std::vector<Skill::Type> &type);
+
+        std::string to_string() const;
+
+    private:
+        Json::Value config; /**< JSON constraints for the task */
         std::vector<Skill::Type> allowed_skill_type; /**< Allowed skill types */
-
-        State target_state; /**< Target state for the task */
-        std::shared_ptr<Algorithm> generator; /**< Algorithm generator */
-        std::shared_ptr<ConditionEvaluator> condition_check; /**< Condition evaluator */
-        std::shared_ptr<ConstraintEvaluator> constraint_check; /**< Constraint evaluator */
     };
+    typedef std::shared_ptr<TaskParam> TaskParamPtr;
 
     /**
      * @class Task
@@ -42,14 +60,22 @@ namespace skillgraph
         * Task Class containing the name of the task as well as required parameters
         */
     public:
+        // Constructors
         Task() = default;
+        Task(std::string name) : name(name) {}
+        Task(std::string name, TaskParamPtr param) : name(name), param(param) {}
+        Task(std::string name, Json::Value &config) : name(name) {
+            param = std::make_shared<TaskParam>(config);
+        }
 
         std::string name; /**< Name of the task */
         std::string description; /**< Description of the task */
-        TaskParamPtr pre_condition; /**< Pre-condition parameters */
-        TaskParamPtr post_condition; /**< Post-condition parameters */
+        TaskParamPtr param; /**< Pre-condition for the task */
+        State initial_state; /**< Initial state of the task, to be automatically generated or provided by user */
+        State goal_state; /** Goal state of the task , to be automatically generated or provided by user */
     };
     typedef std::shared_ptr<Task> TaskPtr;
+
 
     /**
      * @class AssemblySeq

@@ -3,11 +3,11 @@
     "object": "b2_15",
     "robot": 0,
     "target_location": {
-        "x": 20,
-        "y": 10,
-        "z": 10,
+        "x": 2,
+        "y": 2,
+        "z": 2,
         "ori": 0
     },
     "skill_parameters": {},
-    "command_id": 1750189035436
+    "command_id": 1752342636744
 }

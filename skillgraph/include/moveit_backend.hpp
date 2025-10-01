@@ -32,6 +32,8 @@
 #include "robots.hpp"
 #include "tasks.hpp"
 #include "algorithms.hpp"
+//instructed by Phillip to make the code clear
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace skillgraph {
 
@@ -87,6 +89,28 @@ public:
     virtual void printKnownObjects() const override;
     virtual void setState(const State &state) override;
 
+
+    //get the last state, added by Yijie to avoid sudden movements
+    State getLastState() const {
+        return last_state_;
+    }
+     // Help function written by Yijie to set state interpolation to avoid sudden movements
+    void setStateInterpolation(const State &start, const State &goal, int steps, double delay_sec);
+    std::shared_ptr<ros::NodeHandle> getNodeHandle() const  {
+        return nh_;
+    }
+
+    //set the last state
+    void setLastState(const State &state) {
+        last_state_ = state;
+    }
+
+    robot_model::RobotModelPtr getRobotModel() const {
+        return robot_model_;
+    }
+    
+
+
 private:
     // ros 
     std::shared_ptr<ros::NodeHandle> nh_;
@@ -116,17 +140,30 @@ private:
     // random number generator
     std::mt19937 rng_;
 
+
+    // Store the last state to avoid sudden movements
+    State last_state_;
+    //the current scene
+    // planning_scene_monitor::PlanningSceneMonitorPtr scene_monitor_;
+
+
+    
 };
 
 class MoveitControl : public ControlAlgorithm {
 public: 
     MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake_move);
 
-    bool move(TaskParamPtr post_condition, const RobotTrajectory &trajectory);
+    bool move(State target_state, const RobotTrajectory &trajectory);
+
+    bool transit_move(State target_state, const RobotTrajectory &trajectory);
 
 private:
     std::shared_ptr<MoveitInstance> instance_;
+
     bool fake_move_;
+
+   
 };
 
 }

@@ -1,4 +1,7 @@
 #pragma once
+//instructed by Phillip to make the code clear
+//#include <moveit/planning_scene/planning_scene.h>
+
 #include "robots.hpp"
 #include "objects.hpp"
 
@@ -93,6 +96,18 @@ public:
         }
         return attached_objects;
     }
+
+
+    //Written by Yijie to get robots' names
+    virtual std::vector<std::string> getRobotNames() const {
+        return robot_names_;
+    }
+
+
+    // // 在 PlanInstance 里，加一行：
+    // virtual planning_scene::PlanningScenePtr getPlanningScene() const = 0;
+    // virtual std::shared_ptr<ros::NodeHandle> getNodeHandle() const = 0;
+
 
 protected:
     int num_robots_;

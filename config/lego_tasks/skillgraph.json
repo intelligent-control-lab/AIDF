@@ -25,6 +25,7 @@
                 -40.357,
                 0,
                 -65.099,
+                0,
                 0
             ],
             [
@@ -33,6 +34,7 @@
                 -40.357,
                 0,
                 -65.099,
+                0,
                 0
             ]
         ]
@@ -262,8 +264,8 @@
     },
     "tasks": {
         "type": "Lego",
-        "name": "faucet",
-        "assembly_seq": "config/lego_tasks/assembly_tasks/faucet.json",
+        "name": "stairs",
+        "assembly_seq": "config/lego_tasks/assembly_tasks/stairs.json",
         "assemble": "true"
     }
 }
