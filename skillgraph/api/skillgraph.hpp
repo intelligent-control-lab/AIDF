@@ -76,6 +76,7 @@ namespace skillgraph
             std::vector<Skill::Type> get_robot_capabilities();
 
             std::vector<std::string> get_robot_names() const;
+            std::vector<std::string> get_hand_names() const;
             
             virtual bool at_target(const State& state) { throw std::runtime_error("At Target Not implemented");};
             virtual std::vector<SkillPtr> feasible_u(const State& state) { throw std::runtime_error("Feasible u Not implemented");};

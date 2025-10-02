@@ -54,7 +54,7 @@ public:
                     RobotPtr robot, 
                     ObjPtr object);
 
-    virtual bool generate(const Json::Value &constraint, Skill::Type type, int skill_seq, State &goal_state);
+    virtual bool generate(Json::Value &constraint, Skill::Type type, int skill_seq, State &goal_state);
 
 private:
     void calculateIKforLego(const Eigen::MatrixXd& T, const Eigen::MatrixXd & home_q,
@@ -96,6 +96,8 @@ public:
 
     virtual bool plan_handover(const skillgraph::State &current_state, const skillgraph::TaskParam &task_param, skillgraph::RobotTrajectory &traj);
 
+    virtual void interpolate_segment(const RobotState& start_pose_rad, const RobotState& end_pose_rad, 
+                               skillgraph::RobotTrajectory &traj);
 
 protected:
     std::shared_ptr<lego_manipulation::lego::Lego> lego_ptr_;
@@ -110,9 +112,6 @@ protected:
                                  int robot_id, int fk_type_for_ik, bool check_collision, 
                                  lego_manipulation::math::VectorJd &joint_q_deg_out, 
                                  RobotState &robot_state_rad_out, bool &IK_status_out);
-
-    void interpolate_segment(const RobotState& start_pose_rad, const RobotState& end_pose_rad, 
-                               skillgraph::RobotTrajectory &traj);
 
 };
 

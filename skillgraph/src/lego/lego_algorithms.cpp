@@ -113,7 +113,7 @@ bool LegoGraspGenerator::calculateHandoverPoses(int robot_id, std::vector<RobotS
     return reachable;
 }
 
-bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type type, int skill_seq,
+bool LegoGraspGenerator::generate(Json::Value &constraint, Skill::Type type, int skill_seq,
          State &goal_state) {
     
     log("Generating grasp pose for skill " + std::to_string(skill_seq) + " robot " 
@@ -220,7 +220,13 @@ bool LegoGraspGenerator::generate(const Json::Value &constraint, Skill::Type typ
         if (skill_seq == 0) {
             // goto pick_pre_pose
             lego_ptr_->brick_pose_in_stock(brick_name, press_side, press_offset, cart_T);
-            
+            int pick_x, pick_y, pick_z, pick_ori;
+            lego_ptr_->get_init_brick_xyzo(brick_name, pick_x, pick_y, pick_z, pick_ori);
+            constraint["pick_x"] = pick_x;
+            constraint["pick_y"] = pick_y;
+            constraint["pick_z"] = pick_z;
+            constraint["pick_ori"] = pick_ori;
+
             Eigen::Matrix4d offset_T = Eigen::MatrixXd::Identity(4, 4);
             //offset_T.col(3) << pick_offset(3), pick_offset(4), pick_offset(5) - abs(pick_offset(5)), 1;
             //offset_T = cart_T * offset_T;
@@ -827,18 +833,18 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
         log("Missing constraints (brick_id, press_side, or press_offset) in plan_pick.", LogLevel::ERROR);
         return false;
     }
-    if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") || !constraints.isMember("brick_ori")) {
-        log("Missing constraints (brick_x, brick_y, brick_z, or brick_ori) in plan_pick.", LogLevel::ERROR);
+    if (!constraints.isMember("pick_x") || !constraints.isMember("pick_y") || !constraints.isMember("pick_z") || !constraints.isMember("pick_ori")) {
+        log("Missing constraints (pick_x, pick_y, pick_z, or pick_ori) in plan_pick.", LogLevel::ERROR);
         return false;
     }
     int brick_id_val = constraints["brick_id"].asInt();
     int press_side = constraints["press_side"].asInt();
     int press_offset = constraints["press_offset"].asInt();
-    int brick_x = constraints["brick_x"].asInt();
-    int brick_y = constraints["brick_y"].asInt();
-    int brick_z = constraints["brick_z"].asInt();
-    int brick_ori = constraints["brick_ori"].asInt();
-    
+    int brick_x = constraints["pick_x"].asInt();
+    int brick_y = constraints["pick_y"].asInt();
+    int brick_z = constraints["pick_z"].asInt();
+    int brick_ori = constraints["pick_ori"].asInt();
+
     std::string brick_name = object_->name;
     if (brick_name.empty()){
         log("Could not find brick name for ID: " + std::to_string(brick_id_val), LogLevel::ERROR);
@@ -874,10 +880,7 @@ bool LegoPlan::plan_pick(const skillgraph::State &current_state, const skillgrap
 
 
     lego_manipulation::math::VectorJd current_seed_q_deg(robot_dof, 1);
-    if (current_robot_state_rad.joint_values.size() != static_cast<size_t>(current_seed_q_deg.rows())) {
-        log("Mismatch in joint values size and robot_dof.", LogLevel::ERROR);
-        return false;
-    }
+
     for(int i=0; i < current_seed_q_deg.rows(); ++i) {
         current_seed_q_deg(i) = current_robot_state_rad.joint_values[i] * 180.0 / M_PI;
     }
@@ -976,15 +979,15 @@ bool LegoPlan::plan_placedown(const skillgraph::State &current_state, const skil
 
     const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placedown
-    if (!constraints.isMember("brick_x") || !constraints.isMember("brick_y") || !constraints.isMember("brick_z") ||
-        !constraints.isMember("brick_ori") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
-        log("Missing constraints for plan_placedown (brick_x,y,z,ori, press_side, press_offset).", LogLevel::ERROR);
+    if (!constraints.isMember("x") || !constraints.isMember("y") || !constraints.isMember("z") ||
+        !constraints.isMember("ori") || !constraints.isMember("press_side") || !constraints.isMember("press_offset")) {
+        log("Missing constraints for plan_placedown (x,y,z,ori, press_side, press_offset).", LogLevel::ERROR);
         return false;
     }
-    int brick_x = constraints["brick_x"].asInt();
-    int brick_y = constraints["brick_y"].asInt();
-    int brick_z = constraints["brick_z"].asInt();
-    int brick_ori = constraints["brick_ori"].asInt();
+    int brick_x = constraints["x"].asInt();
+    int brick_y = constraints["y"].asInt();
+    int brick_z = constraints["z"].asInt();
+    int brick_ori = constraints["ori"].asInt();
     int press_side = constraints["press_side"].asInt();
     int press_offset_val = constraints["press_offset"].asInt();
     int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
@@ -1107,15 +1110,15 @@ bool LegoPlan::plan_placeup(const skillgraph::State &current_state, const skillg
 
     const Json::Value& constraints = task_param.constraints_json;
     // Mandatory fields for placeup
-    if (!constraints.isMember("press_x") || !constraints.isMember("press_y") || !constraints.isMember("press_z") ||
-        !constraints.isMember("press_ori") || !constraints.isMember("press_side") ) {
-        log("Missing constraints for plan_placeup (press_x,y,z,ori, press_side).", LogLevel::ERROR);
+    if (!constraints.isMember("x") || !constraints.isMember("y") || !constraints.isMember("z") ||
+        !constraints.isMember("ori") || !constraints.isMember("press_side") ) {
+        log("Missing constraints for plan_placeup (x,y,z,ori, press_side).", LogLevel::ERROR);
         return false;
     }
-    int press_x = constraints["press_x"].asInt();
-    int press_y = constraints["press_y"].asInt();
-    int press_z = constraints["press_z"].asInt(); // This is the target Z of the brick
-    int press_ori = constraints["press_ori"].asInt();
+    int press_x = constraints["x"].asInt();
+    int press_y = constraints["y"].asInt();
+    int press_z = constraints["z"].asInt(); // This is the target Z of the brick
+    int press_ori = constraints["ori"].asInt();
     int press_side = constraints["press_side"].asInt(); // Used by assemble_pose_from_top
     int attack_dir = constraints.isMember("attack_dir") ? constraints["attack_dir"].asInt() : 1;
     // brick_name from object_->name if needed, but assemble_pose_from_top doesn't take it.

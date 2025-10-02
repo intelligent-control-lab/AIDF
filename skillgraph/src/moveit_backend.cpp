@@ -1167,6 +1167,17 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 
 bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
     if (fake_move_) {
+        // interpolate the robot state to the target state according to the trajectory
+        // iterate the trajectory
+        if (!trajectory.trajectory.empty()) {
+            for (const auto &robot_state : trajectory.trajectory) {
+                instance_->moveRobot(robot_state.robot_id, robot_state);
+                instance_->updateScene();
+                ros::Duration(0.1).sleep();
+         
+            }
+        }
+
         instance_->setState(post_condition->target_state);
         instance_->updateScene();
         return true;

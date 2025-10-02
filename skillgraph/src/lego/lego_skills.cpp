@@ -114,6 +114,7 @@ bool LegoSkillExecutor::execute(State &current_state) {
 #endif // HAVE_YK_TASKS
 
     } else {
+        log("Executing atomic skill of type " + std::to_string(skill_type), LogLevel::INFO);
         // Use MoveitControl for other skills
         bool success = controller_->move(post_condition, planned_trajectory_);
         current_state.robot_states = post_condition->target_state.robot_states;

@@ -54,6 +54,7 @@ struct LegoBrick : public Object {
         std::string str = "LegoBrick: ";
         str += "Brick ID: " + std::to_string(brick_id) + " ";
         str += "In Storage: " + std::to_string(in_storage) + " ";
+        str += "Fixed: " + std::string(fixed ? "yes" : "no") + " ";
         str += Object::to_string();
         return str;
     }
@@ -91,6 +92,10 @@ struct LegoBrick : public Object {
      * @brief Indicates if the brick is in storage.
      */
     bool in_storage = true;
+    /**
+     * @brief Indicates if the brick is fixed.
+     */
+    bool fixed = false;
     /**
      * @brief The underlying lego_brick data structure.
      */

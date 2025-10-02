@@ -143,6 +143,7 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
             }
             auto lego_brick = std::make_shared<LegoBrick>(getLegoStart(name));
             lego_brick->in_storage = true; // Explicitly set in_storage flag to true
+             // add to the environment
             env_->backend_->addMoveableObject(*lego_brick);
             env_->backend_->updateScene();
             init_state.objects.push_back(lego_brick);
@@ -207,6 +208,7 @@ LegoBrick LegoSkillGraph::getLegoStart(const std::string &brick_name) {
     obj.qy = box_pose.orientation.y;
     obj.qz = box_pose.orientation.z;
     obj.qw = box_pose.orientation.w; 
+    obj.fixed = lego_ptr_->is_brick_fixed(brick_name);
 
     return obj;
 }
@@ -318,7 +320,8 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
             int brick_id = lego_brick->brick_id;
             bool in_storage = lego_brick->in_storage;
             //std::cout << "Found brick: " << lego_brick->name << " with ID: " << brick_id << ", in_storage: " << (in_storage ? "true" : "false") << std::endl;
-            if (in_storage && brick_id == required_brick_id) {
+            bool fixed = lego_brick->fixed;
+            if (!fixed && in_storage && brick_id == required_brick_id) {
                 usable_bricks.push_back(lego_brick);
                 //std::cout << "Added usable brick: " << lego_brick->name << std::endl;
             }
@@ -389,11 +392,15 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                         }
 
                         RobotTrajectory robot_traj;
+                        auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
                         if (atomic_skill->type == Skill::Type::Transit) {
-
+                            int robot_id = atomic_skill->robot->robot_id;
+                            planner->interpolate_segment(end_state_i.robot_states[robot_id], 
+                                task_param->target_state.robot_states[robot_id], 
+                                robot_traj
+                            );
                         }
                         else {
-                            auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
                             planner->plan_skill(end_state_i, *task_param, atomic_skill->type, robot_traj);
                         }
                         atomic_executor->set_planned_trajectory(robot_traj);

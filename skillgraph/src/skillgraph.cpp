@@ -208,6 +208,14 @@ std::vector<std::string> SkillGraph::get_robot_names() const {
     return robot_names;
 }
 
+std::vector<std::string> SkillGraph::get_hand_names() const {
+    std::vector<std::string> hand_names;
+    for (const auto& robot : robots) {
+        hand_names.push_back(robot->tool_string());
+    }
+    return hand_names;
+}
+
 SkillPtr SkillGraph::get_skill(const std::string &skill_name) const {
     Skill::Type type = Skill::from_string(skill_name);
     if (skill_map_.find(type) == skill_map_.end()) {

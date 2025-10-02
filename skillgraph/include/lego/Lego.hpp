@@ -262,6 +262,7 @@ class Lego
                     const std::vector<std::vector<std::vector<std::string>>>& world_grid, std::vector<std::string> &above_bricks);   
         void lego_pose_from_press_pose(const math::VectorJd& theta, int robot_id, int brick_id, int press_side, int press_offset, 
             Eigen::Matrix4d &brick_loc);
+        bool is_brick_fixed(const std::string &brick_name);
 };
 }
 }

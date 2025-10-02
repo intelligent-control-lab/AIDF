@@ -2301,6 +2301,11 @@ int Lego::get_brick_type(const std::string &brick_name) {
     return std::stoi(id);
 }
 
+bool Lego::is_brick_fixed(const std::string &brick_name) {
+    return brick_map_[brick_name].fixed;
+
+}
+
 }
 
 }
