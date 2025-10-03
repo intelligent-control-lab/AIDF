@@ -756,13 +756,22 @@ void LegoPlan::interpolate_segment(const RobotState& start_pose_rad, const Robot
     }
     
     // Calculate path length and segment duration
-    double max_joint_diff = 0.0;
-    if (start_pose_rad.joint_values.size() != end_pose_rad.joint_values.size()) {
-        // Log error: joint_values size mismatch
+    const size_t start_dof = start_pose_rad.joint_values.size();
+    const size_t end_dof = end_pose_rad.joint_values.size();
+    const size_t common_dof = std::min(start_dof, end_dof);
+
+    if (common_dof == 0) {
+        log("Transit interpolation skipped: zero joint count", LogLevel::WARN);
         return;
     }
 
-    for (size_t i = 0; i < start_pose_rad.joint_values.size(); ++i) {
+    if (start_dof != end_dof) {
+        log("Transit interpolation trimming joint vectors from " + std::to_string(start_dof) + " and " +
+                std::to_string(end_dof) + " to first " + std::to_string(common_dof) + " joints", LogLevel::WARN);
+    }
+
+    double max_joint_diff = 0.0;
+    for (size_t i = 0; i < common_dof; ++i) {
         max_joint_diff = std::max(max_joint_diff, std::abs(end_pose_rad.joint_values[i] - start_pose_rad.joint_values[i]));
     }
 
@@ -787,15 +796,28 @@ void LegoPlan::interpolate_segment(const RobotState& start_pose_rad, const Robot
 
     for (int i = 1; i <= num_steps; ++i) {
         double ratio = static_cast<double>(i) / num_steps;
-        RobotState wp_state;
-        wp_state.robot_id = start_pose_rad.robot_id; // Or end_pose_rad.robot_id, should be consistent
+        RobotState wp_state = instance_->initRobotState(start_pose_rad.robot_id);
         wp_state.robot_name = start_pose_rad.robot_name;
-        wp_state.joint_values.resize(start_pose_rad.joint_values.size());
-        for (size_t j = 0; j < start_pose_rad.joint_values.size(); ++j) {
-            wp_state.joint_values[j] = start_pose_rad.joint_values[j] + ratio * (end_pose_rad.joint_values[j] - start_pose_rad.joint_values[j]);
+        wp_state.joint_values.resize(start_dof);
+
+        for (size_t j = 0; j < common_dof; ++j) {
+            wp_state.joint_values[j] = start_pose_rad.joint_values[j] +
+                                       ratio * (end_pose_rad.joint_values[j] - start_pose_rad.joint_values[j]);
         }
-        // Assuming hand_values remain constant for this segment or are handled by the caller of plan_pick
-        wp_state.hand_values = end_pose_rad.hand_values; // Or start_pose_rad.hand_values
+
+        for (size_t j = common_dof; j < start_dof; ++j) {
+            wp_state.joint_values[j] = start_pose_rad.joint_values[j];
+        }
+
+        // Preserve any remaining joints present only in end pose
+        if (end_dof > start_dof) {
+            wp_state.joint_values.resize(end_dof);
+            for (size_t j = start_dof; j < end_dof; ++j) {
+                wp_state.joint_values[j] = end_pose_rad.joint_values[j];
+            }
+        }
+
+        wp_state.hand_values = end_pose_rad.hand_values.empty() ? start_pose_rad.hand_values : end_pose_rad.hand_values;
 
         traj.trajectory.push_back(wp_state);
         traj.times.push_back(total_duration + ratio * segment_duration);

@@ -1174,12 +1174,14 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
                 instance_->moveRobot(robot_state.robot_id, robot_state);
                 instance_->updateScene();
                 ros::Duration(0.1).sleep();
-         
+        
             }
         }
 
-        instance_->setState(post_condition->target_state);
-        instance_->updateScene();
+        if (post_condition) {
+            instance_->setState(post_condition->target_state);
+            instance_->updateScene();
+        }
         return true;
     }
 
@@ -1188,10 +1190,123 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
         log("Trajectory is empty", LogLevel::ERROR);
         return false;
     }
-    
+
+#ifndef HAVE_YK_TASKS
+    log("Real robot execution requested but HAVE_YK_TASKS is not defined", LogLevel::ERROR);
+    return false;
+#else
+    const auto &states = trajectory.trajectory;
+    const RobotState &start_state = states.front();
+    const std::string &group_name = start_state.robot_name;
+    const int robot_id = start_state.robot_id;
+
+    for (const auto &state : states) {
+        if (state.robot_id != robot_id) {
+            log("Trajectory contains states for multiple robots, cannot execute", LogLevel::ERROR);
+            return false;
+        }
+        if (state.robot_name != group_name) {
+            log("Trajectory contains inconsistent joint groups, cannot execute", LogLevel::ERROR);
+            return false;
+        }
+    }
+
+    planning_scene::PlanningScenePtr planning_scene = instance_->getPlanningScene();
+    if (!planning_scene) {
+        log("Planning scene is unavailable for real robot execution", LogLevel::ERROR);
+        return false;
+    }
+
+    robot_model::RobotModelConstPtr robot_model = planning_scene->getRobotModel();
+    if (!robot_model) {
+        log("Robot model is unavailable for real robot execution", LogLevel::ERROR);
+        return false;
+    }
+
+    const moveit::core::JointModelGroup *joint_model_group = robot_model->getJointModelGroup(group_name);
+    if (!joint_model_group) {
+        log("Joint model group " + group_name + " not found", LogLevel::ERROR);
+        return false;
+    }
+
+    const std::vector<std::string> joint_names = joint_model_group->getActiveJointModelNames();
+    if (joint_names.size() != start_state.joint_values.size()) {
+        log("Joint dimension mismatch for group " + group_name + 
+                ": expected " + std::to_string(joint_names.size()) +
+                ", got " + std::to_string(start_state.joint_values.size()),
+            LogLevel::ERROR);
+        return false;
+    }
+
+    moveit_msgs::ExecuteKnownTrajectory srv;
+    srv.request.wait_for_execution = true;
+    trajectory_msgs::JointTrajectory &joint_traj = srv.request.trajectory.joint_trajectory;
+    joint_traj.header.stamp = ros::Time::now();
+    joint_traj.joint_names = joint_names;
+
+    constexpr double kDefaultTimeStep = 0.1;
+    double base_time = (!trajectory.times.empty()) ? trajectory.times.front() : 0.0;
+    double prev_time = 0.0;
+
+    for (size_t i = 0; i < states.size(); ++i) {
+        trajectory_msgs::JointTrajectoryPoint point;
+        point.positions = states[i].joint_values;
+        point.velocities.assign(joint_names.size(), 0.0);
+        point.accelerations.assign(joint_names.size(), 0.0);
+
+        double time_from_start = 0.0;
+        if (!trajectory.times.empty() && i < trajectory.times.size()) {
+            time_from_start = trajectory.times[i] - base_time;
+        } else if (!trajectory.times.empty()) {
+            time_from_start = (trajectory.times.back() - base_time) +
+                              kDefaultTimeStep * static_cast<double>(i - trajectory.times.size() + 1);
+        } else {
+            time_from_start = kDefaultTimeStep * static_cast<double>(i);
+        }
+
+        if (i == 0) {
+            time_from_start = 0.0;
+        }
+
+        if (i > 0 && time_from_start <= prev_time) {
+            time_from_start = prev_time + kDefaultTimeStep;
+        }
+
+        point.time_from_start = ros::Duration(time_from_start);
+        joint_traj.points.push_back(point);
+        prev_time = time_from_start;
+    }
+
+    std::string service_name = "/" + group_name + "/yk_execute_trajectory";
+    ros::NodeHandle nh;
+    ros::ServiceClient client = nh.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(service_name);
+
+    if (!client.waitForExistence(ros::Duration(2.0))) {
+        log("Service " + service_name + " is not available", LogLevel::ERROR);
+        return false;
+    }
+
+    log("Executing trajectory for robot " + group_name + " through service " + service_name, LogLevel::INFO);
+    if (!client.call(srv)) {
+        log("Failed to call service " + service_name, LogLevel::ERROR);
+        return false;
+    }
+
+    int error_code = srv.response.error_code.val;
+    if (error_code != moveit_msgs::MoveItErrorCodes::SUCCESS) {
+        log("Trajectory execution failed with error code " + std::to_string(error_code), LogLevel::ERROR);
+        return false;
+    }
+
+    log("Trajectory execution succeeded for robot " + group_name, LogLevel::INFO);
+
+    if (post_condition) {
+        instance_->setState(post_condition->target_state);
+        instance_->updateScene();
+    }
 
     return true;
-
+#endif
 }
 
 
