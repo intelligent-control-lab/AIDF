@@ -23,6 +23,9 @@ namespace skillgraph {
             align = 8,
             Translate = 9,
             Rotate = 10,
+            DetectPick = 11,
+            DetectPlace = 12,
+            DetectError = 13,
             PlaceWithSupport = 101,
             PickAndPlace = 102,
             PickAndPlaceWithSupport = 103,
@@ -79,6 +82,38 @@ namespace skillgraph {
         int seq_within_meta = -1;
     };
     typedef std::shared_ptr<AtomicSkill> AtomicSkillPtr;
+
+    struct PerceptionSkillConfig {
+        std::string topic;
+        std::string launch_command;
+        std::string robot_namespace;
+        double wait_timeout = 0.0; // seconds
+    };
+
+    class PerceptionSkill : public Skill {
+    public:
+        PerceptionSkill(const std::string &name, const PerceptionSkillConfig &config);
+
+        virtual std::string to_string() const override {
+            std::string str = "Perception Skill: " + name;
+            if (!config_.robot_namespace.empty()) {
+                str += " robot_ns: " + config_.robot_namespace;
+            }
+            if (!config_.topic.empty()) {
+                str += " topic: " + config_.topic;
+            }
+            return str;
+        }
+
+        const PerceptionSkillConfig& config() const { return config_; }
+        void set_robot(RobotPtr robot) { robot_ = robot; }
+        RobotPtr robot() const { return robot_; }
+
+    private:
+        PerceptionSkillConfig config_;
+        RobotPtr robot_;
+    };
+    typedef std::shared_ptr<PerceptionSkill> PerceptionSkillPtr;
 
     class MetaSkill : public Skill {
     public:

@@ -1,0 +1,341 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{amsmath, amssymb}
+\usepackage{caption}
+\usepackage[a4paper, margin=1in]{geometry} % Adjusted margins
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{forest}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\title{\textbf{Ontology and SkillGraph Documentation}}
+\author{AIDF Project. PI Liu.}
+\date{}
+\fancyhead[L]{Limited Circulation}
+
+\begin{document}
+
+\maketitle
+\vspace{-30pt}
+\section{Requirements}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{images/hl_ontology.png}
+    \caption{Sequential high-level ontology of the robot skill graph.}
+    \label{fig:hl_ontology}
+\end{figure}
+
+In modern manufacturing, robotic assembly cells have become increasingly crucial as manufacturing systems grow more complex and autonomous. An ontology provides a standardized semantic foundation that enables seamless integration of diverse components and workflows within the assembly ecosystem. A good ontology should have the following requirements:
+\begin{enumerate}
+    \item (Structure) The ontology establishes a structured representation of knowledge and workflow, and a systematic approach to organize robotic algorithms. The structure should also enable the incorporation of new concepts, relationships, and capabilities as technology evolves. A good structure and clear relationship also make it accessible to non-experts, allowing them to understand and interact with complex robotic systems without deep technical expertise.
+    \item (Interface) The ontology should provide a common language and interface to facilitate efficient communication between software components and robotic systems. It should also define a common language for user requirement specification. 
+    \item (SkillGraph) The ontological standardization should allow for the creation of reusable skillgraphs, where domain-specific capabilities and algorithms can be mapped and composed in a modular fashion. 
+    \item  (Data) Furthermore, the ontology serves as a comprehensive data management framework, enabling structured generation and organization of both operational data and associated metadata, thereby enhancing the reusability and transferability of manufacturing knowledge across different assembly scenarios and applications.
+\end{enumerate}
+
+ 
+\section{High-level Ontology}
+\Cref{fig:hl_ontology} shows a high-level layout of our proposed ontology for robotic assembly. On a high-level, the ontology is organized sequentially into five layers and a shared layer. These layers are Task Specification, Persistent Knowledge, Decision Making, Device Abstraction, Physical Device, and the shared Data Service Layer. We break them down below.
+
+\subsection{Task and Environment Specification}
+Task and Environment specification layer defines the setup and requirements of the robotic assembly system. This can be broadly split into two categories - environment description and task specifications. Environment descriptions include multiple user-defined components, such as the description of environments, robots, objects, hardware models, calibrations, and all known environment states. The user can also define any task specification for the overall assembly cell in the form of an assembly target or sequence, as well as any operation preferences, optimization objectives, and hyperparameters. 
+
+\subsection{Persistent Knowledge}
+The Persistent Knowledge layer contains all necessary knowledge, skills, models, and domain expertise to support robot decision making. Hardware and task specifications from previous layers are passed as inputs to the skill graphs and any machine learning models. A special case is the Expert, which can be an experienced human or privileged algorithm that may control the decision making process in the next step. Other additional node that can be part of this layer can be a physics simulator or optimization solvers.
+
+
+\subsection{Decision Making}
+The Decision Making layer is where all robot decision-making algorithms are located and implemented in code. This layer is responsible for commanding the robot to accomplish the task. It can utilize any persistent knowledge to plan a long-horizon action plan, control the robot's behavior in real time, and estimate the state of robot and the assembly environment. The decision making layer can also be a teleoperator. Other example node that may fit this layer could be an end-to-end visual motor policy, or a collaborative human-robot decision maker.
+
+\subsection{Device Abstraction}
+The Device Abstraction layer is a standardized interface that bridges the physical device and any decision-making node. The software interface provides a standard way to communicate sensor information and robot commands to any decision-making node, which may be developed by different teams with different programming practices. The abstraction layer also ensures that the addition of new robots and new sensors can be scalable and should insulate the decision making from any complexity in managing multiple hardware devices.
+
+\subsection{Physical Device}
+The Physical Device layer represents all sensors and robots used in the assembly cell.
+
+\subsection{Data Service}
+The Data Service layer is a vertical layer designed to record and store execution data. It provides an easy-to-use utility service to log, replay, visualize, and compute the statistics of robot execution data. There are two categories of data - metadata and execution data. Metadata stores all task specifications, hardware setup, model hyperparameters, and the description of any skills or models used during the assembly process. On the other hand, execution data refer to any data generated during the decision making and execution processes. It should contain all data passing through the device abstraction layer, which can be visualized in a digital twin, saved, and replayed in future. Outputs and intermediatory statistics from decision-making nodes, such as inference time, prediction confidence, can also be recorded. 
+
+\subsection{Plans for Implementation}
+Currently, the layout of the high-level ontology remains a conceptual design. The goal is to implement key parts of the ontology to form a functional skeleton. Specifically, a skill graph, planner, and controller will be implemented. Some pre-existing individual parts, such as the robot API and data services, will be integrated. The framework will be tested first tested on Lego Assembly to ensure its correctness, then extended to other assembly tasks. On the other hand, we do not plan to implement the Expert-Teleoperate pipeline in this year's project. Still, this shows the high-level ontology is designed with the possibility of adding new components. 
+
+For task specifications and environment description, our plan is to extend our current JSON data structure tailored to Lego assembly to more a more general format. Currently for Lego assembly, the user specifies a set of Json files, including 1) the detailed assembly sequence, 2) robot calibration and robot kinematic and, 3) existing objects in the environment and their locations. In addition to these, a more general data structure for task specification should also store the available robot tools, sensors, object type, location of CAD models, and metedata (e.g. skill hyperparameters). Before finalizing a precise definition, we will conduct more studies on potential use cases, such as the NIST box assembly testbed, and check existing ontology in the robotics community 
+
+
+\section{Skill Graph}
+The next sections in this documents provides a more detailed description of the skill graph within the overall proposed ontology. The skill graph serves as a centralized codebase for organizing the necessary robot- and environment-related assumptions and knowledge to enable intelligent integration and execution. The skill graph has five sections: 
+\begin{enumerate}
+    \item Physical Entities: \textit{Robot}, \textit{Object}, and \textit{Environment}
+    
+    \item Concepts: \textit{Skill}, including \textit{AtomicSkill} and \textit{MetaSkill}.
+    
+    \item Executables: \textit{SkillExecutor} and \textit{Algorithm}. The \textit{Algorithm} includes \textit{PlanningAlgorithm}, \textit{ControlAlgorithm}, \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Generator}. 
+
+    \item Evaluation Metric: \textit{Metric}, including \textit{Constraint Evaluator}, and \textit{Condition Evaluator}.
+
+    \item Date Structures: \textit{TaskParam}, \textit{RobotState}, and \textit{Env State}.
+\end{enumerate}
+
+Besides, we also illustrate the input to the SkillGraph, symbolized as \textit{Task}. The skill graph is demonstrated in \cref{fig:skillgraph}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{images/skillgraph-transbg.png}
+    \caption{Symbolic Representation of Skill Graph}
+    \label{fig:skillgraph}
+\end{figure}
+
+\subsection{Data Types and Relationships in Skill Graph}
+There are several data types in \cref{fig:skillgraph}:
+\begin{enumerate}
+    \item BaseClass: \textit{Task}, \textit{Robot}, \textit{Object}, \textit{Environment}, \textit{Skill}, \textit{SkillExecutor}, \textit{Algorithm}, \textit{Metric}, \textit{TaskParam}, \textit{RobotState}, and \textit{Env State} 
+    
+    \item DerivedClass: \textit{AtomicSkill} and \textit{MetaSkill} are derived from baseclass \textit{Skill}. \textit{PlanningAlgorithm}, \textit{ControlAlgorithm}, \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Generator} are derived from baseclass \textit{Algorithm}. \textit{Constraint Evaluator} and \textit{Condition Evaluator} are derived from baseclass \textit{Metric}.
+    
+    \item Property: Each class might own certain properties, specified by a solid arrow with label ``prop." on it. For example, in \cref{fig:skillgraph}, \textit{atomic skills} and \textit{executor} are properties of derivedclass \textit{MetaSkill}. 
+\end{enumerate}
+
+Each data may have certain relationship with other data, and the relationships are specified by arrows. If the arrow points from A to B, indicating that A has a certain relationship with B. There are different types of arrows:
+\begin{enumerate}
+\item A \begin{tikzpicture}[scale=0.5]
+        \draw[dashed, ->] (-2,0) -- (2,0); 
+        \node at (0, 0.3) {relationship};
+\end{tikzpicture} B
+indicates that A has certain relationship with B. For example, \underline{object library} is a vector of \textit{Object}, and \textit{Environment} is an input to \textit{SkillExecutor}.
+
+\item A \begin{tikzpicture}[scale=0.5]
+        \draw[thick, ->] (-1.5,0) -- (1.5,0); 
+        \node at (0, 0.3) {prop.};
+\end{tikzpicture} B
+indicates that B is the property of A.
+\end{enumerate}
+
+The relationships are represented as labels on the arrows, and the relationships are defined as follows:
+\begin{enumerate}
+    \item A \textit{prop.} B: A has a property B. 
+    \item A \textit{input to} B: A is the input to B. 
+    \item A \textit{vector of} B: A is a vector of B.
+    \item A \textit{type of} B: A's data type is B.
+\end{enumerate}
+
+
+\section{Main Components in SkillGraph}
+The key components in the SkillGraph are:
+
+\begin{itemize}
+    \item \textbf{Skill:} Comprising derived classes \textit{AtomicSkill} and \textit{MetaSkill}, which define the basic and composite robot skills.
+
+    \item \textbf{SkillExecutor:} Defined by its four properties: \textit{function}, \textit{pre-condition}, \textit{post-condition}, and \textit{parametors}.
+    
+    \item \textbf{Algorithm:} Comprising derived classes \textit{PlanningAlgorithm}, \textit{ControlAlgorithm}, \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Genetor}.
+    
+    \item \textbf{Robot:} Defined by its two properties: \textit{capabilities} and \textit{robot specification}.
+
+    \item \textbf{Object:} we allow user to define their own object type.
+    
+    \item \textbf{Environment:} Defined by its three properties: \textit{environment specification}, \textit{object library} and \textit{backend}.
+    
+    \item \textbf{Metric:} Comprising derived class \textit{Constraint Evaluator} and \textit{Condition Evaluator}.
+\end{itemize}
+
+To further enhance the structure and organization of the SkillGraph, we define several essential data structures:
+\begin{itemize}
+    \item \textbf{TaskParam:} Represents the parameters required for task execution, can be specified by user.
+    \item \textbf{RobotState:} Captures the current state of the robot, including its joint state and end effector state.
+    \item \textbf{EnvState:} Capture the environment state, including all objects' locations, and status.
+\end{itemize}
+
+Currently, our code is implemented in this \href{https://github.com/intelligent-control-lab/AIDF}{GitHub} repository. We have defined all the header files of our C++ class according to the semantics and relationships we specify below. Class implementations of all .cpp files and specific skills for Legos, are still in progress. 
+
+In the following sections, we would give a detailed definition of each components and their relationships with other components.
+
+\subsection{Skill}\label{sec:skills}
+We define any robot action or robot decision that satisfies the following requirements as a skill: 1) can be executed in a real robot or a sensor, 2) has semantic meaning, and 3) can be planned on. We store those skills in base class \textit{Skill}, and divide them into \textit{AtomicSkill} and \textit{MetaSkill}. Each meta skill is composed by a set of atomic skills, arranged in a sequence or in some partial order.
+
+\subsubsection{AtomicSkill}
+\textit{AtomicSkill} is a derived class from base class \textit{Skill}, and it has one property: 
+\begin{enumerate}
+    \item \underline{executor}: type of  \textit{Skill Executor}.
+\end{enumerate}
+The entity of \textit{AtomicSkill} is shown in \cref{fig:atomic-skills}. Currently, we define five instances of \textit{AtomicSkill}: Pick, Place, Support, Transit, and Align. Each atomic skill has its own \textit{executor}, whose datatype is
+\textit{SkillExecutor}.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/AtomicSkills.png}
+    \caption{Entity of AtomicSkill}
+    \label{fig:atomic-skills}
+    \vspace{-10pt}
+\end{figure}
+
+
+\subsubsection{MetaSkill}
+\textit{MetaSkill} is another derived class from base class \textit{Skill}, and has 2 properties: 
+\begin{enumerate}
+    \item \underline{executor}: type of \textit{Skill Executor}.
+    \item \underline{atomic skills}: a vector of type \textit{AtomicSkill} that constitutes current meta skill.
+\end{enumerate}
+The entity of \textit{MetaSkill} is shown in \cref{fig:meta-skills}. Each instance of \textit{MetaSkill} is comprised of atomic skills, and each meta skill also has its own executor. Currently we have five meta skills: PlaceWithSupport and Handover, PickAndPlace, PickAndPlaceWithSup, PickHandoverAndPlace to group common action sequences and reduce complexity of downstream planning.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/metaskills.png}
+    \caption{Entity of MetaSkill}
+    \label{fig:meta-skills}
+    \vspace{-10pt}
+\end{figure}
+
+\subsection{Skill Executor}\label{sec:skill-executor}
+\textit{Skill Executor} is defined as a class that wraps the logic, effect, and requirements of skills execution in the above section. It has 4 properties:
+\begin{enumerate}
+    \item \underline{function}: the underlying execution function of each skill would include instances from \textit{PlanningAlgorithm}, \textit{ControlAlgorithm},  \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Algorithm}.
+    \item \underline{pre-condition}: a \textit{TaskParam} that measures what requirements the current state must satisfy before executing the skill. 
+    \item \underline{post-condition}: a \textit{TaskParam} that measure what the state would become after the execution of certain skill.
+    \item \underline{parameters}: the parameters of the skill execution function or the pre/post-conditions.
+\end{enumerate}
+The entity of \textit{Skill Executor} is shown in \cref{fig:skill-executor}. As mentioned in \cref{sec:skills}, each skill corresponds to one skill executor stored in class \textit{Skill Executor}. Every skill executor has three inputs: robot, environment, and task.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/skillexecutor.png}
+    \caption{Skill Executor}
+    \label{fig:skill-executor}
+    \vspace{-10pt}
+\end{figure}
+
+\subsection{Algorithm}\label{sec:algorithms}
+The class \textit{Algorithm} is a class that implements common robotics planning/control/perception algorithms. Base Class \textit{Algorithm} have 4 derive classes: \textit{PlanningAlgorithm}, \textit{ControlAlgorithm}, \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Generator}.
+As mentioned in \cref{sec:skill-executor}, each skill executor function needs to choose its own planning, control, perception, and constraint satisfaction algorithms. There may be multiple algorithms suitable for each skill type. Those algorithms are stored in its corresponding derived classes. And every algorithm has its own function, as shown in \cref{fig:algorithms}.
+\begin{figure}[htbp]  % Force the figure to stay at the defined position
+    \centering
+    \subcaptionbox{Planning Algorithm \label{fig:planning-algorithm}}{\includegraphics[width=0.33\textwidth]{images/planning-algorithm.png}}
+    \subcaptionbox{Control Algorithm \label{fig:control-algorithm}}{\includegraphics[width=0.33\textwidth]{images/control-algorithm.png}}
+
+    \subcaptionbox{Perception Algorithm \label{fig:perception-algorithm}}{\includegraphics[width=0.33\textwidth]{images/perception-algorithm.png}}
+    \subcaptionbox{Constraint Satisfaction Generator \label{fig:constraint-satisfaction-generator}}{\includegraphics[width=0.48\textwidth]{images/constraint-satisfaction-algorithm.png}}
+
+    \caption{Algorithm}
+    \label{fig:algorithms}
+    \vspace{-10pt}
+\end{figure}
+
+\subsubsection{PlanningAlgorithm}
+\textit{PlanningAlgorithm} is in charge of planning robot trajectories, and currently we have two instances of planning algorithms: RRT and LegoPlan, as shown in \cref{fig:planning-algorithm}.
+
+\subsubsection{ControlAlgorithm}
+\textit{ControlAlgorithm} is in charge of tracking the planned robot trajectories, and currently we have two instances of control algorithms: PID and MPC, as shown in \cref{fig:control-algorithm}.
+
+\subsubsection{PerceptionAlgorithm}
+\textit{PerceptionAlgorithm} is in charge of perceiving information from the environment, and currently we have two instances of perception algorithms: Object Detection and Precise Align, as shown in \cref{fig:perception-algorithm}.
+
+\subsubsection{Constraint Satisfaction Generator}
+\textit{Constraint Satisfaction Generator} is in charge of generating specific data in order to satisfying certain constraints specified by the user, like feasible set and grasp pose shown in \cref{fig:constraint-satisfaction-generator}.
+
+\subsection{Robot}
+Class \textit{Robot} is the abstract entity that describes the physical robot and its characteristics. The class has two properties:
+\begin{enumerate}
+    \item \underline{robot specification}: a json file that includes the detailed specification of each robot. 
+    \item \underline{capabilities}:  a list of instances of \textit{Skill} that the robot can perform.
+\end{enumerate}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/robot.png}
+    \caption{Robot}
+    \label{fig:Robot}
+    \vspace{-10pt}
+\end{figure}
+The entity of \textit{Robot} is shown in \cref{fig:Robot}. Currently,  we define two instances of \textit{Robot}: GP4,and Fanuc. Both robots have the same capabilities of Pick, Place, Support, and Transit.
+
+\subsection{Object}
+Currently, we allow users to flexibly define their own \textit{Object} class without imposing explicit restrictions on its properties, as the required object attributes may vary across different tasks. 
+
+\subsection{Environment}
+Class \textit{Environment} is the abstract entity that describe the physical assembly cell and its characteristics. The class has three properties:
+\begin{enumerate}
+    \item \underline{environment specification}: a json file that specifies the details of the environment.
+    \item \underline{object library}: a vector of type \textit{Object} that specifies all objects that can be interacted with in the environment
+    \item \underline{backend}:  a middleware or simulator that handles the control of the environment.
+\end{enumerate}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/environment.png}
+    \caption{Entity of Environment}
+    \label{fig:Environment}
+    \vspace{-10pt}
+\end{figure}
+The entity of Environment is shown in \cref{fig:Environment}. Currently, we define two instances of \textit{environment}: EnvLego for Lego manipulation, and EnvNist for NIST test case assembly.
+
+
+\subsection{Metric}
+Class \textit{Metric} defines any quantitative measure used to verify any task, object, or robot requirements that may constrain skill execution. Currently, our base class \textit{Metric} has 2 derived classes: \textit{Constraint Evaluator}, and \textit{Condition Evaluator}. The entities of these two classes are shown in \cref{fig:metric}.
+
+\begin{figure}[htbp]  % Force the figure to stay at the defined position
+    \centering
+    \subcaptionbox{Entity of Constraint Evaluator \label{fig:constraint-evaluator}}{\includegraphics[width=0.65\textwidth]{images/constraint.png}}
+    \subcaptionbox{Entity of Condition Evaluator \label{fig:condition-evaluator}}{\includegraphics[width=0.5\textwidth]{images/condition.png}}
+
+    \caption{Metric}
+    \label{fig:metric}
+    \vspace{-10pt}
+\end{figure}
+
+\subsubsection{Constraint Evaluator}
+\textit{Constraint Evaluator} is in charge of evaluating whether an instance of \textit{Constraint Satisfaction Generator} satisfies the constraints of the given task defined by its \textit{TaskParam}.
+
+\subsubsection{Condition Evaluator}
+\textit{Condition Evaluator} is in charge of evaluating whether the precondition or postcondition of a given \textit{SkillExecutor} is satisfied.
+
+\subsection{TaskParam}
+Data Structure \textit{TaskParam} has several properties:
+\begin{enumerate}
+    \item \underline{robot state}: Represents the current state of the robot, in type of \textit{RobotState}.
+    \item \underline{constraint}: Defines task-specific robot-state constraints.
+    \item \underline{env state}: Represents the current state of the environment, in type of \textit{EnvState}.
+    \item \underline{evaluator}: Checks if certain task-specific constraints or conditions are satisfied, in type of \textit{Metric}.
+    \item \underline{generator}: Generates robot state according to given \underline{constraint}, in type of \textit{Constraint Satisfaction Generator}.
+\end{enumerate}
+
+\subsection{RobotState}
+Data structure \textit{RobotState} has several properties:
+\begin{enumerate}
+    \item \underline{joint state}: Specifies robot joints state.
+    \item \underline{end effector state}: Specifies end-effector state.
+\end{enumerate}
+
+\subsection{EnvState}
+Currently, our data structure \textit{EnvState} mainly focus on one property:
+\begin{enumerate}
+    \item \underline{objects}: Specifies the state of objects, including their locations, directions, and other status.
+\end{enumerate}
+
+\section{Implementation Details}
+In this section, we present the structure of our code and explain how each component from the previous sections is implemented within it.
+
+\subsection{Code Structure and Component Implementation}
+/AIDF \\
+\textbar | config/ \\
+\textbar | planner/ \\
+\textbar | skillgraph/ \\
+\textbar\hspace{0.45cm}\textbar | api/ (class and data structure definitions) \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | Utils/ \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | skillgraph.hpp (implement the structure of the skill graph)\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | algorithms.hpp (implement \textit{SkillExecutor} and \textit{Algorithm}) \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | backend.hpp (implement the backend definitions in \textit{Environment})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | environment.hpp (implement \textit{Environment})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | metrics.hpp (implement \textit{Metric})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | objects.hpp (implement \textit{Object})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | robots.hpp (implement \textit{Robot})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | skills.hpp (implement \textit{Skill})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | 
+tasks.hpp (implement \textit{TaskParam})\\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | 
+data\_structure.hpp (implement \textit{Data Structures})\\
+\textbar\hspace{0.45cm}\textbar | src/ \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | corresponding cpp files... \\
+\textbar\hspace{0.45cm}\textbar | include/ \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | lego/ (lego-specific implementations) \\
+\textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | Instance Implementation.hpp files \\
+
+
+\end{document}

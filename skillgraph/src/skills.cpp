@@ -28,6 +28,9 @@ Skill::Type Skill::from_string(const std::string &name) {
     if (name == "Translate") return Skill::Type::Translate;
     if (name == "Rotate") return Skill::Type::Rotate;
     if (name == "TranslateWithRotation") return Skill::Type::TranslateWithRotation;
+    if (name == "DetectPick") return Skill::Type::DetectPick;
+    if (name == "DetectPlace") return Skill::Type::DetectPlace;
+    if (name == "DetectError") return Skill::Type::DetectError;
     
     // otherwise, we have an unknown skill
     throw std::runtime_error("Unknown skill type: " + name);
@@ -42,6 +45,14 @@ void Skill::set_param(const Json::Value &param) {
 AtomicSkill::AtomicSkill(const std::string &name) {
     this->name = name;
     this->type = from_string(name);
+}
+
+PerceptionSkill::PerceptionSkill(const std::string &name, const PerceptionSkillConfig &config) {
+    this->name = name;
+    this->type = from_string(name);
+    this->executor = nullptr;
+    this->param = Json::Value();
+    this->config_ = config;
 }
 
 MetaSkill::MetaSkill(const std::string &name, const std::vector<AtomicSkillPtr> &atomic_skills,

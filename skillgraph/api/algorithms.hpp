@@ -45,16 +45,4 @@ namespace skillgraph {
     };
     typedef std::shared_ptr<ControlAlgorithm> ControlAlgorithmPtr;
 
-    /**
-     * @class PerceptionAlgorithm
-     * @brief Derived class for perception algorithms.
-     */
-    class PerceptionAlgorithm: public Algorithm {
-        public: 
-            PerceptionAlgorithm() = default;
-    };
-    typedef std::shared_ptr<PerceptionAlgorithm> PerceptionAlgorithmPtr;
-
-    
-
 }
