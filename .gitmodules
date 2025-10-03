@@ -1,0 +1,9 @@
+[submodule "tools/LegoScope"]
+	path = tools/LegoScope
+	url = git@github.com:kevinPOI/LegoScope.git
+[submodule "tools/lego-failure-web"]
+	path = tools/lego-failure-web
+	url = git@github.com:mmliu2/lego-failure-web.git
+[submodule "tools/lego-failure"]
+	path = tools/lego-failure
+	url = git@github.com:mmliu2/lego-failure.git
