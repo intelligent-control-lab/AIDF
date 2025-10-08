@@ -1132,6 +1132,11 @@ void MoveitInstance::computeWorldTransform(Object &obj, const RobotState &robot_
     }
     
     // Set the joint positions from robot_state
+    
+    if (robot_state.joint_values.size() != getRobotDOF(robot_state.robot_id)) {
+        log("warning: robot goal state dof not match", LogLevel::WARN);
+        robot_state.joint_values.resize(getRobotDOF(robot_state.robot_id));
+    }
     tmp_robot_state.setJointGroupPositions(robot_state.robot_name, robot_state.joint_values);
     tmp_robot_state.update();
 
@@ -1165,7 +1170,7 @@ MoveitControl::MoveitControl(std::shared_ptr<MoveitInstance> instance, bool fake
 
 }
 
-bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &trajectory) {
+bool MoveitControl::move(State target_state, const RobotTrajectory &trajectory) {
     if (fake_move_) {
         // interpolate the robot state to the target state according to the trajectory
         // iterate the trajectory
@@ -1178,10 +1183,9 @@ bool MoveitControl::move(TaskParamPtr post_condition, const RobotTrajectory &tra
             }
         }
 
-        if (post_condition) {
-            instance_->setState(post_condition->target_state);
-            instance_->updateScene();
-        }
+        instance_->setState(target_state);
+        instance_->updateScene();
+        
         return true;
     }
 

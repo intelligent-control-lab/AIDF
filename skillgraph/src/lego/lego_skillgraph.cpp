@@ -371,6 +371,7 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
 
                     State end_state_i = state;
                     for (int i = 0; i < gs->atomic_skills.size(); i++) {
+                        State current_state_i = end_state_i;
                         // create atomic skill executor
                         auto atomic_skill = gs->atomic_skills[i];
                         auto atomic_executor = std::make_shared<LegoSkillExecutor>(atomic_skill->type, env_->backend_);
@@ -396,18 +397,19 @@ std::vector<SkillPtr> LegoSkillGraph::feasible_u(const skillgraph::State &state)
                             skill_feasible = false;
                             break;
                         }
+                        task->param = sub_task_param;
 
                         RobotTrajectory robot_traj;
                         auto planner = std::make_shared<LegoPlan>(lego_ptr_, env_->backend_, lego_config_, atomic_skill->robot, obj);
                         if (atomic_skill->type == Skill::Type::Transit) {
                             int robot_id = atomic_skill->robot->robot_id;
-                            planner->interpolate_segment(end_state_i.robot_states[robot_id], 
-                                sub_task_param->target_state.robot_states[robot_id], 
+                            planner->interpolate_segment(current_state_i.robot_states[robot_id], 
+                                end_state_i.robot_states[robot_id], 
                                 robot_traj
                             );
                         }
                         else {
-                            planner->plan_skill(end_state_i, *sub_task_param, atomic_skill->type, robot_traj);
+                            planner->plan_skill(current_state_i, *sub_task_param, atomic_skill->type, robot_traj);
                         }
                         atomic_executor->set_planned_trajectory(robot_traj);
                         atomic_executor->set_goal_state(end_state_i);

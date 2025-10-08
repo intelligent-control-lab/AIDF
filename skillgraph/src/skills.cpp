@@ -91,7 +91,6 @@ PerceptionSkill::PerceptionSkill(const std::string &name, const PerceptionSkillC
     this->name = name;
     this->type = from_string(name);
     this->executor = nullptr;
-    this->param = Json::Value();
     this->config_ = config;
 }
 

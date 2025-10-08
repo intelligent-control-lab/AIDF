@@ -202,12 +202,11 @@ namespace skillgraph {
 
             // constructor
             SkillCondition() = default;
-            SkillCondition(const pddl_state &symbolic_state, std::shared_ptr<ConditionEvaluator> condition_check)
-                : symbolic_state(symbolic_state), condition_check(condition_check) {}
+            SkillCondition(std::shared_ptr<ConditionEvaluator> condition_check)
+                : condition_check(condition_check) {}
 
             // copy constructor
             SkillCondition(const SkillCondition &other) {
-                symbolic_state = other.symbolic_state;
                 condition_check = other.condition_check;
             }
             virtual ~SkillCondition() = default;
@@ -218,8 +217,6 @@ namespace skillgraph {
                 }
                 return true; // default to true if no condition check is set
             }
-
-            pddl_state symbolic_state;
 
             std::shared_ptr<ConditionEvaluator> condition_check; /**< Condition evaluator */
     };

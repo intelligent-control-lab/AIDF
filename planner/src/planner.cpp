@@ -67,6 +67,9 @@ void AssemblyPlanner::plan() {
         }
     }
 
+    // No solution found
+    std::cout << "No solution found for the domain agnostic planner!" << std::endl;
+
 }
 
 bool AssemblyPlanner::get_path(State &state, std::vector<State> &path, std::vector<SkillPtr> &gs_path) {
