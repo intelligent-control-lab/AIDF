@@ -16,3 +16,6 @@
 [submodule "tools/tools/Dinov2-Nist-Detection"]
 	path = tools/tools/Dinov2-Nist-Detection
 	url = https://github.com/chaitanya1chawla/dinov2-nist-detection
+[submodule "tools/Dinov2-Nist-Detection"]
+	path = tools/Dinov2-Nist-Detection
+	url = https://github.com/chaitanya1chawla/dinov2-nist-detection
