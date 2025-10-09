@@ -7,3 +7,6 @@
 [submodule "tools/lego-failure"]
 	path = tools/lego-failure
 	url = git@github.com:mmliu2/lego-failure.git
+[submodule "tools/VideoSkillExtraction"]
+	path = tools/VideoSkillExtraction
+	url = https://github.com/chaitanya1chawla/VideoSkillExtraction.git
