@@ -1,5 +1,5 @@
-[submodule "tools/LegoScope"]
-	path = tools/LegoScope
+[submodule "tools/LegoOffsetDetection"]
+	path = tools/LegoOffsetDetection
 	url = git@github.com:kevinPOI/LegoScope.git
 [submodule "tools/lego-failure-web"]
 	path = tools/lego-failure-web
@@ -10,12 +10,6 @@
 [submodule "tools/VideoSkillExtraction"]
 	path = tools/VideoSkillExtraction
 	url = https://github.com/chaitanya1chawla/VideoSkillExtraction.git
-[submodule "tools/LegoErrorPerceptionSkills"]
-	path = tools/LegoErrorPerceptionSkills
-	url = https://github.com/kevinPOI/LegoScope
-[submodule "tools/tools/Dinov2-Nist-Detection"]
-	path = tools/tools/Dinov2-Nist-Detection
-	url = https://github.com/chaitanya1chawla/dinov2-nist-detection
 [submodule "tools/Dinov2-Nist-Detection"]
 	path = tools/Dinov2-Nist-Detection
 	url = https://github.com/chaitanya1chawla/dinov2-nist-detection
