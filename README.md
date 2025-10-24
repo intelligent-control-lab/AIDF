@@ -37,7 +37,7 @@ to initialize catkin workspace.
 
 Run
 ```
-cd ~/catkin_ws/src ; git clone https://github.com/intelligent-control-lab/Robot_Digital_Twin.git ; git checkout dual_arm_gen3
+cd ~/catkin_ws/src ; git clone https://github.com/intelligent-control-lab/Robot_Digital_Twin.git ; cd Robot_Digital_twin ; git checkout dual_arm_gen3
 cd ~/catkin_ws/src ; git clone https://github.com/intelligent-control-lab/AIDF.git
 ```
 

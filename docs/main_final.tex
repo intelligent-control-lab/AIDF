@@ -10,6 +10,9 @@
 \usepackage{cleveref}
 \usepackage{forest}
 \usepackage{fancyhdr}
+\usepackage{xcolor}  % put this in your preamble
+
+\newcommand{\assignee}[1]{\textcolor{blue}{#1}}
 \pagestyle{fancy}
 
 \title{\textbf{Ontology and SkillGraph Documentation}}
@@ -123,10 +126,11 @@ The relationships are represented as labels on the arrows, and the relationships
 
 
 \section{Main Components in SkillGraph}
+\assignee{Peiqi}\\
 The key components in the SkillGraph are:
 
 \begin{itemize}
-    \item \textbf{Skill:} Comprising derived classes \textit{AtomicSkill} and \textit{MetaSkill}, which define the basic and composite robot skills.
+    \item \textbf{Skill:} Contains derived classes \textit{AtomicSkill} and \textit{MetaSkill}, which define the basic and composite robot skills.
 
     \item \textbf{SkillExecutor:} Defined by its four properties: \textit{function}, \textit{pre-condition}, \textit{post-condition}, and \textit{parametors}.
     
@@ -152,162 +156,63 @@ Currently, our code is implemented in this \href{https://github.com/intelligent-
 
 In the following sections, we would give a detailed definition of each components and their relationships with other components.
 
+\assignee{Philip for writing all the implementation details of the codes, like the pointer to the code location, and the instances of skills.}\\
+\assignee{Peiqi for writing all the high-level meaning of this data structure}
 \subsection{Skill}\label{sec:skills}
-We define any robot action or robot decision that satisfies the following requirements as a skill: 1) can be executed in a real robot or a sensor, 2) has semantic meaning, and 3) can be planned on. We store those skills in base class \textit{Skill}, and divide them into \textit{AtomicSkill} and \textit{MetaSkill}. Each meta skill is composed by a set of atomic skills, arranged in a sequence or in some partial order.
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L10}{Skill base class} captures the enum type, display name, optional executor, and JSON parameters for every capability exposed in the SkillGraph. Codes below 100 mark atomic skills, while identifiers from 101 upwards denote meta skills composed of atomic steps. The atomic catalogue currently covers Pick, PlaceTop, PlaceBottom, SupportBottom, SupportTop, Handover, Transit, align, Translate, Rotate, DetectPick, DetectPlace, and DetectError. Meta entries extend the same enum with PlaceWithSupport, PickAndPlace, PickAndPlaceWithSupport, PickHandoverAndPlace, PickAndPlaceRealRobot, and TranslateWithRotation.
 
-\subsubsection{AtomicSkill}
-\textit{AtomicSkill} is a derived class from base class \textit{Skill}, and it has one property: 
-\begin{enumerate}
-    \item \underline{executor}: type of  \textit{Skill Executor}.
-\end{enumerate}
-The entity of \textit{AtomicSkill} is shown in \cref{fig:atomic-skills}. Currently, we define five instances of \textit{AtomicSkill}: Pick, Place, Support, Transit, and Align. Each atomic skill has its own \textit{executor}, whose datatype is
-\textit{SkillExecutor}.
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.6\linewidth]{images/AtomicSkills.png}
-    \caption{Entity of AtomicSkill}
-    \label{fig:atomic-skills}
-    \vspace{-10pt}
-\end{figure}
-
-
-\subsubsection{MetaSkill}
-\textit{MetaSkill} is another derived class from base class \textit{Skill}, and has 2 properties: 
-\begin{enumerate}
-    \item \underline{executor}: type of \textit{Skill Executor}.
-    \item \underline{atomic skills}: a vector of type \textit{AtomicSkill} that constitutes current meta skill.
-\end{enumerate}
-The entity of \textit{MetaSkill} is shown in \cref{fig:meta-skills}. Each instance of \textit{MetaSkill} is comprised of atomic skills, and each meta skill also has its own executor. Currently we have five meta skills: PlaceWithSupport and Handover, PickAndPlace, PickAndPlaceWithSup, PickHandoverAndPlace to group common action sequences and reduce complexity of downstream planning.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\linewidth]{images/metaskills.png}
-    \caption{Entity of MetaSkill}
-    \label{fig:meta-skills}
-    \vspace{-10pt}
-\end{figure}
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L58}{AtomicSkill} wrapper binds an optional target object and robot instance to a skill type and records the index of the atomic step when it is part of a meta skill. Perception-only actions use the dedicated \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L93}{PerceptionSkill} subclass, which stores ROS topic and launch information in a \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L86}{PerceptionSkillConfig}. Meta skills themselves are represented by the \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L118}{MetaSkill} class, which tracks the ordered atomic skill list, the robots participating in the sequence, selected objects, and the requested composition mode (temporal, functional, or spatial). String names from the JSON configuration are mapped to the enum values inside \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/src/skills.cpp#L5}{Skill::from_string}, and helper methods such as \texttt{isAtomic} and \texttt{isMeta} split the catalogue as needed.
 
 \subsection{Skill Executor}\label{sec:skill-executor}
-\textit{Skill Executor} is defined as a class that wraps the logic, effect, and requirements of skills execution in the above section. It has 4 properties:
-\begin{enumerate}
-    \item \underline{function}: the underlying execution function of each skill would include instances from \textit{PlanningAlgorithm}, \textit{ControlAlgorithm},  \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Algorithm}.
-    \item \underline{pre-condition}: a \textit{TaskParam} that measures what requirements the current state must satisfy before executing the skill. 
-    \item \underline{post-condition}: a \textit{TaskParam} that measure what the state would become after the execution of certain skill.
-    \item \underline{parameters}: the parameters of the skill execution function or the pre/post-conditions.
-\end{enumerate}
-The entity of \textit{Skill Executor} is shown in \cref{fig:skill-executor}. As mentioned in \cref{sec:skills}, each skill corresponds to one skill executor stored in class \textit{Skill Executor}. Every skill executor has three inputs: robot, environment, and task.
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.8\linewidth]{images/skillexecutor.png}
-    \caption{Skill Executor}
-    \label{fig:skill-executor}
-    \vspace{-10pt}
-\end{figure}
+The execution contract is defined by the abstract \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L175}{SkillExecutor}. Each executor keeps copies of its pre- and post-conditions (\texttt{TaskParam}), an ordered list of algorithm implementations, and the last planned trajectory. Meta skills reuse the same interface via the \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/skills.hpp#L204}{MetaSkillExecutor}, which chains several atomic executors according to the requested composition type. The helper methods in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/src/skills.cpp#L108}{skills.cpp} clone the shared pre/post conditions so downstream tasks can adjust them without mutating the original template, and \texttt{execute} remains the pure-virtual hook where concrete implementations will command the backend.
 
 \subsection{Algorithm}\label{sec:algorithms}
-The class \textit{Algorithm} is a class that implements common robotics planning/control/perception algorithms. Base Class \textit{Algorithm} have 4 derive classes: \textit{PlanningAlgorithm}, \textit{ControlAlgorithm}, \textit{PerceptionAlgorithm}, and \textit{Constraint Satisfaction Generator}.
-As mentioned in \cref{sec:skill-executor}, each skill executor function needs to choose its own planning, control, perception, and constraint satisfaction algorithms. There may be multiple algorithms suitable for each skill type. Those algorithms are stored in its corresponding derived classes. And every algorithm has its own function, as shown in \cref{fig:algorithms}.
-\begin{figure}[htbp]  % Force the figure to stay at the defined position
-    \centering
-    \subcaptionbox{Planning Algorithm \label{fig:planning-algorithm}}{\includegraphics[width=0.33\textwidth]{images/planning-algorithm.png}}
-    \subcaptionbox{Control Algorithm \label{fig:control-algorithm}}{\includegraphics[width=0.33\textwidth]{images/control-algorithm.png}}
-
-    \subcaptionbox{Perception Algorithm \label{fig:perception-algorithm}}{\includegraphics[width=0.33\textwidth]{images/perception-algorithm.png}}
-    \subcaptionbox{Constraint Satisfaction Generator \label{fig:constraint-satisfaction-generator}}{\includegraphics[width=0.48\textwidth]{images/constraint-satisfaction-algorithm.png}}
-
-    \caption{Algorithm}
-    \label{fig:algorithms}
-    \vspace{-10pt}
-\end{figure}
-
-\subsubsection{PlanningAlgorithm}
-\textit{PlanningAlgorithm} is in charge of planning robot trajectories, and currently we have two instances of planning algorithms: RRT and LegoPlan, as shown in \cref{fig:planning-algorithm}.
-
-\subsubsection{ControlAlgorithm}
-\textit{ControlAlgorithm} is in charge of tracking the planned robot trajectories, and currently we have two instances of control algorithms: PID and MPC, as shown in \cref{fig:control-algorithm}.
-
-\subsubsection{PerceptionAlgorithm}
-\textit{PerceptionAlgorithm} is in charge of perceiving information from the environment, and currently we have two instances of perception algorithms: Object Detection and Precise Align, as shown in \cref{fig:perception-algorithm}.
-
-\subsubsection{Constraint Satisfaction Generator}
-\textit{Constraint Satisfaction Generator} is in charge of generating specific data in order to satisfying certain constraints specified by the user, like feasible set and grasp pose shown in \cref{fig:constraint-satisfaction-generator}.
+The lightweight \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/algorithms.hpp#L14}{Algorithm} base class stores a type tag (Planning, Control, Perception) and a display name. Derived wrappers \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/algorithms.hpp#L32}{PlanningAlgorithm} and \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/algorithms.hpp#L42}{ControlAlgorithm} exist today; perception algorithms will follow the same pattern once implemented. Task-specific logic is currently provided in domain modules such as LEGO manipulation, for example the grasp generator implemented in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/src/lego/lego_algorithms.cpp#L13}{lego_algorithms.cpp}. Executors collect whichever algorithm instances they need inside their \texttt{implementation} vector.
 
 \subsection{Robot}
-Class \textit{Robot} is the abstract entity that describes the physical robot and its characteristics. The class has two properties:
-\begin{enumerate}
-    \item \underline{robot specification}: a json file that includes the detailed specification of each robot. 
-    \item \underline{capabilities}:  a list of instances of \textit{Skill} that the robot can perform.
-\end{enumerate}
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/robot.png}
-    \caption{Robot}
-    \label{fig:Robot}
-    \vspace{-10pt}
-\end{figure}
-The entity of \textit{Robot} is shown in \cref{fig:Robot}. Currently,  we define two instances of \textit{Robot}: GP4,and Fanuc. Both robots have the same capabilities of Pick, Place, Support, and Transit.
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/robots.hpp#L14}{Robot} class records the robot id, name, type, end-effector tool, degrees of freedom, capabilities, and home state. The constructor in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/src/robots.cpp#L13}{robots.cpp} currently instantiates GP4 manipulators, computes the correct end-effector link for the left or right arm, and validates supported gripper types. Helper methods expose formatted strings for the robot and tool types and report the combined arm and hand DOF.
 
 \subsection{Object}
-Currently, we allow users to flexibly define their own \textit{Object} class without imposing explicit restrictions on its properties, as the required object attributes may vary across different tasks. 
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/objects.hpp#L5}{Object} struct models each manipulable workpiece. It stores the semantic type, current state (static, attached, supported, handover), owning robot, the parent link, the full pose, an optional attachment pose, and a geometric description (box, sphere, cylinder, or mesh with dimensions). Objects support deep copies through \texttt{clone}, and equality compares pose, state, and parent link contents so planners can safely copy environment states without aliasing.
 
 \subsection{Environment}
-Class \textit{Environment} is the abstract entity that describe the physical assembly cell and its characteristics. The class has three properties:
-\begin{enumerate}
-    \item \underline{environment specification}: a json file that specifies the details of the environment.
-    \item \underline{object library}: a vector of type \textit{Object} that specifies all objects that can be interacted with in the environment
-    \item \underline{backend}:  a middleware or simulator that handles the control of the environment.
-\end{enumerate}
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/environment.png}
-    \caption{Entity of Environment}
-    \label{fig:Environment}
-    \vspace{-10pt}
-\end{figure}
-The entity of Environment is shown in \cref{fig:Environment}. Currently, we define two instances of \textit{environment}: EnvLego for Lego manipulation, and EnvNist for NIST test case assembly.
-
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/environment.hpp#L16}{Environment} wrapper names each workspace, tracks whether it is a Lego or NIST task, stores the JSON specification that seeded it, and keeps the current \texttt{EnvState}. A shared pointer to a \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/backend.hpp#L8}{PlanInstance} backend bridges to motion-planning or simulation infrastructure. The implementation in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/src/environment.cpp#L11}{environment.cpp} validates the environment type string and lets callers swap in different backend implementations such as the MoveIt integration.
 
 \subsection{Metric}
-Class \textit{Metric} defines any quantitative measure used to verify any task, object, or robot requirements that may constrain skill execution. Currently, our base class \textit{Metric} has 2 derived classes: \textit{Constraint Evaluator}, and \textit{Condition Evaluator}. The entities of these two classes are shown in \cref{fig:metric}.
-
-\begin{figure}[htbp]  % Force the figure to stay at the defined position
-    \centering
-    \subcaptionbox{Entity of Constraint Evaluator \label{fig:constraint-evaluator}}{\includegraphics[width=0.65\textwidth]{images/constraint.png}}
-    \subcaptionbox{Entity of Condition Evaluator \label{fig:condition-evaluator}}{\includegraphics[width=0.5\textwidth]{images/condition.png}}
-
-    \caption{Metric}
-    \label{fig:metric}
-    \vspace{-10pt}
-\end{figure}
-
-\subsubsection{Constraint Evaluator}
-\textit{Constraint Evaluator} is in charge of evaluating whether an instance of \textit{Constraint Satisfaction Generator} satisfies the constraints of the given task defined by its \textit{TaskParam}.
-
-\subsubsection{Condition Evaluator}
-\textit{Condition Evaluator} is in charge of evaluating whether the precondition or postcondition of a given \textit{SkillExecutor} is satisfied.
+Metrics are declared in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/metrics.hpp#L10}{metrics.hpp}. The base \texttt{Metric} stores the evaluator name, and the derived \texttt{ConditionEvaluator} and \texttt{ConstraintEvaluator} expose boolean checks that plug into \texttt{TaskParam}. The \texttt{SmoothnessMetrics} helper struct groups trajectory quality scores (normalised jerk and directional consistency) for downstream reporting. Function bodies are placeholders today and will be extended once concrete evaluators are added.
 
 \subsection{TaskParam}
-Data Structure \textit{TaskParam} has several properties:
-\begin{enumerate}
-    \item \underline{robot state}: Represents the current state of the robot, in type of \textit{RobotState}.
-    \item \underline{constraint}: Defines task-specific robot-state constraints.
-    \item \underline{env state}: Represents the current state of the environment, in type of \textit{EnvState}.
-    \item \underline{evaluator}: Checks if certain task-specific constraints or conditions are satisfied, in type of \textit{Metric}.
-    \item \underline{generator}: Generates robot state according to given \underline{constraint}, in type of \textit{Constraint Satisfaction Generator}.
-\end{enumerate}
+The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/tasks.hpp#L20}{TaskParam} structure collects everything an executor needs to reason about a skill: the raw JSON constraints, the list of allowed skill types, an optional target \texttt{State}, and optional algorithm hooks (\texttt{generator}, \texttt{condition_check}, \texttt{constraint_check}). Pre- and post-condition objects passed to executors are shallow copies of these structures so the planner can specialise them per skill invocation.
+
+\subsection{State}
+The multi-robot state model lives in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/data_structure.hpp#L102}{data_structure.hpp}. A \texttt{State} bundles a vector of \texttt{RobotState} entries, a deep-copied \texttt{EnvState}, and the number of assembly steps already completed; equality and hashing rely on the content of each component so the planner can store states inside associative containers.
 
 \subsection{RobotState}
-Data structure \textit{RobotState} has several properties:
-\begin{enumerate}
-    \item \underline{joint state}: Specifies robot joints state.
-    \item \underline{end effector state}: Specifies end-effector state.
-\end{enumerate}
+Each \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/data_structure.hpp#L6}{RobotState} stores the robot id, MoveIt group name, joint positions, end-effector joints (\texttt{hand_values}), and an open-ended \texttt{attributes} map for extra annotations. The helper \texttt{to_string}, equality operator, and hash specialisation make the struct easy to log and compare.
 
 \subsection{EnvState}
-Currently, our data structure \textit{EnvState} mainly focus on one property:
-\begin{enumerate}
-    \item \underline{objects}: Specifies the state of objects, including their locations, directions, and other status.
-\end{enumerate}
+\href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/data_structure.hpp#L45}{EnvState} owns deep clones of every tracked \texttt{Object}, ensuring that copies and assignments do not alias the same pointer. Equality tests compare the content of each object, and the \texttt{to_string} helper produces a human-readable dump. The global hash specialisation lets planner data structures use \texttt{EnvState} as a key.
+
+\subsection{RobotTrajectory}
+The planner expresses motion plans as \href{https://github.com/intelligent-control-lab/AIDF/blob/main/skillgraph/api/data_structure.hpp#L134}{RobotTrajectory} sequences that record the robot id, intermediate \texttt{RobotState} waypoints, timestamps, action ids, and accumulated cost. Multi-robot solutions are stored as \texttt{MRTrajectory} (a vector of per-robot trajectories).
+
+
+\section{Planner}
+\subsection{Domain Agnostic Task Planner}
+The core planner lives in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/planner/include/planner.h#L13}{AssemblyPlanner}. Its implementation (\href{https://github.com/intelligent-control-lab/AIDF/blob/main/planner/src/planner.cpp#L12}{planner.cpp}) performs a best-first search over \texttt{skillgraph::State} objects using a priority queue ordered by cumulative cost. The planner pulls the initial state from the SkillGraph, expands successors through \texttt{feasible_u} and \texttt{get_next_state}, and stops as soon as \texttt{at_target} reports success. The helper \texttt{get_path} routine backtracks the predecessor maps to recover both the state sequence and the corresponding skills once a solution is found.
+
+\subsection{Temporal Plan Graph for Execution}
+Execution scheduling is captured by the Temporal Plan Graph utilities in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/planner/include/tpg.h#L1}{tpg.h}. The data structures store type-1 and type-2 edges, robot-indexed timelines, and shortcut candidates that can tighten a multi-robot schedule. The \texttt{TPG} class wraps optimisation and execution helpers for MoveIt and ROS actionlib, while the \texttt{ShortcutSampler} and \texttt{ShortcutIterator} implementations expose several shortcut heuristics that can be toggled through the \texttt{TPGConfig} parameters. These components consume the trajectories produced by the planner and hand them to the backend.
+
+\section{Third-Party Libraries}
+\subsection{lego-failure-web (Visualization)}
+The web dashboard combines a ROS aggregator and a lightweight React front end to surface the status of every assembly step. The backend node in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure-web/backend/failure_summary_node.py#L1}{backend/failure\_summary\_node.py} listens to pick/place classifiers, anomaly detectors, and skill executors, condenses the incoming topics into a single failure summary, and republishes the result for consumption by the UI. To give operators visual context, \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure-web/backend/render_assembly_steps.py#L1}{backend/render\_assembly\_steps.py} drives Blender to convert LDraw instructions into per-step GLB and PNG assets, which the React application in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure-web/frontend/src/App.tsx}{frontend/src/App.tsx} displays through \texttt{@google/model-viewer}. The one-shot \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure-web/setup.sh}{setup.sh} script automates asset generation, ROS node launch, and frontend startup so the visualization can be brought online alongside the cell controller.
+
+\subsection{lego-failure (Perception Skills)}
+This repository hosts the perception stack that powers the DetectPick/DetectPlace skills and gap monitoring. \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure/scripts/pick_place_classify_node.py#L1}{scripts/pick\_place\_classify\_node.py} deploys a YOLO-based classifier that ingests the wrist camera stream (via \texttt{/robot/gen3\_image/compressed}) and publishes in-hand status to \texttt{/robot/pick\_place\_classify}. Surface quality is checked by the Detectron2 + RANSAC pipeline in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure/scripts/gap_detection/lego_face_segmenter.py#L1}{scripts/gap\_detection/lego\_face\_segmenter.py}, which segments stud faces, fits contact lines, and flags structural gaps. The \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/lego-failure/ros_scripts}{ros\_scripts} directory mirrors these utilities as ROS nodes (including bag-to-image extraction helpers), while \texttt{tools/lego-failure/models} stores the trained checkpoints that ship with the skill graph. Together, they form the perception-to-ROS bridge that our skill executors rely on during runtime.
+
+\subsection{LegoScope (Error Detection)}
+LegoScope implements the Eye-in-Finger endoscope pipeline for precise brick alignment. The main loop in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/LegoScope/detect_offset.py#L1}{detect\_offset.py} captures close-range images from the in-hand camera, segments LEGO studs, and refines circle fits so the detected studs lie on perpendicular tangents, yielding accurate x--y offsets and tool yaw. \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/LegoScope/pub_detect_offset.py#L1}{pub\_detect\_offset.py} wraps this estimation into a ROS node that publishes \texttt{/tool\_offset} and \texttt{/block\_tilt}, while \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/LegoScope/pub_camera_feed.py#L1}{pub\_camera\_feed.py} provides the compressed video stream. Detailed calibration, teleoperation guidance, and hardware notes live in \href{https://github.com/intelligent-control-lab/AIDF/blob/main/tools/LegoScope/README.md}{tools/LegoScope/README.md}, rounding out the end-to-end perception package for high-precision pick/place.
 
 \section{Implementation Details}
 In this section, we present the structure of our code and explain how each component from the previous sections is implemented within it.
@@ -336,6 +241,6 @@ data\_structure.hpp (implement \textit{Data Structures})\\
 \textbar\hspace{0.45cm}\textbar | include/ \\
 \textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | lego/ (lego-specific implementations) \\
 \textbar\hspace{0.45cm}\textbar\hspace{0.45cm}\textbar | Instance Implementation.hpp files \\
-
+ 
 
 \end{document}
