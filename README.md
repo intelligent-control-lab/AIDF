@@ -11,14 +11,48 @@ To enable our ROS Noetic backend (tested on Ubuntu 20.04), you may need to insta
 - [rviz tools](http://wiki.ros.org/rviz_visual_tools)
 - [moveit visual tools](http://wiki.ros.org/moveit_visual_tools)
 
-Follow the ros tutorial to create a workspace [tutorial](https://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
-For building code, I use catkin tools, which are documented [here](https://catkin-tools.readthedocs.io/en/latest/)
+For example, after installing ROS 1 noetic run
+```
+ros-noetic-rviz ros-noetic-moveit python3-catkin-tools ros-noetic-rviz-visual-tools ros-noetic-moveit-visual-tool
+```
+to install moveit, rviz and catkin tools
 
-Once you have download ros, and other system deps, under your catkin_ws/src, download the GP4-Lego simulator and environment setup to your workspace
+Under your ```catkin_ws/src```, download the GP4-Lego simulator and environment setup to your workspace
 - [gp4 digital twin](https://github.com/intelligent-control-lab/Robot_Digital_Twin.git). checkout to the ``dual_arm_gen3`` branch!
 - this repo
 
-## Run Lego Assembly Insturction for ROS1
+For example, run
+```
+mkdir -p ~/catkin_ws/src ; cd ~/catkin_ws ; catkin init
+```
+to initialize catkin workspace.
+
+Run
+```
+cd ~/catkin_ws/src ; git clone https://github.com/intelligent-control-lab/Robot_Digital_Twin.git ; git checkout dual_arm_gen3
+cd ~/catkin_ws/src ; git clone https://github.com/intelligent-control-lab/AIDF.git
+```
+
+To build the repo, run
+```
+cd ~/catkin_ws/src ; catkin build 
+```
+
+## Run Lego Assembly Simulation
+We have two ways to run the Lego Assembly simulation - with either of the following
+- automacially plan and execute a sequence of skills for an assembly sequence, with the automated task planner 
+- manually execute skills via an interactive webpage
+
+### Automated Eecution with Planner
+To run the automated planner, run
+```
+source /opt/ros/noetic/setup.bash ; source ~/catkin_ws/devel/setup.bash ; 
+rosrun aidf plan_lego
+```
+You should see the planner automatically search for and generate a feasible skills sequence, and robot execution in an Rviz window.
+
+### Manual Execution via Webpage
+
 To start the frontend of the webpage, run
 ```
 run_frontend.sh
