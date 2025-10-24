@@ -291,7 +291,7 @@
     }
 
     function fetchSkillGraphData() {
-        fetch('./config/lego_tasks/skillgraph.json')
+        fetch('../config/lego_tasks/skillgraph.json')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -312,7 +312,9 @@
             console.error('SkillGraph data is not loaded yet.');
             return;
         }
-
+        
+        // for debugging
+        // document.getElementById('debug-output').innerText += "\n" + JSON.stringify(skillGraphData, null, 2); 
         const skillDropdown = document.getElementById('skill');
         skillDropdown.innerHTML = ''; // Clear existing options
 
@@ -337,7 +339,7 @@
     function fetchEnvSetup(task) {
         document.getElementById('debug-output').innerText = "Fetching JSON for task: ${task}...";
 
-        fetch(`./config/lego_tasks/env_setup/env_setup_${task}.json`)
+        fetch(`../config/lego_tasks/env_setup/env_setup_${task}.json`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -496,30 +498,60 @@
 
         const robot = document.getElementById('robot').value;
         const metaSkills = skillGraphData.metaskills[robot];
+        const skillData = metaSkills[skill];
+        let formattedOutput = `<b>MetaSkill:</b> ${skill}<br>`;
 
-        if (!metaSkills || !metaSkills[skill]) {
-            document.getElementById('debug-output').innerText += `\n❌ No MetaSkill found for ${skill} on ${robot}!`;
+        if (!skillData) {
+            formattedOutput += `<span style="color:red;">Skill not found!</span>`;
+            document.getElementById('skill-output').innerHTML = formattedOutput;
             return;
         }
 
-        const atomicSkills = metaSkills[skill];
-        if (!atomicSkills || !atomicSkills.atomicSkills) {
-            document.getElementById('debug-output').innerText += `\n❌ No atomic skills found for ${skill} on ${robot}!`;
-            return;
+        // Type
+        if (skillData.type) {
+            formattedOutput += `<b>Type:</b> ${skillData.type}<br>`;
         }
 
-        // Format the output
-        const formattedOutput = 
-`<b>MetaSkill:</b> ${skill}
-<b>NumRobot:</b> ${atomicSkills.numRobot}
-<b>AtomicSkills:</b> [${atomicSkills.atomicSkills.join(', ')}]
-<b>MainRobot:</b> [${atomicSkills.robotId.join(', ')}]`;
+        // NumRobot
+        if (skillData.numRobot !== undefined) {
+            formattedOutput += `<b>NumRobot:</b> ${skillData.numRobot}<br>`;
+        }
 
-        // Display formatted output in skill-output
+        // AtomicSkills
+        if (skillData.atomicSkills) {
+            formattedOutput += `<b>AtomicSkills:</b> [${skillData.atomicSkills.join(', ')}]<br>`;
+        }
+
+        // MainRobot
+        if (skillData.robotId) {
+            formattedOutput += `<b>MainRobot:</b> [${skillData.robotId.join(', ')}]<br>`;
+        }
+
+        // Skill Parameters
+        // if (skillData.skill_parameters) {
+        //     formattedOutput += `<b>Skill Parameters:</b><br>`;
+        //     Object.entries(skillData.skill_parameters).forEach(([atomicSkill, params]) => {
+        //         formattedOutput += `<u>${atomicSkill}</u>: `;
+        //         Object.entries(params).forEach(([param, info]) => {
+        //             formattedOutput += `${param} (<i>${info.type}</i>), `;
+        //         });
+        //         formattedOutput = formattedOutput.replace(/, $/, '<br>');
+        //     });
+        // }
+
+        // Sequential Roles
+        if (skillData['sequential-roles']) {
+            formattedOutput += `<b>Sequential Roles:</b><br>`;
+            Object.entries(skillData['sequential-roles']).forEach(([role, details]) => {
+                formattedOutput += `<u>${role}</u>: `;
+                Object.entries(details).forEach(([k, v]) => {
+                    formattedOutput += `${k}: ${v}, `;
+                });
+                formattedOutput = formattedOutput.replace(/, $/, '<br>');
+            });
+        }
+
         document.getElementById('skill-output').innerHTML = formattedOutput;
-
-        // Log success in debug output
-        document.getElementById('debug-output').innerText += `\n✅ Successfully fetched and displayed details for skill: ${skill}`;
     }
 
 

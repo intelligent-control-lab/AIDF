@@ -132,11 +132,11 @@ def start_simulator():
 
     # change the skillgraph.json
     logging.info(f"task:{task}")
-    skillgraph_path = './config/lego_tasks/skillgraph.json'
+    skillgraph_path = '../config/lego_tasks/skillgraph.json'
     with open(skillgraph_path, 'r') as file:
         skillgraph_json = json.load(file)
     skillgraph_json['tasks']['name'] = task
-    skillgraph_json['tasks']['assembly_seq'] = f'config/lego_tasks/assembly_tasks/{task}.json'
+    skillgraph_json['tasks']['assembly_seq'] = f'../config/lego_tasks/assembly_tasks/{task}.json'
     with open(skillgraph_path, 'w') as file:
         json.dump(skillgraph_json, file, indent=4)
     logging.info(f"skillgraph.json updated successfully!")
@@ -187,7 +187,7 @@ def run_simulation():
     skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     # Update the web_message.json file with the extracted data
-    web_message_path = './config/web_message.json'
+    web_message_path = '../config/web_message.json'
     try:
         with open(web_message_path, 'r') as file:
             web_message = json.load(file)
@@ -264,7 +264,7 @@ def run_real_robot():
     skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     if skill != "base":
-        input_file = './processed_cliff_meta_skills.json'
+        input_file = '../processed_cliff_meta_skills.json'
         result = check_target(input_file, robot_id, obj, skill, target)
         if result == "9" or result == "10" or result == "11":
             num = result
