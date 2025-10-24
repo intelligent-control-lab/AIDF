@@ -47,8 +47,7 @@ ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 RUN git config --global url."https://${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 RUN cd catkin_ws/src \
-    && git clone https://github.com/intelligent-control-lab/AIDF.git \
-    && git clone https://github.com/philip-huang/moveit_configs.git
+    && git clone https://github.com/intelligent-control-lab/AIDF.git
 
 
 RUN cd catkin_ws/src \

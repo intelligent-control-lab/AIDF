@@ -46,6 +46,19 @@ To build the repo, run
 cd ~/catkin_ws/src ; catkin build 
 ```
 
+### Docker build
+Alternatively, we also provide a docker build script that includes all ROS1 dependencies. To build the docker, you need a GitHub [token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) for downloading the currently private AIDF repo.
+```
+export GITHUB_TOKEN="your_github_token_here"; 
+cd docker ; ./build.sh
+```
+
+Then run 
+```
+./docker/launch.sh
+``` 
+to launch the docker. You can then run the below commands in the docker terminal to launch simulation.
+
 ## Run Lego Assembly Simulation
 We have two ways to run the Lego Assembly simulation - with either of the following
 - automacially plan and execute a sequence of skills for an assembly sequence, with the automated task planner 
