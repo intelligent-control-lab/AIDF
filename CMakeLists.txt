@@ -181,20 +181,3 @@ target_link_libraries(webplan_lego
 install(TARGETS webplan_lego
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-
-
-
-add_executable(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  skillgraph/src/lego/lego_integrate_task_planning_chaitanya.cpp
-)
-
-add_dependencies(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(${PROJECT_NAME}_integrate_task_planning_chaitanya
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)

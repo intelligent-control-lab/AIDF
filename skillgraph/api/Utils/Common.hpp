@@ -1,27 +1,20 @@
 /*
 ***********************************************************************************************************************************************************************
-Copyright notice for IP Docket # 2022-013, The CFS Library in C++ for Robot Arm Trajectory Planning 2020 Carnegie Mellon University. 
-All rights reserved.
-National Robotics Engineering Center, Carnegie Mellon University www.nrec.ri.cmu.edu
-Confidential and Proprietary - Do not distribute without prior written permission.
+Copyright notice for our Ontology and Skill Graph for Autonomous Multi-Robot Assembly
 
-Rui Chen      ruic3@andrew.cmu.edu
-Ruixuan Liu   ruixuanl@andrew.cmu.edu
-Weiye Zhao    weiyezha@andrew.cmu.edu
-Changliu Liu  cliu6@andrew.cmu.edu
+All rights reserved (2025)
+Carnegie Mellon University 
+ARM Institute - Advanced Robotics for Manufacturing
+AI Data Foundry (AIDF) project 
 
-A023793. Sponsor is provided a non-exclusive, world-wide license to the Licensed Technology in the field of robotic painting and arcwelding.
+Philip Huang yizhouhu@andrew.cmu.edu
+Peiqi Yu peiqiy@andrew.cmu.edu
+Chaitanya Chawla cchawla@cs.cmu.edu
 
 This notice must appear in all copies of this file and its derivatives.
 ***********************************************************************************************************************************************************************
 */
 #pragma once
-
-#if BUILD_TYPE == BUILD_TYPE_DEBUG
-    #define DEBUG_PRINT
-#else
-    #undef DEBUG_PRINT
-#endif
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -53,12 +46,7 @@ This notice must appear in all copies of this file and its derivatives.
 #include <jsoncpp/json/value.h>
 #include <queue>
 #include <any>
-
-#include "ros/ros.h"
-#include <ros/package.h>
-#include "std_msgs/Float32MultiArray.h"
-#include "std_msgs/Float64.h"
-#include "std_msgs/Int64.h"
-#include "gazebo_msgs/SetModelState.h"
+#include <thread>
+#include <mutex>
 
 using namespace std::chrono;

@@ -1,3 +1,19 @@
+/*
+***********************************************************************************************************************************************************************
+Copyright notice for our Ontology and Skill Graph for Autonomous Multi-Robot Assembly
+
+All rights reserved (2025)
+Carnegie Mellon University 
+ARM Institute - Advanced Robotics for Manufacturing
+AI Data Foundry (AIDF) project 
+
+Philip Huang yizhouhu@andrew.cmu.edu
+Peiqi Yu peiqiy@andrew.cmu.edu
+Chaitanya Chawla cchawla@cs.cmu.edu
+
+This notice must appear in all copies of this file and its derivatives.
+***********************************************************************************************************************************************************************
+*/
 #pragma once
 #include <string>
 #include <filesystem>

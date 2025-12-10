@@ -2,8 +2,304 @@
 
 namespace lego_manipulation
 {
+namespace math
+{
+
+template Eigen::Matrix<float, Eigen::Dynamic, 1> ToEigen<float>(std::vector<float> data);
+template Eigen::Matrix<double, Eigen::Dynamic, 1> ToEigen<double>(std::vector<double> data);
+
+template <typename T>
+Eigen::Matrix<T, Eigen::Dynamic, 1> ToEigen(std::vector<T> data)
+{
+    Eigen::Matrix<T, Eigen::Dynamic, 1> vec;
+    vec.resize(data.size(), 1);
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        vec(i) = data.at(i);
+    }
+    return vec;
+}
+/* -------------------------------------------------------------------------- */
+/*                                   Matrix                                   */
+/* -------------------------------------------------------------------------- */
+Eigen::MatrixXd PInv(const Eigen::MatrixXd& M)
+{
+    auto nrow = M.rows();
+    auto ncol = M.cols();
+    Eigen::MatrixXd Minv;
+
+    if (nrow > ncol)
+    {
+        Minv = ( ( M.transpose() * M ).inverse() ) * M.transpose();
+    }
+    else if (nrow < ncol)
+    {
+        Minv = M.transpose() * ( ( M * M.transpose() ).inverse() );
+    }
+    else
+    {
+        Minv = M.inverse().eval();
+    }
+
+    return Minv;
+}
+
+Eigen::MatrixXd EigenVcat(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2)
+{
+    /** 
+     * [mat1; mat2]
+     */
+
+    std::cout << "start vcat" << std::endl;
+    try
+    {
+        if (mat1.rows() == 0){
+            return mat2;
+        }
+        else if (mat2.rows() == 0){
+            return mat1;
+        }
+        else{
+            if (mat1.cols() != mat2.cols())
+            {
+                std::ostringstream ss;
+                ss << "Expected mat1 and mat2 to have same cols(), got ["
+                    << mat1.cols() << "], [" << mat2.cols() << "]\n";
+                throw std::runtime_error(ss.str());
+            }
+            Eigen::MatrixXd new_mat(mat1.rows()+mat2.rows(), mat1.cols());
+            new_mat.topRows(mat1.rows()) = mat1;
+            new_mat.bottomRows(mat2.rows()) = mat2;
+            std::cout << "finished vcat" << std::endl;
+            return new_mat;
+        } 
+    }
+    catch(const std::exception& e)
+    {
+        throw;
+    }
+}
+
+Eigen::MatrixXd EigenHcat(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2)
+{
+    /** 
+     * [mat1 mat2]
+     */
+
+    try
+    {
+        if (mat1.cols() == 0){
+            return mat2;
+        }
+        else if (mat2.cols() == 0){
+            return mat1;
+        }
+        else{
+            if (mat1.rows() != mat2.rows())
+            {
+                std::ostringstream ss;
+                ss << "Expected mat1 and mat2 to have same rows(), got ["
+                    << mat1.rows() << "], [" << mat2.rows() << "]\n";
+                throw std::runtime_error(ss.str());
+            }
+            Eigen::MatrixXd new_mat(mat1.rows(), mat1.cols()+mat2.cols());
+            new_mat.leftCols(mat1.cols()) = mat1;
+            new_mat.rightCols(mat2.cols()) = mat2;
+            return new_mat;
+        } 
+    }
+    catch(const std::exception& e)
+    {
+        throw;
+    }
+}
+
+
+Eigen::MatrixXd FK(const VectorJd& q, const Eigen::MatrixXd& DH, const Eigen::MatrixXd& base_frame, const bool& joint_rad)
+{
+    Eigen::MatrixXd R(3, 3);
+    Eigen::MatrixXd T(3, 1);
+    Eigen::MatrixXd trans_mtx = Eigen::MatrixXd::Identity(4, 4);
+    trans_mtx = base_frame;
+    Eigen::MatrixXd tmp(4, 4);
+    Eigen::MatrixXd DH_cur = DH;
+    VectorJd q_rad = q;
+
+    if(!joint_rad)
+    {
+        // Deg to Rad
+        for(int i=0; i<q.rows(); i++)
+        {
+            q_rad(i) = q(i) * M_PI / 180;
+        }
+    }
+
+    DH_cur.col(0) = DH.col(0) + q_rad;
+    for(int i=0; i<DH_cur.rows(); i++)
+    {
+        R << cos(DH_cur.coeff(i, 0)), -sin(DH_cur.coeff(i, 0)) * cos(DH_cur.coeff(i, 3)),  sin(DH_cur.coeff(i, 0)) * sin(DH_cur.coeff(i, 3)),
+             sin(DH_cur.coeff(i, 0)),  cos(DH_cur.coeff(i, 0)) * cos(DH_cur.coeff(i, 3)), -cos(DH_cur.coeff(i, 0)) * sin(DH_cur.coeff(i, 3)),
+             0,                        sin(DH_cur.coeff(i, 3)),                            cos(DH_cur.coeff(i, 3));
+
+        T << DH_cur.coeff(i, 2) * cos(DH_cur.coeff(i, 0)), 
+             DH_cur.coeff(i, 2) * sin(DH_cur.coeff(i, 0)), 
+             DH_cur.coeff(i, 1);
+        tmp << R, T, 0, 0, 0, 1;
+        trans_mtx = (trans_mtx * tmp);
+    }
+    return trans_mtx;
+}
+
+
+bool ApproxEqNum(const double& a, const double& b, const double& thres){
+    return (bool) (abs(a-b) < thres);
+}
+
+}
+
+namespace io 
+{
+Eigen::MatrixXd LoadMatFromFile(const std::string fname)
+{
+    try
+    {
+        std::cout << "start loading mat from file: " << fname << std::endl;
+        std::ifstream file(fname);
+        if (!file.is_open())
+        {
+            std::ostringstream ss;
+            ss << "Cannot open file " << fname;
+            throw std::runtime_error(ss.str());
+        }
+        std::cout << "File opened successfully" << std::endl;
+
+        std::vector<double> values;
+        std::size_t rows = 0;
+        std::size_t cols = 0;
+        std::string line;
+        while (std::getline(file, line))
+        {
+            std::vector<double> row;
+            std::string token;
+            auto flush_token = [&](std::string& word)
+            {
+                if (word.empty())
+                {
+                    return;
+                }
+                row.push_back(std::stod(word));
+                word.clear();
+            };
+            for (char ch : line)
+            {
+                if (ch == ',' || std::isspace(static_cast<unsigned char>(ch)))
+                {
+                    flush_token(token);
+                }
+                else
+                {
+                    token.push_back(ch);
+                }
+            }
+            flush_token(token);
+
+            if (row.empty())
+            {
+                continue;
+            }
+
+            if (cols == 0)
+            {
+                cols = row.size();
+            }
+            else if (row.size() != cols)
+            {
+                std::ostringstream ss;
+                ss << "Inconsistent column count while parsing " << fname
+                   << ": expected " << cols << " values but got " << row.size();
+                throw std::runtime_error(ss.str());
+            }
+
+            values.insert(values.end(), row.begin(), row.end());
+            ++rows;
+        }
+
+        file.close();
+
+        if (rows == 0 || cols == 0)
+        {
+            std::cout << "Loaded empty mat from [" << fname << "]" << std::endl;
+            return Eigen::MatrixXd(0, 0);
+        }
+
+        if (values.size() != rows * cols)
+        {
+            std::ostringstream ss;
+            ss << "Unexpected parsed value count " << values.size()
+               << " for shape [" << rows << ", " << cols << "] in file " << fname;
+            throw std::runtime_error(ss.str());
+        }
+
+        // Fill a row-major buffer first so Eigen gets contiguous storage before the final copy.
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> row_major_mat(
+            static_cast<Eigen::Index>(rows), static_cast<Eigen::Index>(cols));
+        std::copy(values.begin(), values.end(), row_major_mat.data());
+        Eigen::MatrixXd mat = row_major_mat;
+
+        std::cout << "Loaded mat of shape [" << mat.rows()
+                    << ", " << mat.cols() << "] from [" << fname << "]" << std::endl;
+
+        return mat;
+    }
+    catch(const std::exception& e)
+    {
+        throw;
+    }
+}
+
+void SaveMatToFile(const Eigen::MatrixXd& mat, const std::string& fname)
+{
+    try
+    {
+        std::ofstream file(fname);
+        if (!file.is_open())
+        {
+            std::ostringstream ss;
+            ss << "Cannot write to file " << fname;
+            throw std::runtime_error(ss.str());
+        }
+        Eigen::IOFormat fmt(Eigen::FullPrecision, Eigen::DontAlignCols, ",", "\n", "", "", "", "");
+        file << mat.format(fmt);
+        file.close();
+
+        std::cout << "Wrote mat of shape [" << mat.rows()
+                    << ", " << mat.cols() << "] to [" << fname << "]\n";
+    }
+    catch(const std::exception& e)
+    {
+        throw;
+    }
+}
+
+}
+
 namespace lego
 {
+namespace
+{
+Eigen::Matrix4d make_tool_frame_from_dh(const Eigen::MatrixXd& dh)
+{
+    if (dh.rows() <= 5)
+    {
+        throw std::runtime_error("DH matrix must have at least 6 rows to compute tool frame.");
+    }
+    Eigen::Matrix4d tool = Eigen::Matrix4d::Identity(4, 4);
+    tool(0, 3) = dh(5, 2);
+    tool(1, 3) = 0.0;
+    tool(2, 3) = -dh(5, 1);
+    return tool;
+}
+}
 
 /**
  * @brief Construct a Lego object for manipulation and environment setup.

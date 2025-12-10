@@ -1,10 +1,53 @@
 #pragma once
-#include "Utils/Math.hpp"
-#include "Utils/FileIO.hpp"
+
+#include "Utils/Common.hpp"
+#include "ros/ros.h"
+#include <ros/package.h>
+#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float64.h"
+#include "std_msgs/Int64.h"
 #include "gazebo_msgs/SetModelState.h"
 
 namespace lego_manipulation
 {
+
+namespace math
+{
+
+/* -------------------------------------------------------------------------- */
+/*                             Vector definitions                             */
+/* -------------------------------------------------------------------------- */
+using Vector6d = Eigen::Matrix<double, 6, 1>;
+using VectorJd = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+
+/* -------------------------------------------------------------------------- */
+/*                                   Matrix                                   */
+/* -------------------------------------------------------------------------- */
+Eigen::MatrixXd PInv(const Eigen::MatrixXd& M);
+Eigen::MatrixXd EigenVcat(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2);
+Eigen::MatrixXd EigenHcat(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2);
+
+
+/* -------------------------------------------------------------------------- */
+/*                                 Kinematics                                 */
+/* -------------------------------------------------------------------------- */
+
+Eigen::MatrixXd FK(const VectorJd& q, const Eigen::MatrixXd& DH, const Eigen::MatrixXd& base_frame, const bool& joint_rad);
+
+bool ApproxEqNum(const double& a, const double& b, const double& thres);
+
+template<typename T>
+Eigen::Matrix<T, Eigen::Dynamic, 1> ToEigen(std::vector<T> data);
+
+}
+
+namespace io
+{
+Eigen::MatrixXd LoadMatFromFile(const std::string fname);
+void SaveMatToFile(const Eigen::MatrixXd& mat, const std::string& fname);
+}
+
+
 namespace lego
 {
 /**
