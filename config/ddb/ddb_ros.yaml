@@ -1,0 +1,26 @@
+
+trial_id: 'test_architect'
+set_ros_callback: False
+
+devices:
+  yk_architect:
+    namespace: yk_architect
+    rostopics: [fts, joint_states, robot_status,tool_offset,pick_place_classify,perception_checking]
+    attributes:
+      description: Architect - Yaskawa GP4 Robot System
+      type: Robot
+      version: 0.01
+  yk_destroyer:
+    namespace: yk_destroyer
+    rostopics: [fts, joint_states, robot_status,tool_offset,pick_place_classify,perception_checking]
+    attributes:
+      description: Destroyer - Yaskawa GP4 Robot System
+      type: Robot
+      version: 0.01
+  lego:
+    namespace: lego
+    rostopics: [assembling_step, completed_step]
+    attributes:
+      description: Lego Assembly Status
+      type: Robot
+      version: 0.01

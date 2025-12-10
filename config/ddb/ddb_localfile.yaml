@@ -1,0 +1,10 @@
+
+watch_dir:
+  - '/home/mfi/repos/ros1_ws/src/philip/Lego-SAM/temp_online_inference'
+
+system:
+  name: 'lego_camera'
+  trial_id: 'test-architect'
+
+wait_before_read: 1 # seconds
+buffer_size: 50
