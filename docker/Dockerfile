@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install PyYAML
 RUN pip3 install pyyaml
+RUN pip3 install flask
+RUN pip3 install flask-cors
 
 # INSTALL Rviz and Moveit Visual, and control tools
 RUN apt-get update && apt-get install -y \
