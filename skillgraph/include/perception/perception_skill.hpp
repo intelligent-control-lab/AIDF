@@ -11,9 +11,6 @@ Authors:
     Philip Huang philiphuang@cmu.edu 
     Peiqi Yu peiqiy@andrew.cmu.edu 
     Chaitanya Chawla cchawla@cs.cmu.edu 
-    Changliu Liu cliu6@andrew.cmu.edu 
-    Jiaoyang Li jiaoyanl@andrew.cmu.edu 
-    Guanya Shi guanyas@andrew.cmu.edu
 
 Non-Commercial Research License:
 Permission is hereby granted to use, copy, modify, and distribute this Software for non-commercial research and
