@@ -114,6 +114,7 @@ void SkillGraph::initialize() {
     
     Json::Value root;
     config_file >> root;
+    root_config_ = root;
 
     std::cout << "Parsing Skills" << std::endl;
     parse_skills(root);

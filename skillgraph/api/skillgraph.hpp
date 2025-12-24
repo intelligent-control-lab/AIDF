@@ -88,6 +88,10 @@ namespace skillgraph
             virtual ~SkillGraph() {};
 
             virtual void initialize();
+
+            const std::string& get_config_filename() const { return config_fname; }
+            const Json::Value& get_root_config() const { return root_config_; }
+            std::shared_ptr<Environment> get_environment() const { return env_; }
             
             void print_skillgraph();
 

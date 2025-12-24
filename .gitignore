@@ -5,3 +5,6 @@ latex/
 *.log
 
 Doxyfile
+
+__pycache__/
+*.pyc

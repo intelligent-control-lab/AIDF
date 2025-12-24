@@ -49,6 +49,7 @@ namespace skillgraph {
         };
         enum Type {
             /* Object Type Enum */
+            Unknown = -1,
             LegoBrick = 0,
             MagneticBlock = 1,
         };
@@ -82,24 +83,24 @@ namespace skillgraph {
         }
         
         std::string name;
-        Type type;
+        Type type = Type::Unknown;
         // mode of the object
-        State state;
-        std::string parent_link;
+        State state = State::Static;
+        std::string parent_link = "world";
         int robot_id = -1;
 
         // geometry of the object
-        double x, y, z;
+        double x = 0.0, y = 0.0, z = 0.0;
         double qx = 0, qy = 0, qz = 0, qw = 1.0;
-        double x_attach, y_attach, z_attach;
-        double qx_attach = 0, qy_attach = 0, qz_attach = 0, qw_attach = 0;
+        double x_attach = 0.0, y_attach = 0.0, z_attach = 0.0;
+        double qx_attach = 0.0, qy_attach = 0.0, qz_attach = 0.0, qw_attach = 1.0;
 
         // collision shape of the object
-        Shape shape;
-        double radius;
-        double length; // x
-        double width; // y
-        double height; // z
+        Shape shape = Shape::Box;
+        double radius = 0.0;
+        double length = 0.0; // x
+        double width = 0.0; // y
+        double height = 0.0; // z
         std::string mesh_path;
     };
     typedef std::shared_ptr<Object> ObjPtr;

@@ -93,8 +93,11 @@ include_directories(
 # /* -------------------------------------------------------------------------- */
 # /*                               Create Library                               */
 # /* -------------------------------------------------------------------------- */
-file(GLOB src_files skillgraph/src/*.cpp skillgraph/src/lego/*.cpp
-          skillgraph/src/Utils/*.cpp planner/src/*.cpp)
+file(GLOB src_files CONFIGURE_DEPENDS
+          skillgraph/src/*.cpp
+          skillgraph/src/lego/*.cpp
+          skillgraph/src/Utils/*.cpp
+          planner/src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${src_files})
 

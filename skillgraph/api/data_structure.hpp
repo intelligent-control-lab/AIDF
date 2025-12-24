@@ -36,7 +36,7 @@ namespace skillgraph {
 
         RobotState() = default;
 
-        int robot_id;
+        int robot_id = -1;
         std::string robot_name; // same as group name in moveit
         std::vector<double> joint_values;
         std::vector<double> hand_values;
@@ -132,7 +132,7 @@ namespace skillgraph {
         State() = default;
         std::vector<RobotState> robot_states;
         EnvState env_state;
-        int assembled_steps;
+        int assembled_steps = 0;
 
         bool operator==(const State &other) const {
             if (robot_states.size() != other.robot_states.size()) {
@@ -162,11 +162,11 @@ namespace skillgraph {
         * RobotTrajectory Class containing the robot trajectory, times, action ids, and cost
         */ 
         RobotTrajectory() = default;
-        int robot_id;
+        int robot_id = -1;
         std::vector<RobotState> trajectory;
         std::vector<double> times;
         std::vector<int> act_ids;
-        double cost;
+        double cost = 0.0;
     };
 
     typedef std::vector<RobotTrajectory> MRTrajectory;

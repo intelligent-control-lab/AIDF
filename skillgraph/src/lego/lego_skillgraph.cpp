@@ -178,6 +178,7 @@ void LegoSkillGraph::parse_tasks(const Json::Value &root_config) {
         // add the table to the initial state
         ObjPtr table = std::make_shared<Object>();
         table->name = "table";
+        table->type = Object::Type::Unknown;
         table->state = Object::State::Static;
         table->parent_link = "world";
         table->shape = Object::Shape::Box;
@@ -217,6 +218,7 @@ LegoBrick LegoSkillGraph::getLegoStart(const std::string &brick_name) {
     
     // define the object
     obj.name = brick_name;
+    obj.type = Object::Type::LegoBrick;
     obj.state = Object::State::Static;
     obj.parent_link = "world";
     obj.shape = Object::Shape::Box;
@@ -251,6 +253,7 @@ LegoBrick LegoSkillGraph::getLegoTarget(int task_idx) {
     LegoBrick obj;
     // define the object
     obj.name = brick_name;
+    obj.type = Object::Type::LegoBrick;
     obj.state = Object::State::Static;
     obj.parent_link = "world";
     obj.shape = Object::Shape::Box;
@@ -283,6 +286,7 @@ LegoBrick LegoSkillGraph::getLegoHandover(int task_idx, const RobotState &start_
     LegoBrick obj;
     // define the object
     obj.name = brick_name;
+    obj.type = Object::Type::LegoBrick;
     obj.state = Object::State::Handover;
     obj.parent_link = robots[sup_robot]->end_effector_link;
     obj.shape = Object::Shape::Box;
