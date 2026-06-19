@@ -137,6 +137,10 @@ bool LegoSkillExecutor::execute(State &current_state) {
             return false;
         }
         log("YK action server finished successfully", LogLevel::INFO);
+        return true;
+#else
+        log("TranslateWithRotation requires yk_tasks support", LogLevel::ERROR);
+        return false;
 #endif // HAVE_YK_TASKS
 
     } else {

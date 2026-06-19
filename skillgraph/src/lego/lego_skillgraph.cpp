@@ -466,8 +466,8 @@ bool LegoSkillGraph::get_next_state(const State& state, SkillPtr gs, State &next
         return false;
     }
 
-    if (gs->type == Skill::Type::PickAndPlace || gs->type == Skill::Type::PickAndPlaceWithSupport
-        || gs->type == Skill::Type::PickHandoverAndPlace) {
+    if (gs->type == Skill::Type::PlaceWithSupport || gs->type == Skill::Type::PickAndPlace
+        || gs->type == Skill::Type::PickAndPlaceWithSupport || gs->type == Skill::Type::PickHandoverAndPlace) {
         // get a new object at goal location
         
         auto obj_moved = std::make_shared<LegoBrick>(getLegoTarget(state.assembled_steps + 1));
@@ -493,8 +493,8 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
     Skill::Type skill_type = Skill::from_string(skillname);
 
     bool skill_feasible = false;
-    if (skill_type == Skill::Type::PickAndPlace || skill_type == Skill::Type::PickAndPlaceWithSupport
-        || skill_type == Skill::Type::PickHandoverAndPlace) {
+    if (skill_type == Skill::Type::PlaceWithSupport || skill_type == Skill::Type::PickAndPlace
+        || skill_type == Skill::Type::PickAndPlaceWithSupport || skill_type == Skill::Type::PickHandoverAndPlace) {
         
         // get the skill
         auto base_skill = std::dynamic_pointer_cast<MetaSkill>(get_skill(skillname));
@@ -507,6 +507,9 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         ObjPtr obj;
         if (skill_type == Skill::Type::PickAndPlace) {
             gs->set_robot({robot});
+        }
+        else if (skill_type == Skill::Type::PickHandoverAndPlace) {
+            gs->set_robot({robots[(rid + 1) % num_robots_], robots[rid]});
         }
         else {
             // support and handover skills require two robots
@@ -522,6 +525,10 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
                 break;
             }
         }
+        if (obj == nullptr) {
+            log("Object not found in current state: " + object_name, LogLevel::ERROR);
+            return false;
+        }
 
         // set executor
         auto meta_executor = std::make_shared<MetaSkillExecutor>(gs->type, MetaSkill::ComposeType::Temporal, gs->atomic_skills);
@@ -533,49 +540,101 @@ bool LegoSkillGraph::is_feasible(const State&state, Json::Value &skill_config, S
         auto &config = post_condition->constraints_json;
         config = skill_config["target_location"];
         config["brick_id"] = std::dynamic_pointer_cast<LegoBrick>(obj)->brick_id;
-        config["attack_dir"] = -1;
-        if (skill_type == Skill::Type::PickAndPlace) {
-            config["press_side"] = 1;
-            config["press_offset"] = 0;
-            config["manipulate_type"] = 0;
-            int press_x, press_y, press_ori;
-            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
-                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
-            config["press_x"] = press_x;
-            config["press_y"] = press_y;
-            config["press_z"] = config["z"].asInt() + 1;
-            config["press_ori"] = press_ori;
-            config["support_x"] = -1;
+        if (!config.isMember("attack_dir")) {
+            config["attack_dir"] = -1;
         }
-        else if (skill_type == Skill::Type::PickAndPlaceWithSupport) {
-            config["press_side"] = 1;
-            config["press_offset"] = 0;
-            config["manipulate_type"] = 0;
-            int press_x, press_y, press_ori;
-            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
-                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
-            config["press_x"] = press_x;
-            config["press_y"] = press_y;
-            config["press_z"] = config["z"].asInt() + 1;
-            config["support_x"] = press_x;
-            config["support_y"] = press_y;
-            config["support_z"] = config["press_z"].asInt() - 3;
-            config["support_ori"] = 0;
+        if (skill_type == Skill::Type::PickAndPlace) {
+            if (!config.isMember("press_side")) {
+                config["press_side"] = 1;
+            }
+            if (!config.isMember("press_offset")) {
+                config["press_offset"] = 0;
+            }
+            if (!config.isMember("manipulate_type")) {
+                config["manipulate_type"] = 0;
+            }
+            if (!config.isMember("press_x") || !config.isMember("press_y") || !config.isMember("press_ori")) {
+                int press_x, press_y, press_ori;
+                lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                    config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+                config["press_x"] = press_x;
+                config["press_y"] = press_y;
+                config["press_ori"] = press_ori;
+            }
+            if (!config.isMember("press_z")) {
+                config["press_z"] = config["z"].asInt() + 1;
+            }
+            if (!config.isMember("support_x")) {
+                config["support_x"] = -1;
+            }
+        }
+        else if (skill_type == Skill::Type::PlaceWithSupport || skill_type == Skill::Type::PickAndPlaceWithSupport) {
+            if (!config.isMember("press_side")) {
+                config["press_side"] = 1;
+            }
+            if (!config.isMember("press_offset")) {
+                config["press_offset"] = 0;
+            }
+            if (!config.isMember("manipulate_type")) {
+                config["manipulate_type"] = 0;
+            }
+            if (!config.isMember("press_x") || !config.isMember("press_y") || !config.isMember("press_ori")) {
+                int press_x, press_y, press_ori;
+                lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                    config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+                config["press_x"] = press_x;
+                config["press_y"] = press_y;
+                config["press_ori"] = press_ori;
+            }
+            if (!config.isMember("press_z")) {
+                config["press_z"] = config["z"].asInt() + 1;
+            }
+            if (!config.isMember("support_x")) {
+                config["support_x"] = config["press_x"];
+            }
+            if (!config.isMember("support_y")) {
+                config["support_y"] = config["press_y"];
+            }
+            if (!config.isMember("support_z")) {
+                config["support_z"] = config["press_z"].asInt() - 3;
+            }
+            if (!config.isMember("support_ori")) {
+                config["support_ori"] = 0;
+            }
         }
         else if (skill_type == Skill::Type::PickHandoverAndPlace) {
-            config["press_side"] = 1;
-            config["press_offset"] = 0;
-            config["manipulate_type"] = 1;
-            int press_x, press_y, press_ori;
-            lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
-                config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
-            config["press_x"] = press_x;
-            config["press_y"] = press_y;
-            config["press_z"] = config["z"].asInt() - 1;
-            config["support_x"] = press_x;
-            config["support_y"] = press_y;
-            config["support_z"] = config["press_z"].asInt() + 3;
-            config["support_ori"] = 1;
+            if (!config.isMember("press_side")) {
+                config["press_side"] = 1;
+            }
+            if (!config.isMember("press_offset")) {
+                config["press_offset"] = 0;
+            }
+            if (!config.isMember("manipulate_type")) {
+                config["manipulate_type"] = 1;
+            }
+            if (!config.isMember("press_x") || !config.isMember("press_y") || !config.isMember("press_ori")) {
+                int press_x, press_y, press_ori;
+                lego_ptr_->get_press_pt(config["x"].asInt(), config["y"].asInt(), config["brick_id"].asInt(), config["ori"].asInt(),
+                    config["press_side"].asInt(), config["press_offset"].asInt(), press_x, press_y, press_ori); 
+                config["press_x"] = press_x;
+                config["press_y"] = press_y;
+                config["press_ori"] = press_ori;
+            }
+            if (!config.isMember("press_z")) {
+                config["press_z"] = config["z"].asInt() - 1;
+            }
+            if (!config.isMember("support_x")) {
+                config["support_x"] = config["press_x"];
+            }
+            if (!config.isMember("support_y")) {
+                config["support_y"] = config["press_y"];
+            }
+            if (!config.isMember("support_z")) {
+                config["support_z"] = config["press_z"].asInt() + 3;
+            }
+            if (!config.isMember("support_ori")) {
+                config["support_ori"] = 1;
+            }
         }
         meta_executor->set_post_condition(post_condition);
 

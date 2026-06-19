@@ -14,9 +14,18 @@ import cv2
 import numpy as np
 import threading
 import base64
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
+
+WEBPAGE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = WEBPAGE_DIR.parent
+CONFIG_DIR = REPO_ROOT / "config"
+LOG_DIR = Path(os.environ.get("AIDF_WEB_LOG_DIR", "/tmp"))
+SIMULATION_LOG = LOG_DIR / "aidf_simulation.log"
+MOVEIT_LOG = LOG_DIR / "aidf_moveit.log"
+REAL_ROBOT_LOG = LOG_DIR / "aidf_real_robot.log"
 
 # Configure logging to log to terminal
 logging.basicConfig(
@@ -27,6 +36,27 @@ logging.basicConfig(
 
 # Variable to keep track of the current simulation process
 simulation_process = None
+
+def stop_existing_simulation():
+    global simulation_process
+
+    if simulation_process is not None and simulation_process.poll() is None:
+        logging.info(f"Stopping previous simulation process PID {simulation_process.pid}")
+        simulation_process.terminate()
+        try:
+            simulation_process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            simulation_process.kill()
+            simulation_process.wait(timeout=5)
+
+    simulation_process = None
+
+    # Flask debug reloads can lose the Python Popen handle while the ROS process
+    # keeps running, so also remove stale webplan_lego monitors.
+    subprocess.run(
+        ["pkill", "-f", r"webplan_lego .*config/web_message\.json"],
+        check=False,
+    )
 
 # for demo use
 def check_target(input_file, robot_id, obj, skill, target):
@@ -41,10 +71,68 @@ def check_target(input_file, robot_id, obj, skill, target):
 
     return None
 
+def brick_id_from_object_name(object_name):
+    if not object_name or not object_name.startswith("b") or "_" not in object_name:
+        return None
+    try:
+        return int(object_name.split("_", 1)[0][1:])
+    except ValueError:
+        return None
+
+def brick_seq_from_object_name(object_name):
+    if not object_name or "_" not in object_name:
+        return None
+    try:
+        return int(object_name.rsplit("_", 1)[1])
+    except ValueError:
+        return None
+
+def find_matching_task_parameters(obj, target):
+    skillgraph_path = CONFIG_DIR / "lego_tasks" / "skillgraph.json"
+    if not skillgraph_path.exists():
+        return {}
+
+    with skillgraph_path.open("r") as file:
+        skillgraph_json = json.load(file)
+
+    assembly_seq = skillgraph_json.get("tasks", {}).get("assembly_seq")
+    if not assembly_seq:
+        return {}
+
+    assembly_seq_path = REPO_ROOT / assembly_seq
+    if not assembly_seq_path.exists():
+        return {}
+
+    brick_id = brick_id_from_object_name(obj)
+    brick_seq = brick_seq_from_object_name(obj)
+    if brick_id is None:
+        return {}
+
+    with assembly_seq_path.open("r") as file:
+        task_json = json.load(file)
+
+    fallback_match = {}
+    for step in task_json.values():
+        if int(step.get("brick_id", -1)) != brick_id:
+            continue
+        if int(step.get("x", -1)) != int(target.get("x", -1)):
+            continue
+        if int(step.get("y", -1)) != int(target.get("y", -1)):
+            continue
+        if int(step.get("z", -1)) != int(target.get("z", -1)):
+            continue
+        if int(step.get("ori", 0)) != int(target.get("ori", 0)):
+            continue
+        fallback_match = step
+        if brick_seq is not None and int(step.get("brick_seq", brick_seq)) != brick_seq:
+            continue
+        return step
+
+    return fallback_match
+
 def check_simulation_log(command_id):
-    log_file_path = "simulation.log"
-    if os.path.exists(log_file_path):
-        with open(log_file_path, 'r') as log_file:
+    if SIMULATION_LOG.exists():
+        with SIMULATION_LOG.open('r') as log_file:
             for line in log_file:
                 if f"error: not feasible, id: {command_id}" in line:
                     return line
@@ -121,6 +209,7 @@ def start_simulator():
     global simulation_process
 
     logging.info("Starting Simulation...")
+    stop_existing_simulation()
     data = request.json
     simulator = data.get("simulator")
     robot = data.get("robot")
@@ -130,30 +219,59 @@ def start_simulator():
     ros_package = "your_ros_package" # TODO: Update the real ROS package name
     launch_file = "your_launch_file.launch" # TODO: Update the real launch file name
 
+    if not task or task == "none":
+        return jsonify({
+            "status": -1,
+            "output": "Please choose a task before starting the simulator."
+        }), 400
+
+    assembly_seq_path = CONFIG_DIR / "lego_tasks" / "assembly_tasks" / f"{task}.json"
+    env_setup_path = CONFIG_DIR / "lego_tasks" / "env_setup" / f"env_setup_{task}.json"
+    if not assembly_seq_path.exists():
+        return jsonify({
+            "status": -1,
+            "output": f"Assembly task file not found: {assembly_seq_path}"
+        }), 400
+    if not env_setup_path.exists():
+        return jsonify({
+            "status": -1,
+            "output": f"Environment setup file not found: {env_setup_path}"
+        }), 400
+
     # change the skillgraph.json
     logging.info(f"task:{task}")
-    skillgraph_path = '../config/lego_tasks/skillgraph.json'
-    with open(skillgraph_path, 'r') as file:
+    skillgraph_path = CONFIG_DIR / "lego_tasks" / "skillgraph.json"
+    with skillgraph_path.open('r') as file:
         skillgraph_json = json.load(file)
     skillgraph_json['tasks']['name'] = task
-    skillgraph_json['tasks']['assembly_seq'] = f'../config/lego_tasks/assembly_tasks/{task}.json'
-    with open(skillgraph_path, 'w') as file:
+    skillgraph_json['tasks']['assembly_seq'] = f'config/lego_tasks/assembly_tasks/{task}.json'
+    skillgraph_json['environment']['object_library'] = f'config/lego_tasks/env_setup/env_setup_{task}.json'
+    with skillgraph_path.open('w') as file:
         json.dump(skillgraph_json, file, indent=4)
     logging.info(f"skillgraph.json updated successfully!")
 
-    skillgraph_abspath = os.path.abspath(skillgraph_path)
+    skillgraph_abspath = str(skillgraph_path.resolve())
+    web_message_abspath = str((CONFIG_DIR / "web_message.json").resolve())
     logging.info(skillgraph_abspath)
 
     # Prepare the command to run the simulation
-    # command = f'exec bash -i -c "echo "test"'
-    command = f'exec bash -i -c "exec rosrun aidf webplan_lego {skillgraph_abspath}"' # TODO: Update the real execution commands
+    command = ["rosrun", "aidf", "webplan_lego", skillgraph_abspath, web_message_abspath]
     # command = f'exec bash -i -c "conda deactivate && exec roslaunch robot_digital_twin dual_gp4.launch"'
     logging.info(f"Executing command: {command}")
     
     try:
         # Start the simulation in a subprocess
-        log_file = open("simulation.log", "w")
-        simulation_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log_file = SIMULATION_LOG.open("w")
+        env = os.environ.copy()
+        env["AIDF_ROOT_DIR"] = str(REPO_ROOT)
+        simulation_process = subprocess.Popen(
+            command,
+            stdout=log_file,
+            stderr=log_file,
+            cwd=str(REPO_ROOT),
+            env=env
+        )
         
         logging.info(f"Simulation started with PID {simulation_process.pid}")
         
@@ -187,19 +305,23 @@ def run_simulation():
     skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     # Update the web_message.json file with the extracted data
-    web_message_path = '../config/web_message.json'
+    web_message_path = CONFIG_DIR / "web_message.json"
     try:
-        with open(web_message_path, 'r') as file:
+        with web_message_path.open('r') as file:
             web_message = json.load(file)
         
         web_message['skill'] = skill
         web_message['object'] = obj
         web_message['robot'] = robot_id
-        web_message['target_location'] = target
+        target_location = dict(target)
+        task_parameters = find_matching_task_parameters(obj, target)
+        if task_parameters:
+            target_location.update(task_parameters)
+        web_message['target_location'] = target_location
         web_message['skill_parameters'] = skill_parameters  # Update skill_parameters
         web_message['command_id'] = command_id
 
-        with open(web_message_path, 'w') as file:
+        with web_message_path.open('w') as file:
             json.dump(web_message, file, indent=4)
         
         logging.info(f"web_message.json updated successfully: {web_message}")
@@ -216,7 +338,7 @@ def run_simulation():
             
         if skill == "Align":
             # TODO: Chaitanya - incorporate the folllowing command into the skill graph
-            log_file = open("moveit.log", "w")
+            log_file = MOVEIT_LOG.open("w")
             # command = f'exec bash -i -c "exec roslaunch yk_launch moveit.launch namespace:=yk_destroyer"'
             # moveit_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
             command = f'exec bash -i -c "exec roslaunch gp4_lego task_planning_chaitanya_node.launch namespace:=yk_destroyer"'
@@ -264,7 +386,7 @@ def run_real_robot():
     skill_parameters = data.get("skill_parameters", {})  # Extract skill_parameters from the request
 
     if skill != "base":
-        input_file = '../processed_cliff_meta_skills.json'
+        input_file = CONFIG_DIR / "general_tasks" / "processed_cliff_meta_skills.json"
         result = check_target(input_file, robot_id, obj, skill, target)
         if result == "9" or result == "10" or result == "11":
             num = result
@@ -284,7 +406,8 @@ def run_real_robot():
     
     try:
         # Start the simulation in a subprocess
-        log_file = open("real_robot.log", "w")
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log_file = REAL_ROBOT_LOG.open("w")
         simulation_process = subprocess.Popen(command, stdout=log_file, stderr=log_file, shell=True)
         
         logging.info(f"Real robot session started with PID {simulation_process.pid}")
@@ -364,9 +487,9 @@ def start_camera_feed():
         # Load default image if not already loaded
         if default_image is None:
             try:
-                default_image_path = os.path.join('static', 'images', 'default_camera.jpg')
-                if os.path.exists(default_image_path):
-                    default_image = cv2.imread(default_image_path)
+                default_image_path = WEBPAGE_DIR / 'static' / 'images' / 'default_camera.jpg'
+                if default_image_path.exists():
+                    default_image = cv2.imread(str(default_image_path))
                 else:
                     logging.warning(f"Default image not found at {default_image_path}")
                     # Create a simple black image with text as fallback

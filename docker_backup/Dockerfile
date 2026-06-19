@@ -35,10 +35,6 @@ RUN apt-get update && apt-get install -y \
 # Install pypulp, pandas, numpy in pip
 RUN pip3 install pulp pandas numpy==1.24.4
 
-# Add helper script to launch webpage backend + frontend together
-COPY start_web_services.sh /usr/local/bin/start_web_services.sh
-RUN chmod +x /usr/local/bin/start_web_services.sh
-
 # Setup environment
 ENV HOME=/root
 WORKDIR $HOME
@@ -67,9 +63,6 @@ RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; cd catkin_ws; catkin build -DCMA
 # Source ROS setup file
 RUN echo "source /opt/ros/noetic/setup.bash" >> $HOME/.bashrc && \
     echo "source $HOME/catkin_ws/devel/setup.bash" >> $HOME/.bashrc
-
-# Web backend (Flask) + static frontend server
-EXPOSE 5000 8000
 
 # Set the entrypoint to the workspace
 WORKDIR $HOME/catkin_ws

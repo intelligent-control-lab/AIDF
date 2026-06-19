@@ -82,13 +82,28 @@
             <label for="task">Choose Task:</label>
             <select id="task">
                 <option value="none">None</option>
-                <option value="fish">Fish</option>
-                <option value="stairs">Stairs</option>
+                <option value="R">R</option>
+                <option value="S">S</option>
+                <option value="base">Base</option>
+                <option value="big_chair">Big Chair</option>
                 <option value="bridge">Bridge</option>
+                <option value="bridge_top">Bridge Top</option>
                 <option value="chair">Chair</option>
+                <option value="cliff">Cliff</option>
                 <option value="faucet">Faucet</option>
+                <option value="fish">Fish</option>
+                <option value="fish_high">Fish High</option>
                 <option value="tower">Tower</option>
                 <option value="gate">Gate</option>
+                <option value="guitar">Guitar</option>
+                <option value="rss">RSS</option>
+                <option value="stairs">Stairs</option>
+                <option value="stairs_new">Stairs New</option>
+                <option value="stairs_rotated">Stairs Rotated</option>
+                <option value="test">Test</option>
+                <option value="test_corner">Test Corner</option>
+                <option value="test_swap">Test Swap</option>
+                <option value="vessel">Vessel</option>
             </select>
 
             <button onclick="startSimulator()">Start Simulator</button>
@@ -372,8 +387,27 @@
             const option = document.createElement('option');
             option.value = objName;
             option.textContent = `${task}-${objName}`;
-            object.appendChild(option);
+            objectDropdown.appendChild(option);
         });
+    }
+
+    function removeExecutedObjectFromDropdown(objectName) {
+        if (!objectName || objectName === "none") {
+            return;
+        }
+
+        const objectDropdown = document.getElementById('object');
+        const optionToRemove = Array.from(objectDropdown.options).find(option => option.value === objectName);
+        if (!optionToRemove) {
+            return;
+        }
+
+        const removedIndex = optionToRemove.index;
+        optionToRemove.remove();
+
+        if (objectDropdown.options.length > 0) {
+            objectDropdown.selectedIndex = Math.min(removedIndex, objectDropdown.options.length - 1);
+        }
     }
 
     function showSkillBase() {
@@ -639,7 +673,11 @@
             pid: currentPid
         };
         
-        sendRequest('/run_simulation', command);
+        sendRequest('/run_simulation', command, (data) => {
+            if (data.status === 0) {
+                removeExecutedObjectFromDropdown(command.object);
+            }
+        });
     }
 
     function runRealRobot(){
@@ -692,17 +730,30 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(command)
         })
-        .then(response => response.json())
+        .then(async response => {
+            const text = await response.text();
+            let data;
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch (error) {
+                data = { status: -1, output: text || response.statusText };
+            }
+            if (!response.ok && data.status === undefined) {
+                data.status = -1;
+            }
+            return data;
+        })
         .then(data => {
             document.getElementById('response-output').innerText = JSON.stringify(data, null, 4);
-            if (data.status === -1 && data.output.includes("error: not feasible")) {
-                const reason = data.output.split("reason:")[1];
+            const output = data.output || data.error || '';
+            if (data.status === -1 && output.includes("error: not feasible")) {
+                const reason = output.split("reason:")[1];
                 alert(`Error: The chosen set is not feasible. Reason: ${reason}`);
             }
             if (callback) callback(data);
         })
-        .catch(() => {
-            document.getElementById('response-output').innerText = JSON.stringify({ error: 'Request failed' }, null, 4);
+        .catch(error => {
+            document.getElementById('response-output').innerText = JSON.stringify({ status: -1, error: error.message || 'Request failed' }, null, 4);
         });
     }
 
