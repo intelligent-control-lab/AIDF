@@ -204,6 +204,13 @@ h4 {
   color: #333;
 }
 
+.improvement-heading {
+  margin: 22px 0 6px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #333;
+}
+
 h3 { margin: 22px 0 6px; font-size: 1.08rem; color: #333; }
 
 p { margin: 0 0 14px; }
@@ -359,6 +366,23 @@ figcaption {
   line-height: 1.5;
 }
 
+/* ── Acknowledgments ─────────────────────────────────────────── */
+.ack-logo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 18px;
+  padding: 18px 0;
+}
+
+.ack-logo-row img {
+  max-width: min(260px, 42vw);
+  max-height: 96px;
+  object-fit: contain;
+}
+
 .wide-figure,
 section > figure,
 .demo-card figure,
@@ -380,11 +404,23 @@ section > figure,
 /* ── Skill grid ──────────────────────────────────────────────── */
 .skill-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 10px;
-  margin-top: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 20px 0 8px;
 }
-.skill-grid figure { margin: 0; }
+.skill-grid figure {
+  margin: 0;
+  padding: 14px;
+}
+.skill-grid img {
+  width: 100%;
+  min-height: 190px;
+  object-fit: contain;
+}
+.skill-grid figcaption {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
 
 /* ── Structure grid ──────────────────────────────────────────── */
 .structure-grid {

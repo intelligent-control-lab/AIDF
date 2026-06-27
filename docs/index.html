@@ -37,9 +37,11 @@
         <a href="#framework">Framework</a>
         <a href="#demos">Demos</a>
         <a href="#pipeline">Pipeline</a>
+        <a href="#acknowledgments">Acknowledgments</a>
         <a href="#citation">Citation</a>
       </nav>
     </header>
+
 
     <!-- ── Hero video ─────────────────────────────────────────── -->
     <section id="video" class="video-section">
@@ -47,6 +49,20 @@
         <source src="iros_aidf_submission.mp4" type="video/mp4">
         Your browser does not support the video tag.
       </video>
+    </section>
+
+    <!-- ── Acknowledgments ────────────────────────────────────── -->
+    <section id="acknowledgments">
+      <h2>Acknowledgments</h2>
+      <p>
+        This project is supported by the
+        <span class="hl-blue">ARM Institute National Artificial Intelligence Data Foundry for Robotics</span>
+        and the <span class="hl-red">Manufacturing Futures Institute</span> at Carnegie Mellon University.
+      </p>
+      <div class="ack-logo-row" aria-label="Project support logos">
+        <img src="assets/arm.jpeg" alt="ARM Institute">
+        <img src="assets/mfi-logo.svg" alt="Manufacturing Futures Institute at Carnegie Mellon University">
+      </div>
     </section>
 
     <!-- ── Abstract ───────────────────────────────────────────── -->
@@ -205,12 +221,12 @@
       </div>
 
       <div class="demo-card">
-        <h3>Demo 3 — Automatic Failure Recovery</h3>
+        <h3>Demo 3 — Automatic Failure Detection</h3>
         <p>
           When a pick or place operation fails mid-assembly, the
           <span class="hl-blue">in-hand camera evaluator</span> detects the failure via
-          post-condition checking and triggers an automatic retry — without restarting the full
-          task. This 10× speed-compressed clip shows the system recovering from a grasp failure
+          post-condition checking and triggers an automatic recovery procedure 
+          (waiting for human to recover the failure) — without continuing with failure existed. This 10× speed-compressed clip shows the system recovering from a grasp failure
           during Faucet assembly.
         </p>
         <video controls muted loop playsinline preload="metadata">
@@ -385,7 +401,7 @@
         two closed-loop improvement mechanisms.
       </p>
 
-      <h4>Vision-based skill evaluators</h4>
+      <h4 class="improvement-heading">Vision-based skill evaluators</h4>
       <p>
         New perception skills are crafted from planning and execution data.
         An <span class="hl-blue">Eye-in-Finger (EiF) camera</span> verifies pick/place
@@ -405,7 +421,7 @@
         </figcaption>
       </figure>
 
-      <h4>Failure-probability-aware planning</h4>
+      <h4 class="improvement-heading">Failure-probability-aware planning</h4>
       <p>
         Empirical failure probabilities estimated from execution logs are fed back into the
         <span class="hl-red">Skill Graph</span> cost tensor. The planner then autonomously
