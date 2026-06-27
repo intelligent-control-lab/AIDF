@@ -131,49 +131,31 @@
       </figure>
 
       <h4>Per-skill trajectory visualizations</h4>
-      <div class="robot-skills">
-        <div class="robot-group">
-          <p class="robot-label">Architect</p>
-          <div class="skill-grid">
-            <figure>
-              <img src="assets/yk_architect_pick.png" alt="Architect — Pick trajectory.">
-              <figcaption>Pick</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_architect_place_down.png" alt="Architect — Place Down trajectory.">
-              <figcaption>Place Down</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_architect_support_bottom.png" alt="Architect — Support Bottom trajectory.">
-              <figcaption>Support Bottom</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_architect_support_top.png" alt="Architect — Support Top trajectory.">
-              <figcaption>Support Top</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_architect_handover.png" alt="Architect — Handover trajectory.">
-              <figcaption>Handover</figcaption>
-            </figure>
-          </div>
-        </div>
-        <div class="robot-group">
-          <p class="robot-label">Destroyer</p>
-          <div class="skill-grid">
-            <figure>
-              <img src="assets/yk_destroyer_pick.png" alt="Destroyer — Pick trajectory.">
-              <figcaption>Pick</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_destroyer_place_down.png" alt="Destroyer — Place Down trajectory.">
-              <figcaption>Place Down</figcaption>
-            </figure>
-            <figure>
-              <img src="assets/yk_destroyer_place_up.png" alt="Destroyer — Place Up trajectory.">
-              <figcaption>Place Up</figcaption>
-            </figure>
-          </div>
-        </div>
+      <div class="skill-grid">
+        <figure>
+          <img src="assets/yk_architect_pick.png" alt="Pick trajectory.">
+          <figcaption>Pick</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/yk_architect_place_down.png" alt="Place Down trajectory.">
+          <figcaption>Place Down</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/yk_destroyer_place_up.png" alt="Place Up trajectory.">
+          <figcaption>Place Up</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/yk_architect_support_bottom.png" alt="Support Bottom trajectory.">
+          <figcaption>Support Bottom</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/yk_architect_support_top.png" alt="Support Top trajectory.">
+          <figcaption>Support Top</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/yk_architect_handover.png" alt="Handover trajectory.">
+          <figcaption>Handover</figcaption>
+        </figure>
       </div>
 
       <h3>4. Collect data and improve skills</h3>
@@ -181,7 +163,7 @@
         Each execution produces structured logs. These logs support pick/place postcondition checks,
         structural anomaly detection, and future failure-aware planning.
       </p>
-      <figure>
+      <figure class="small-figure">
         <img src="assets/perception-evaluators.png" alt="Vision-based perception evaluators.">
         <figcaption>Data-driven perception skills for manipulation checks and anomaly detection.</figcaption>
       </figure>
@@ -195,10 +177,10 @@
         A human assembly video is converted into a robot-executable task. The robot execution follows
         the extracted task sequence while grounding each step through the Skill Graph.
       </p>
-      <figure>
+      <!-- <figure>
         <img src="assets/task-specification.png" alt="Human demonstration transferred to robot execution.">
         <figcaption>Transfer from human demonstration to robot execution.</figcaption>
-      </figure>
+      </figure> -->
       <video controls muted loop playsinline preload="metadata">
         <source src="human-demonstration-2-skill-execution.webm" type="video/webm">
         Your browser does not support the video tag.

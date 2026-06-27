@@ -170,6 +170,12 @@ figcaption {
   margin-top: 28px;
 }
 
+.small-figure {
+  max-width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .figure-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -185,20 +191,6 @@ section > figure,
   border: 1px solid #e1e1e1;
   border-radius: 4px;
   background: #fafafa;
-}
-
-.robot-skills {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 16px;
-}
-
-.robot-label {
-  margin: 0 0 8px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #444;
 }
 
 .skill-grid {
