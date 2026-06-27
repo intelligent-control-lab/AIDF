@@ -1,30 +1,105 @@
+/* ── Reset & base ────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
 }
 
 body {
   margin: 0;
-  color: #222;
+  color: #1a1a2e;
   background: #fff;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 }
 
 main {
   width: min(980px, calc(100% - 36px));
   margin: 0 auto;
-  padding: 38px 0 70px;
+  padding: 38px 0 80px;
 }
 
-.page-header {
-  margin: 0 auto 34px;
+/* ── Section backgrounds ─────────────────────────────────────── */
+.section-alt {
+  background: #f5f8fd;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  padding-left: calc(50vw - 50%);
+  padding-right: calc(50vw - 50%);
 }
+.section-alt > * {
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Inline colour highlights ────────────────────────────────── */
+.hl-red,
+.hl-blue,
+.hl-green {
+  font-weight: 650;
+}
+
+.hl-red {
+  color: #C41230;
+}
+
+.hl-blue {
+  color: #0b5cab;
+}
+
+.hl-green {
+  color: #2d7a2d;
+}
+
+/* ── Tags / badges ───────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 2px 3px;
+}
+.tag-gray  { background: #eee;    color: #444; }
+.tag-blue  { background: #ddeeff; color: #0b5cab; }
+.tag-green { background: #e4f5e4; color: #2d7a2d; }
+.tag-red   { background: #fde8ec; color: #C41230; }
+
+/* ── Header ──────────────────────────────────────────────────── */
+.page-header { margin: 0 auto 34px; }
 
 .header-main {
   text-align: center;
-  max-width: 760px;
+  max-width: 800px;
   margin: 0 auto;
+}
+
+.venue {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #888;
+  letter-spacing: 0.03em;
+}
+
+h1 {
+  max-width: 800px;
+  margin: 0 auto 0;
+  font-size: clamp(1.65rem, 3.4vw, 2.5rem);
+  line-height: 1.15;
+  font-weight: 650;
+  color: #000;
+}
+
+.authors {
+  margin: 20px auto 6px;
+  max-width: 820px;
+  font-size: 1.05rem;
+  color: #333;
 }
 
 .affiliation {
@@ -32,6 +107,7 @@ main {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
+  color: #555;
 }
 
 .cmu-logo {
@@ -43,168 +119,82 @@ main {
   vertical-align: middle;
 }
 
-.venue,
-.affiliation,
-.note,
-.small,
-figcaption {
-  color: #666;
-}
+.note { margin: 4px 0; color: #888; font-size: 0.9rem; }
 
-.venue {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-}
-
-h1 {
-  max-width: 760px;
-  margin: 0 auto;
-  font-size: clamp(1.7rem, 3.6vw, 2.65rem);
-  line-height: 1.12;
-  font-weight: 700;
-}
-
-.authors {
-  margin: 22px auto 6px;
-  max-width: 820px;
-  font-size: 1.08rem;
-}
-
-.affiliation,
-.note {
-  margin: 4px 0;
-}
-
+/* ── Link buttons ────────────────────────────────────────────── */
 .links {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin: 22px 0 8px;
-}
-
-.toc {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin: 16px auto 10px;
-  font-size: 0.95rem;
-}
-
-a {
-  color: #0b5cab;
+  margin: 22px 0 10px;
 }
 
 .links a {
   display: inline-block;
-  padding: 7px 14px;
-  border: 1px solid #b9c9d8;
-  border-radius: 4px;
+  padding: 8px 18px;
+  border: 1.5px solid #b9c9d8;
+  border-radius: 6px;
   text-decoration: none;
   background: #f8fbfd;
+  color: #0b5cab;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
 }
+.links a:hover { background: #e8f2ff; border-color: #0b5cab; }
 
+/* ── TOC nav ─────────────────────────────────────────────────── */
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 14px auto 6px;
+  font-size: 0.9rem;
+}
 .toc a {
-  color: #333;
-}
-
-section {
-  margin-top: 44px;
-  padding-top: 6px;
-}
-
-.video-section {
-  margin-top: 28px;
-  padding-top: 0;
-}
-
-video {
-  display: block;
-  width: 90%;
-  max-width: 840px;
-  max-height: min(480px, 52vh);
-  aspect-ratio: 16 / 9;
-  margin: 0 auto;
-  background: #000;
-  border: 1px solid #ddd;
+  color: #555;
+  text-decoration: none;
+  padding: 3px 10px;
   border-radius: 4px;
-  object-fit: contain;
+  transition: background 0.15s;
 }
+.toc a:hover { background: #f0f0f0; color: #C41230; }
+
+/* ── Section headings ────────────────────────────────────────── */
+section { margin-top: 52px; padding-top: 8px; }
+.section-alt { padding-top: 40px; padding-bottom: 40px; margin-top: 52px; }
 
 h2 {
-  margin: 0 0 14px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #ddd;
-  font-size: 1.55rem;
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f0f23;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #C41230;
+  display: inline-block;
 }
 
-h3 {
-  margin: 22px 0 6px;
-  font-size: 1.08rem;
-  color: #333;
-}
-
-p {
-  margin: 0 0 14px;
-}
-
-figure {
-  margin: 22px 0 30px;
-}
-
-img:not(.cmu-logo) {
+/* force h2 to block so border spans full line */
+h2 { display: block; border-bottom: none; position: relative; }
+h2::after {
+  content: "";
   display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
+  width: 52px;
+  height: 3px;
+  background: #C41230;
+  margin-top: 6px;
+  border-radius: 2px;
 }
 
-figcaption {
-  margin-top: 8px;
-  font-size: 0.94rem;
-  text-align: center;
-}
-
-.wide-figure {
-  margin-top: 28px;
-}
-
-.small-figure {
-  max-width: 60%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.figure-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px;
-  align-items: start;
-}
-
-.wide-figure,
-section > figure,
-.figure-row figure,
-.structure-grid figure {
-  padding: 10px;
-  border: 1px solid #e1e1e1;
-  border-radius: 4px;
-  background: #fafafa;
-}
-
-.skill-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: 10px;
-}
-
-.skill-grid figure {
-  margin: 0;
-  padding: 8px;
-  border: 1px solid #e1e1e1;
-  border-radius: 4px;
-  background: #fafafa;
+.section-sub {
+  margin: 26px 0 6px;
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  padding-left: 12px;
+  border-left: 3px solid #0b5cab;
 }
 
 h4 {
@@ -214,67 +204,268 @@ h4 {
   color: #333;
 }
 
+h3 { margin: 22px 0 6px; font-size: 1.08rem; color: #333; }
+
+p { margin: 0 0 14px; }
+
+a { color: #0b5cab; }
+
+/* ── Video section ───────────────────────────────────────────── */
+.video-section { margin-top: 28px; padding-top: 0; }
+
+video {
+  display: block;
+  width: 90%;
+  max-width: 840px;
+  max-height: min(480px, 52vh);
+  aspect-ratio: 16 / 9;
+  margin: 16px auto;
+  background: #000;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+/* ── Stats grid ──────────────────────────────────────────────── */
+.stat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  margin: 28px 0 8px;
+  border: 1px solid #dde6f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f0f6ff;
+}
+
+.stat-item {
+  flex: 1 1 140px;
+  text-align: center;
+  padding: 20px 14px;
+  border-right: 1px solid #dde6f0;
+}
+.stat-item:last-child { border-right: none; }
+
+.stat-number {
+  display: block;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #C41230;
+  line-height: 1.1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ── Contribution list ───────────────────────────────────────── */
+.contribution-list {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 20px;
+}
+.contribution-list li {
+  padding: 9px 12px 9px 34px;
+  position: relative;
+  border-left: 3px solid #C41230;
+  background: #fffafb;
+  margin-bottom: 8px;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.97rem;
+}
+.contribution-list li::before {
+  content: "▶";
+  position: absolute;
+  left: 10px;
+  top: 11px;
+  color: #C41230;
+  font-size: 0.7rem;
+}
+
+/* ── Component cards ─────────────────────────────────────────── */
+.component-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.component-card {
+  background: #fff;
+  border: 1px solid #dde6f0;
+  border-radius: 8px;
+  padding: 18px 20px;
+  position: relative;
+}
+.component-card h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: #0f0f23;
+}
+.comp-label {
+  display: inline-block;
+  background: #C41230;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Demo cards ──────────────────────────────────────────────── */
+.demo-card {
+  background: #fff;
+  border: 1px solid #dde6f0;
+  border-radius: 10px;
+  padding: 24px 26px;
+  margin: 20px 0;
+}
+.demo-card h3 {
+  margin: 0 0 12px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #0f0f23;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* ── Result table colours ────────────────────────────────────── */
+.result-good { color: #2d7a2d; font-weight: 600; }
+.result-bad  { color: #b94a00; }
+.method-label { font-weight: 500; font-size: 0.95rem; }
+.method-good  { color: #2d7a2d; }
+
+/* ── Figures ─────────────────────────────────────────────────── */
+figure { margin: 22px 0 28px; }
+
+img:not(.cmu-logo) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+figcaption {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+  color: #555;
+  line-height: 1.5;
+}
+
+.wide-figure,
+section > figure,
+.demo-card figure,
+.skill-grid figure {
+  padding: 10px;
+  border: 1px solid #e4e8f0;
+  border-radius: 6px;
+  background: #fafbfd;
+}
+
+.wide-figure { margin-top: 28px; }
+
+.small-figure {
+  max-width: 65%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Skill grid ──────────────────────────────────────────────── */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.skill-grid figure { margin: 0; }
+
+/* ── Structure grid ──────────────────────────────────────────── */
 .structure-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  margin-top: 22px;
+  margin-top: 18px;
 }
-
-.structure-grid figure {
-  margin: 0;
-}
-
+.structure-grid figure { margin: 0; }
 .structure-grid img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
 }
 
-.table-wrap {
-  overflow-x: auto;
-}
+/* ── Table ───────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin-top: 16px; }
 
 table {
   width: 100%;
-  min-width: 620px;
+  min-width: 560px;
   border-collapse: collapse;
-  margin-top: 14px;
 }
 
-th,
-td {
-  padding: 9px 10px;
-  border: 1px solid #ddd;
+th, td {
+  padding: 10px 12px;
+  border: 1px solid #dde;
   text-align: left;
   vertical-align: middle;
+  font-size: 0.95rem;
 }
 
-th {
-  background: #f1f3f5;
-}
+th { background: #f0f4f8; font-weight: 600; color: #0f0f23; }
+tr:hover td { background: #f9fbff; }
 
+/* ── Code / citation ─────────────────────────────────────────── */
 pre {
   overflow-x: auto;
-  padding: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #f7f7f7;
-  font-size: 0.9rem;
+  padding: 16px;
+  border: 1px solid #dde;
+  border-radius: 6px;
+  background: #f7f8fb;
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
+.small { color: #777; font-size: 0.88rem; margin-top: 8px; }
+
+code { font-size: 0.9em; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+pre code { background: none; padding: 0; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 760px) {
-  body {
-    font-size: 16px;
-  }
+  body { font-size: 16px; }
 
   main {
     width: min(100% - 24px, 980px);
-    padding-top: 28px;
+    padding-top: 24px;
   }
 
-  .figure-row,
-  .structure-grid {
+  .component-grid {
     grid-template-columns: 1fr;
+  }
+
+  .structure-grid,
+  .skill-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-grid { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid #dde6f0; }
+  .stat-item:last-child { border-bottom: none; }
+
+  .small-figure { max-width: 100%; }
+
+  .demo-card { padding: 16px; }
+
+  .section-alt {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
