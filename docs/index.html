@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autonomous Integration and Improvement of Robotic Assembly using Skill Graph Representations</title>
+  <meta name="description" content="Project page for Autonomous Integration and Improvement of Robotic Assembly using Skill Graph Representations.">
+  <meta property="og:title" content="Skill Graph Representations for Robotic Assembly">
+  <meta property="og:description" content="A Skill Graph framework for integrating, executing, evaluating, and improving robotic assembly systems.">
+  <meta property="og:image" content="assets/paper-overview.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <div class="header-main">
+        <p class="venue">arXiv:2603.12649</p>
+        <h1>Autonomous Integration and Improvement of Robotic Assembly using Skill Graph Representations</h1>
+        <p class="authors">
+          Peiqi Yu<sup>*</sup>, Philip Huang<sup>*</sup>, Chaitanya Chawla<sup>*</sup>,
+          Guanya Shi, Jiaoyang Li, Changliu Liu
+        </p>
+        <p class="affiliation">
+          <img class="cmu-logo" src="cmu-wordmark-stacked-r.png" alt="Carnegie Mellon University">
+          Carnegie Mellon University
+        </p>
+        <p class="note"><sup>*</sup> Equal contribution</p>
+      </div>
+      <p class="links">
+        <a href="2603.12649v1.pdf">Paper</a>
+        <a href="https://arxiv.org/abs/2603.12649">arXiv</a>
+        <a href="https://github.com/intelligent-control-lab/AIDF">Code</a>
+      </p>
+      <nav class="toc" aria-label="Page sections">
+        <a href="#video">Video</a>
+        <a href="#abstract">Abstract</a>
+        <a href="#framework">Framework Overview</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#demos">Demos</a>
+        <a href="#citation">Citation</a>
+      </nav>
+    </header>
+
+    <section id="video" class="video-section">
+      <video controls autoplay muted loop playsinline preload="metadata">
+        <source src="iros_aidf_submission.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </section>
+
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <p>
+        Robotic assembly systems traditionally require substantial manual engineering effort to
+        integrate new tasks, adapt to new environments, and improve performance over time. This
+        paper presents a framework for autonomous integration and continuous improvement based on
+        Skill Graph representations.
+      </p>
+      <p>
+        A Skill Graph organizes robot capabilities as verb-based skills and explicitly links
+        semantic descriptions with executable policies, preconditions, postconditions, and
+        evaluators. This lets the system plan at the semantic level while still grounding execution
+        in robot controllers and perception modules.
+      </p>
+    </section>
+
+    <section id="framework">
+      <h2>Framework Overview</h2>
+      <p>
+        The central idea is to make every robot capability explicit. Instead of hiding task logic
+        inside one-off scripts, AIDF represents skills, planning constraints, execution interfaces,
+        and evaluation criteria in one graph structure.
+      </p>
+      <figure class="wide-figure">
+        <img src="assets/paper-overview.png" alt="Overview of the Skill Graph framework.">
+        <figcaption>
+          Overview. A Skill Graph connects task specification, skill representation, planning,
+          robot execution, data collection, and skill improvement.
+        </figcaption>
+      </figure>
+
+      <h3>Skill Graph representation</h3>
+      <p>
+        Each skill is represented by a verb, applicable nouns, an executable policy, preconditions,
+        postconditions, and an evaluator. This gives the planner enough semantic structure to reason
+        about tasks and enough execution detail to run on physical robots.
+      </p>
+
+      <h3>Atomic skills and meta-skills</h3>
+      <p>
+        Atomic skills include Transit, Pick, Place, Support, and Handover. Common compositions are
+        packaged as meta-skills such as PickPlace, PickPlacewSupport, and PickHandoverPlace, so a
+        high-level assembly step can expand into executable robot actions.
+      </p>
+
+      <h3>Planning, execution, and improvement</h3>
+      <p>
+        The planner grounds semantic assembly steps into robot-object-skill assignments. During
+        execution, the system logs trajectories, forces, camera observations, and skill labels. Those
+        logs are then used to diagnose failures and improve future skill execution.
+      </p>
+    </section>
+
+    <section id="pipeline">
+      <h2>Pipeline</h2>
+      <h3>1. Specify an assembly task</h3>
+      <p>
+        The user can provide a structured task directly, or the system can extract an assembly task
+        from a human demonstration video. The video pipeline performs preprocessing, token reduction,
+        multimodal prompting, and schema-constrained generation.
+      </p>
+      <figure>
+        <img src="assets/task-specification.png" alt="Video-based task specification pipeline.">
+        <figcaption>Task specification pipeline: human demonstration to structured assembly task.</figcaption>
+      </figure>
+
+      <h3>2. Plan over the Skill Graph</h3>
+      <p>
+        The planner searches for feasible meta-skills, robot assignments, and object choices. It uses
+        preconditions such as stability, reachability, collision constraints, and available inventory.
+      </p>
+
+      <h3>3. Execute with the bimanual robot system</h3>
+      <p>
+        The grounded sequence is executed by two Yaskawa GP4 robots. APEX-MR converts the planned
+        sequence into an asynchronous execution graph so safe parts of the task can run in parallel.
+      </p>
+      <figure>
+        <img src="assets/skill-trajectories.png" alt="Skill-level trajectory visualization.">
+        <figcaption>Skill-level execution snapshots and full-task joint/force traces.</figcaption>
+      </figure>
+
+      <h4>Per-skill trajectory visualizations</h4>
+      <div class="robot-skills">
+        <div class="robot-group">
+          <p class="robot-label">Architect</p>
+          <div class="skill-grid">
+            <figure>
+              <img src="assets/yk_architect_pick.png" alt="Architect — Pick trajectory.">
+              <figcaption>Pick</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_architect_place_down.png" alt="Architect — Place Down trajectory.">
+              <figcaption>Place Down</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_architect_support_bottom.png" alt="Architect — Support Bottom trajectory.">
+              <figcaption>Support Bottom</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_architect_support_top.png" alt="Architect — Support Top trajectory.">
+              <figcaption>Support Top</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_architect_handover.png" alt="Architect — Handover trajectory.">
+              <figcaption>Handover</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="robot-group">
+          <p class="robot-label">Destroyer</p>
+          <div class="skill-grid">
+            <figure>
+              <img src="assets/yk_destroyer_pick.png" alt="Destroyer — Pick trajectory.">
+              <figcaption>Pick</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_destroyer_place_down.png" alt="Destroyer — Place Down trajectory.">
+              <figcaption>Place Down</figcaption>
+            </figure>
+            <figure>
+              <img src="assets/yk_destroyer_place_up.png" alt="Destroyer — Place Up trajectory.">
+              <figcaption>Place Up</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <h3>4. Collect data and improve skills</h3>
+      <p>
+        Each execution produces structured logs. These logs support pick/place postcondition checks,
+        structural anomaly detection, and future failure-aware planning.
+      </p>
+      <figure>
+        <img src="assets/perception-evaluators.png" alt="Vision-based perception evaluators.">
+        <figcaption>Data-driven perception skills for manipulation checks and anomaly detection.</figcaption>
+      </figure>
+    </section>
+
+    <section id="demos">
+      <h2>Demos</h2>
+
+      <h3>Demo 1: Human demonstration to robot execution</h3>
+      <p>
+        A human assembly video is converted into a robot-executable task. The robot execution follows
+        the extracted task sequence while grounding each step through the Skill Graph.
+      </p>
+      <figure>
+        <img src="assets/task-specification.png" alt="Human demonstration transferred to robot execution.">
+        <figcaption>Transfer from human demonstration to robot execution.</figcaption>
+      </figure>
+      <video controls muted loop playsinline preload="metadata">
+        <source src="human-demonstration-2-skill-execution.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+
+      <h3>Demo 2: Long-horizon LEGO assembly tasks</h3>
+      <p>
+        The system is evaluated on four LEGO structures with different lengths and geometry:
+        Faucet, Fish, Vessel, and Guitar.
+      </p>
+      <h4>Faucet assembly</h4>
+      <p>Full robot execution of the 14-brick Faucet structure.</p>
+      <video controls muted loop playsinline preload="metadata">
+        <source src="faucet.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="structure-grid" aria-label="Assembly designs">
+        <figure>
+          <img src="assets/structure-faucet.png" alt="Faucet LEGO assembly design.">
+          <figcaption>Faucet, 14 bricks</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/structure-fish.png" alt="Fish LEGO assembly design.">
+          <figcaption>Fish, 29 bricks</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/structure-vessel.png" alt="Vessel LEGO assembly design.">
+          <figcaption>Vessel, 36 bricks</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/structure-guitar.png" alt="Guitar LEGO assembly design.">
+          <figcaption>Guitar, 24 bricks</figcaption>
+        </figure>
+      </div>
+
+      <h3>Demo 3: Failure recovery</h3>
+      <p>
+        When a pick or place step fails mid-assembly, the system detects the failure through
+        its evaluators and re-attempts the skill automatically without restarting the full task.
+      </p>
+      <video controls muted loop playsinline preload="metadata">
+        <source src="%28failure%20recovery%29brickmatic_faucet_gen3_10x_compressed.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+
+      <h3>Demo 4: Skill improvement after deployment</h3>
+      <p>
+        After adding skill improvements, the system succeeds on all evaluated designs in the
+        reported trials and increases survival length for longer structures.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Design</th>
+              <th>Success Rate</th>
+              <th>Survival Length</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="4">Before skill improvement</td>
+              <td>Faucet</td>
+              <td>1/5</td>
+              <td>9.2</td>
+            </tr>
+            <tr>
+              <td>Fish</td>
+              <td>0/5</td>
+              <td>7.8</td>
+            </tr>
+            <tr>
+              <td>Vessel</td>
+              <td>1/3</td>
+              <td>33.7</td>
+            </tr>
+            <tr>
+              <td>Guitar</td>
+              <td>1/1</td>
+              <td>24</td>
+            </tr>
+            <tr>
+              <td rowspan="4">After skill improvement</td>
+              <td>Faucet</td>
+              <td>1/1</td>
+              <td>14</td>
+            </tr>
+            <tr>
+              <td>Fish</td>
+              <td>1/1</td>
+              <td>29</td>
+            </tr>
+            <tr>
+              <td>Vessel</td>
+              <td>1/1</td>
+              <td>36</td>
+            </tr>
+            <tr>
+              <td>Guitar</td>
+              <td>1/1</td>
+              <td>24</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">
+        Survival length is the average number of bricks assembled without restarting.
+      </p>
+    </section>
+
+    <section id="citation">
+      <h2>Citation</h2>
+      <pre><code>@article{yu2026autonomous,
+  title = {Autonomous Integration and Improvement of Robotic Assembly using Skill Graph Representations},
+  author = {Yu, Peiqi and Huang, Philip and Chawla, Chaitanya and Shi, Guanya and Li, Jiaoyang and Liu, Changliu},
+  journal = {arXiv preprint arXiv:2603.12649},
+  year = {2026}
+}</code></pre>
+    </section>
+  </main>
+</body>
+</html>
