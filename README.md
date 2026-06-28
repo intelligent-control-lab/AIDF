@@ -1,5 +1,7 @@
 # AIDF
 
+[![Project Page](https://img.shields.io/badge/Project-Website-2ea44f?logo=githubpages&logoColor=white)](https://intelligent-control-lab.github.io/AIDF/) [![arXiv](https://img.shields.io/badge/arXiv-2603.12649-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/pdf/2603.12649) [![Code](https://img.shields.io/badge/Code-GitHub-181717?logo=github&logoColor=white)](https://github.com/intelligent-control-lab/AIDF)
+
 This is the code repository repo for AIDF project. The goal of this repo is to provide the software implementation for the skillgraph and planner, based on our ontological layout. 
 
 ## 📦 Build Instruction For ROS1
